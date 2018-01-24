@@ -8,8 +8,16 @@ create table room (
 /* what else do we want in family? */
 create table family (
     familyID serial PRIMARY KEY,
-    name text
+    
 );
+
+create table user (
+    userID serial PRIMARY KEY,
+    familyID serial REFERENCES family (familyID),
+    firstName text,
+    lastName text,
+    phoneNumber text, /* text for now, probably a better format available */
+)
 
 create table block (
     blockID serial PRIMARY KEY,
