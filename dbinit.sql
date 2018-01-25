@@ -3,50 +3,50 @@ create database caraway;
 \c caraway;
 
 create table room (
-    RoomID serial PRIMARY KEY,
-    Name text,
-    Teacher text,
-    RoomNum text
+    room_id serial PRIMARY KEY,
+    name text,
+    teacher text,
+    room_num text
 );
 
 /* what else do we want in family? */
 create table family (
-    FamilyID serial PRIMARY KEY,
-    SurName text
+    family_id serial PRIMARY KEY,
+    surname text
 );
 
 create table users (
-    UserID serial PRIMARY KEY,
-    Role int DEFAULT 1,
-    FamilyID serial REFERENCES family (familyID),
-    UserName text UNIQUE,
-    Password text, /* CURRENTLY PLAINTEXT!!! */
-    FirstName text,
-    LastName text,
-    PhoneNumber text /* text for now, probably a better format available */
+    user_id serial PRIMARY KEY,
+    role int DEFAULT 1,
+    family_id serial REFERENCES family (family_id),
+    username text UNIQUE,
+    password text, /* CURRENTLY PLAINTEXT!!! */
+    firstname text,
+    lastname text,
+    phonenumber text /* text for now, probably a better format available */
 
 );
 
 create table block (
-    BlockID serial PRIMARY KEY,
-    BlockStart TIMESTAMP,
-    BlockEnd TIMESTAMP,
-    Room serial REFERENCES room(roomID),
-    Modifier int DEFAULT 1,
-    Note text
+    block_id serial PRIMARY KEY,
+    block_start TIMESTAMP,
+    block_end TIMESTAMP,
+    room serial REFERENCES room(room_id),
+    modifier int DEFAULT 1,
+    note text
 );
 
 create table booking (
-    BookingID serial PRIMARY KEY,
-    BlockID serial REFERENCES block (blockID),
-    BamilyID serial REFERENCES family (familyID),
-    BookingStart TIMESTAMP,
-    BookingEnd TIMESTAMP
+    booking_id serial PRIMARY KEY,
+    block_id serial REFERENCES block (block_id),
+    family_id serial REFERENCES family (family_id),
+    booking_start TIMESTAMP,
+    booking_end TIMESTAMP
 );
 
 create table clocking (
-    BookingID serial REFERENCES booking (BookingID),
-    ClockIn TIMESTAMP,
-    ClockOut TIMESTAMP
+    booking_id serial REFERENCES booking (booking_id),
+    clock_in TIMESTAMP,
+    clock_out TIMESTAMP
 );
 
