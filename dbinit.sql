@@ -1,52 +1,58 @@
-create database caraway;
+DROP DATABASE caraway;
+CREATE DATABASE caraway;
 
 \c caraway;
 
-create table room (
-    room_id serial PRIMARY KEY,
-    name text,
-    teacher text,
-    room_num text
+CREATE TABLE room (
+    room_id         SERIAL      PRIMARY KEY,
+    room_name       TEXT,
+    teacher_id     	INT         REFERENCES users (user_id),
+	children		INT,
+    room_num        TEXT
 );
 
-/* what else do we want in family? */
-create table family (
-    family_id serial PRIMARY KEY,
-    surname text
+CREATE TABLE family (
+    family_id       SERIAL      PRIMARY KEY,
+    family_name     TEXT        UNIQUE,
+    parent_one      INT         REFERENCES users (user_id),
+    parent_two      INT         REFERENCES users (user_id),
+    children		INT
 );
 
-create table users (
-    user_id serial PRIMARY KEY,
-    role int DEFAULT 1,
-    family_id serial REFERENCES family (family_id),
-    username text UNIQUE,
-    password text, /* CURRENTLY PLAINTEXT!!! */
-    firstname text,
-    lastname text,
-    phonenumber text /* text for now, probably a better format available */
+CREATE TABLE users (
+    user_id         SERIAL      PRIMARY KEY,
+    user_role       INT         DEFAULT 1,
+    username        TEXT        UNIQUE,
+    password        TEXT,
+    first_name      TEXT,
+    last_name       TEXT,
+    email           TEXT,
+    phone_number    TEXT 
 
 );
 
-create table block (
-    block_id serial PRIMARY KEY,
-    block_start TIMESTAMP,
-    block_end TIMESTAMP,
-    room serial REFERENCES room(room_id),
-    modifier int DEFAULT 1,
-    note text
+CREATE TABLE time_block (
+    block_id        SERIAL      PRIMARY KEY,
+    block_start     TIMESTAMP,
+    block_end       TIMESTAMP,
+    room_id         SERIAL      REFERENCES room(room_id),
+    modifier        INT         DEFAULT 1,
+    note            TEXT
 );
 
-create table booking (
-    booking_id serial PRIMARY KEY,
-    block_id serial REFERENCES block (block_id),
-    family_id serial REFERENCES family (family_id),
-    booking_start TIMESTAMP,
-    booking_end TIMESTAMP
+CREATE TABLE booking (
+    booking_id      SERIAL      PRIMARY KEY,
+    block_id        INT         REFERENCES time_block (block_id),
+    family_id       INT         REFERENCES family (family_id),
+    user_id         INT         REFERENCES users (user_id),
+    booking_start   TIMESTAMP,
+    booking_end     TIMESTAMP,
+    CONSTRANT unq_booking UNIQUE(block_id, family_id, user_id)
 );
 
-create table clocking (
-    booking_id serial REFERENCES booking (booking_id),
-    clock_in TIMESTAMP,
-    clock_out TIMESTAMP
+CREATE TABLE clocking (
+    booking_id      SERIAL      REFERENCES booking (booking_id),
+    clock_in        TIMESTAMP,
+    clock_out       TIMESTAMP
 );
 
