@@ -28,15 +28,14 @@ CREATE TABLE users (
     last_name       TEXT,
     email           TEXT,
     phone_number    TEXT 
-
 );
 
 CREATE TABLE time_block (
     block_id        SERIAL      PRIMARY KEY,
     block_start     TIMESTAMP,
     block_end       TIMESTAMP,
-    room_id         SERIAL      REFERENCES room(room_id),
-    modifier        INT         DEFAULT 1,
+    room_id         INT			REFERENCES room(room_id),
+    modifier        INT			DEFAULT 1,
     note            TEXT
 );
 
@@ -53,6 +52,7 @@ CREATE TABLE booking (
 CREATE TABLE clocking (
     booking_id      SERIAL      REFERENCES booking (booking_id),
     clock_in        TIMESTAMP,
-    clock_out       TIMESTAMP
+    clock_out       TIMESTAMP,
+	CONSTRANT 		unq_clocking UNIQUE(booking_id, clock_in, clock_out)
 );
 
