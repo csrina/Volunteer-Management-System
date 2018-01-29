@@ -1,4 +1,3 @@
-DROP DATABASE caraway;
 CREATE DATABASE caraway;
 
 \c caraway;
