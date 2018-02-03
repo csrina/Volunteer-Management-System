@@ -51,7 +51,6 @@ func applyTemplate(startDate time.Time, stopDate time.Time, blocks []TimeBlock) 
 				break
 			case time.Thursday:
 				tempDate := startDate.AddDate(0, 0, 3)
-				block.setDay(tempDate)
 				if err := setAndInsertBlock(Tx, block, tempDate); err != nil {
 					return err
 				}
