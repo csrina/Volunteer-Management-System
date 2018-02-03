@@ -10,12 +10,12 @@ import (
  * Corresponds to a tuple in the time_block table.
  */
 type TimeBlock struct {
-	ID       int       `db:"block_id"`
-	Start    time.Time `db:"block_start"`
-	End      time.Time `db:"block_end"`
-	Room     int       `db:"room_id"`
-	Modifier int       `db:"modifier"`
-	Note     []string  `db:"note"`
+	ID       int       `db:"block_id" json:"blockID"`
+	Start    time.Time `db:"block_start" json:"start"`
+	End      time.Time `db:"block_end" json:"end"`
+	Room     int       `db:"room_id" json:"room"`
+	Modifier int       `db:"modifier" json:"modifier"`
+	Note     []string  `db:"note" json:"note"`
 }
 
 /*
