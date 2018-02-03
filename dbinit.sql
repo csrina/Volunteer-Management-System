@@ -2,6 +2,17 @@ CREATE DATABASE caraway;
 
 \c caraway;
 
+CREATE TABLE users (
+    user_id         SERIAL      PRIMARY KEY,
+    user_role       INT         DEFAULT 1,
+    username        TEXT        UNIQUE,
+    password        TEXT,
+    first_name      TEXT,
+    last_name       TEXT,
+    email           TEXT,
+    phone_number    TEXT 
+);
+
 CREATE TABLE room (
     room_id         SERIAL      PRIMARY KEY,
     room_name       TEXT,
@@ -16,17 +27,6 @@ CREATE TABLE family (
     parent_one      INT         REFERENCES users (user_id),
     parent_two      INT         REFERENCES users (user_id),
     children		INT
-);
-
-CREATE TABLE users (
-    user_id         SERIAL      PRIMARY KEY,
-    user_role       INT         DEFAULT 1,
-    username        TEXT        UNIQUE,
-    password        TEXT,
-    first_name      TEXT,
-    last_name       TEXT,
-    email           TEXT,
-    phone_number    TEXT 
 );
 
 CREATE TABLE time_block (
