@@ -6,7 +6,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-/*
+/* TimeBlock ...
  * Corresponds to a tuple in the time_block table.
  */
 type TimeBlock struct {
@@ -22,10 +22,10 @@ type TimeBlock struct {
  * Inserts tb into the database.
  */
 func (tb *TimeBlock) insertBlock() error {
-	q := `INSERT INTO time_block (block_id, block_start, block_end, room, modifier, note)
-			VALUES ($1, $2, $3, $4, $5, $6)
+	q := `INSERT INTO time_block (block_start, block_end, room, modifier, note)
+			VALUES ($1, $2, $3, $4, $5)
 			RETURNING block_id`
-	err := db.QueryRow(q, tb.ID, tb.Start, tb.End, tb.Room, tb.Modifier, tb.Note).Scan(&tb.ID)
+	err := db.QueryRow(q, tb.Start, tb.End, tb.Room, tb.Modifier, tb.Note).Scan(&tb.ID)
 	if err != nil {
 		return err
 	}
