@@ -28,6 +28,8 @@ func createRouter() (*mux.Router, error) {
 	s := r.PathPrefix("/api/v1").Subrouter()
 	s.HandleFunc("/", logging(baseRoute))
 	s.HandleFunc("/login/", logging(loginHandler)).Methods("POST")
+	s.HandleFunc("/admin/calendar/setup/", calSetup).Methods("POST")
+	s.HandleFunc("/admin/calendar/setup/", undoSetup).Methods("DELETE")
 
 	return r, nil
 }
