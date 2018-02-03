@@ -45,13 +45,13 @@ CREATE TABLE booking (
     user_id         INT         REFERENCES users (user_id),
     booking_start   TIMESTAMP,
     booking_end     TIMESTAMP,
-    CONSTRANT unq_booking UNIQUE(block_id, family_id, user_id)
+    CONSTRAINT unq_booking UNIQUE(block_id, family_id, user_id)
 );
 
 CREATE TABLE clocking (
     booking_id      SERIAL      REFERENCES booking (booking_id),
     clock_in        TIMESTAMP,
     clock_out       TIMESTAMP,
-	CONSTRANT 		unq_clocking UNIQUE(booking_id, clock_in, clock_out)
+    CONSTRAINT 	    unq_clocking UNIQUE(booking_id, clock_in, clock_out)
 );
 
