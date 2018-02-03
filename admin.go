@@ -73,4 +73,18 @@ func (tb *TimeBlock) setDay(startDate time.Time) {
 
 // DO NOT USE THIS UNLESS 100% REQUIRED
 func undoSetup() {
+	//REQUIRES NOTIFICATIONS FOR ALL USERS ALREADY WITH BLOCKS SCHEDULED
+	deleteTime := time.Now()
+
+	q := `DELETE FROM booking WHERE booking_start > ($1)`
+	q2 := `DELETE FROM time_block WHERE block_start > ($1)`
+
+	_, err := db.Exec(q, deleteTime)
+	if err != nil {
+		logger.Fatal("Could not delete current bookings")
+	}
+	_, err = db.Exec(q2, deleteTime)
+	if err != nil {
+		logger.Fatal("Could not delete time blocks")
+	}
 }
