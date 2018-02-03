@@ -25,11 +25,12 @@ func (tb *TimeBlock) insertBlock() error {
 	q := `INSERT INTO time_block (block_id, block_start, block_end, room, modifier, note)
 			VALUES ($1, $2, $3, $4, $5, $6)
 			RETURNING block_id`
-	id, err := db.Exec(q, tb.Id, tb.Start, tb.End, tb.Room, tb.Modifier, tb.Note)
-	if err {
+	err := db.QueryRow(q, tb.Id, tb.Start, tb.End, tb.Room, tb.Modifier, tb.Note).Scan(&tb.Id)
+	if err != nil {
 		return err
 	}
-	tb.Id = id
+
+	return nil
 }
 
 /*
@@ -48,14 +49,16 @@ func (tb *TimeBlock) updateBlock() error {
 
 	_, err := db.Exec(q, tb.Id, tb.Start, tb.End, tb.Room, tb.Modifier, tb.Note)
 
-	if err {
-		return err
-	}
+	return err
 }
 
 /*
- * Retrieve records for block(s) from table in range (min inclusive, max exclusive).
+ * Retrieve records for block(s) from table in range (start inclusive, end exclusive).
  */
 func getBlocks(start time.Time, end time.Time) ([]TimeBlock, error) {
+	q := `SELECT * FROM time_block 
+			   WHERE ($1 <= block_start AND $2 > block_end)`
 
+	blocks := []TimeBlock{}
+	return blocks, nil
 }
