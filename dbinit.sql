@@ -36,6 +36,7 @@ CREATE TABLE time_block (
     room_id         INT			REFERENCES room(room_id),
     modifier        INT			DEFAULT 1,
     note            TEXT
+    CONSTRAINT unq_time_block UNIQUE(block_start, block_end, room_id)
 );
 
 CREATE TABLE booking (
