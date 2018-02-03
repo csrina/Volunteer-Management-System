@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
 	"os"
@@ -12,9 +13,36 @@ import (
 var db *sqlx.DB
 var logger *log.Logger
 
+type args struct {
+	ServerPort string
+	LogName    string
+}
+
+// Args used to hold any command line arguments
+var Args args
+
+func init() {
+	flag.Usage = func() {
+		flag.PrintDefaults()
+	}
+
+	flag.StringVar(&Args.LogName, "l", "os.Stderr", "set logfile name")
+	flag.StringVar(&Args.ServerPort, "p", ":8080", "set webserver port")
+
+	flag.Parse()
+}
+
 func main() {
 
-	logger = log.New(os.Stdout, "status: ", log.LstdFlags)
+	if Args.ServerPort != "os.Stderr" {
+		f, err := os.OpenFile(Args.LogName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			log.Fatal(err)
+		}
+		logger = log.New(f, "status: ", log.LstdFlags)
+	} else {
+		logger = log.New(os.Stderr, "status: ", log.LstdFlags)
+	}
 	// open config file
 	logger.Println("reading config file...")
 
