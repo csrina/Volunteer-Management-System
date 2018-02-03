@@ -43,8 +43,7 @@ func init() {
 
 }
 
-func main() {
-
+func startDb() error {
 	// open config file
 	logger.Println("Reading config file...")
 
@@ -66,16 +65,29 @@ func main() {
 	psqlInfo := string(b[:read])
 	logger.Println("Opening database...")
 	db, err = sqlx.Connect("postgres", psqlInfo)
-	if err != nil {
-		panic(err)
-	}
+	return err
 
-	err = db.Ping()
+}
+
+func main() {
+
+	if Args.ServerPort != "os.Stderr" {
+		f, err := os.OpenFile(Args.LogName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			log.Fatal(err)
+		}
+		logger = log.New(f, "status: ", log.LstdFlags)
+	} else {
+		logger = log.New(os.Stderr, "status: ", log.LstdFlags)
+	}
+	// open config file
+	logger.Println("Reading config file...")
+	err := startDb()
 	if err != nil {
 		panic(err)
 	}
-	logger.Println("Databse opened and pinged.....")
 	defer db.Close()
+	logger.Println("Database opened and pinged.....")
 
 	r, err := createRouter()
 	if err != nil {
@@ -83,9 +95,9 @@ func main() {
 	}
 	logger.Println("Routes created")
 
+	logger.Println("Server running......")
 	err = http.ListenAndServe(Args.ServerPort, r)
 	if err != nil {
 		log.Fatal("Could not start server")
 	}
-	logger.Println("Server running......")
 }
