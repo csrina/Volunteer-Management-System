@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/jmoiron/sqlx"
@@ -30,13 +31,27 @@ func main() {
 
 	//pull out connection string
 	//an example of mine is:
-	//dbname=gold user=postgres host=localhost port=5454 sslmode=disable
+	//dbname=caraway user=postgres host=localhost port=5454 sslmode=disable
 	psqlInfo := string(b[:read])
 	logger.Println("opening database...")
 	db, err = sqlx.Connect("postgres", psqlInfo)
 	if err != nil {
 		panic(err)
 	}
+
+	err = db.Ping()
+	if err != nil {
+		panic(err)
+	}
+
+	r, err := createRouter()
+	if err != nil {
+		log.Fatal("Could not create router")
+	}
+
+	http.ListenAndServe(":8080", r)
+
+	db.Close()
 
 	defer db.Close()
 }
