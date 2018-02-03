@@ -12,8 +12,10 @@ import (
 func createRouter() (*mux.Router, error) {
 	r := mux.NewRouter()
 	s := r.PathPrefix("/api/v1").Subrouter()
-	s.HandleFunc("/", baseRoute)
+	s.HandleFunc("/", baseRoute).Methods("GET")
 	s.HandleFunc("/login/", login)
+	s.HandleFunc("/admin/calendar/setup/", calSetup).Methods("POST")
+	s.HandleFunc("/admin/calendar/setup/", undoSetup).Methods("DELETE")
 
 	return r, nil
 }

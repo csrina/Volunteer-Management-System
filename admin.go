@@ -72,7 +72,8 @@ func (tb *TimeBlock) setDay(startDate time.Time) {
 }
 
 // DO NOT USE THIS UNLESS 100% REQUIRED
-func undoSetup() {
+func undoSetup(w http.ResponseWriter, r *http.Request) {
+	//NEEDS AUTH CHECK
 	//REQUIRES NOTIFICATIONS FOR ALL USERS ALREADY WITH BLOCKS SCHEDULED
 	deleteTime := time.Now()
 
@@ -81,10 +82,13 @@ func undoSetup() {
 
 	_, err := db.Exec(q, deleteTime)
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		logger.Fatal("Could not delete current bookings")
 	}
 	_, err = db.Exec(q2, deleteTime)
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		logger.Fatal("Could not delete time blocks")
 	}
+	w.WriteHeader(http.StatusGone)
 }
