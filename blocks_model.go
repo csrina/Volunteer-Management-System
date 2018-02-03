@@ -10,7 +10,7 @@ import (
  * Corresponds to a tuple in the time_block table.
  */
 type TimeBlock struct {
-	Id       int       `db:"block_id"`
+	ID       int       `db:"block_id"`
 	Start    time.Time `db:"block_start"`
 	End      time.Time `db:"block_end"`
 	Room     int       `db:"room_id"`
@@ -25,11 +25,10 @@ func (tb *TimeBlock) insertBlock() error {
 	q := `INSERT INTO time_block (block_id, block_start, block_end, room, modifier, note)
 			VALUES ($1, $2, $3, $4, $5, $6)
 			RETURNING block_id`
-	err := db.QueryRow(q, tb.Id, tb.Start, tb.End, tb.Room, tb.Modifier, tb.Note).Scan(&tb.Id)
+	err := db.QueryRow(q, tb.ID, tb.Start, tb.End, tb.Room, tb.Modifier, tb.Note).Scan(&tb.ID)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -47,7 +46,7 @@ func (tb *TimeBlock) updateBlock() error {
 			SET note = $6
 		WHERE (time_block.block_id = $1)`
 
-	_, err := db.Exec(q, tb.Id, tb.Start, tb.End, tb.Room, tb.Modifier, tb.Note)
+	_, err := db.Exec(q, tb.ID, tb.Start, tb.End, tb.Room, tb.Modifier, tb.Note)
 
 	return err
 }
@@ -56,9 +55,18 @@ func (tb *TimeBlock) updateBlock() error {
  * Retrieve records for block(s) from table in range (start inclusive, end exclusive).
  */
 func getBlocks(start time.Time, end time.Time) ([]TimeBlock, error) {
-	q := `SELECT * FROM time_block 
+	// Retrieve blocks w/in date range
+	q := `SELECT * FROM time_block
 			   WHERE ($1 <= block_start AND $2 > block_end)`
 
 	blocks := []TimeBlock{}
-	return blocks, nil
+	err := db.Select(&blocks, q, start, end)
+
+	if err != nil {
+		return nil, err
+	} else if len(blocks) > 0 {
+		return blocks, nil
+	} else {
+		return nil, nil
+	}
 }
