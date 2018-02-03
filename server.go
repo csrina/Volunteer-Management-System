@@ -30,9 +30,23 @@ func init() {
 	flag.StringVar(&Args.ServerPort, "p", ":8080", "set webserver port")
 
 	flag.Parse()
+
+	if Args.LogName != "os.Stderr" {
+		f, err := os.OpenFile(Args.LogName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			log.Fatal(err)
+		}
+		logger = log.New(f, "status: ", log.LstdFlags)
+	} else {
+		logger = log.New(os.Stdout, "status: ", log.LstdFlags)
+	}
+
 }
 
-func startDb() error {
+func startDb() error{
+
+	// open config file
+	logger.Println("Reading config file...")
 	config_file, err := os.Open(".config")
 	if err != nil {
 		panic(err)
@@ -80,7 +94,7 @@ func main() {
 	}
 	logger.Println("Routes created")
 
-	err = http.ListenAndServe(":8080", r)
+	err = http.ListenAndServe(Args.ServerPort, r)
 	if err != nil {
 		log.Fatal("Could not start server")
 	}
