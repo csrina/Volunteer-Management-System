@@ -34,7 +34,7 @@ func main() {
 	//dbname=caraway user=postgres host=localhost port=5454 sslmode=disable
 	psqlInfo := string(b[:read])
 	logger.Println("opening database...")
-	db, err := sqlx.Connect("postgres", psqlInfo)
+	db, err = sqlx.Connect("postgres", psqlInfo)
 	if err != nil {
 		panic(err)
 	}
