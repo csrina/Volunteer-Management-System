@@ -36,7 +36,7 @@ func (tb *TimeBlock) insertBlock() error {
  * Saves the state of the block (tb)
  * to the db. Where tb is an existing block in the db
  */
-func (tb *TimeBlock) saveBlock() error {
+func (tb *TimeBlock) updateBlock() error {
 	q := `UPDATE time_block
 			SET block_id = $1
 			SET block_start = $2
@@ -46,9 +46,16 @@ func (tb *TimeBlock) saveBlock() error {
 			SET note = $6
 		WHERE (time_block.block_id = $1)`
 
-	_, err := db.Exec(q, tb.id, tb.Start, tb.End, tb.Room, tb.Modifier, tb.Note)
+	_, err := db.Exec(q, tb.Id, tb.Start, tb.End, tb.Room, tb.Modifier, tb.Note)
 
 	if err {
 		return err
 	}
+}
+
+/*
+ * Retrieve records for block(s) from table in range (min inclusive, max exclusive).
+ */
+func getBlocks(start time.Time, end time.Time) ([]TimeBlock, error) {
+
 }
