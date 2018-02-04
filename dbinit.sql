@@ -35,7 +35,8 @@ CREATE TABLE time_block (
     block_end       TIMESTAMP,
     room_id         INT			REFERENCES room(room_id),
     modifier        INT			DEFAULT 1,
-    note            TEXT
+    note            TEXT,
+    UNIQUE (block_start, block_end, room_id)
 );
 
 CREATE TABLE booking (
