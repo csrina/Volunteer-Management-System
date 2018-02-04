@@ -38,7 +38,7 @@ func init() {
 		}
 		logger = log.New(f, "status: ", log.LstdFlags)
 	} else {
-		logger = log.New(os.Stdout, "status: ", log.LstdFlags)
+		logger = log.New(os.Stderr, "status: ", log.LstdFlags)
 	}
 
 }
@@ -70,16 +70,6 @@ func startDb() error {
 }
 
 func main() {
-
-	if Args.ServerPort != "os.Stderr" {
-		f, err := os.OpenFile(Args.LogName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-		if err != nil {
-			log.Fatal(err)
-		}
-		logger = log.New(f, "status: ", log.LstdFlags)
-	} else {
-		logger = log.New(os.Stderr, "status: ", log.LstdFlags)
-	}
 	// open config file
 	logger.Println("Reading config file...")
 	err := startDb()
