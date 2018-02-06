@@ -10,7 +10,12 @@
         $(document).ready(function() {
             // page is now ready, initialize the calendar...
             $('#calendar').fullCalendar({
-                weekends: false
+                weekends: false,
+                header: {
+                    left: 'today',
+                    center: 'prev, title, next',
+                    right: 'agendaWeek, month'
+                }
             })
         });
     </script>
