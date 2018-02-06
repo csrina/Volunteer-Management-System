@@ -66,3 +66,9 @@ func getBlocks(start time.Time, end time.Time) ([]TimeBlock, error) {
 		return nil, nil
 	}
 }
+
+/* Setter for day field of timeblock */
+func (tb *TimeBlock) setDay(startDate time.Time) {
+	tb.Start = time.Date(startDate.Year(), startDate.Month(), startDate.Day(), tb.Start.Hour(), tb.Start.Minute(), 0, 0, tb.Start.Location())
+	tb.End = time.Date(startDate.Year(), startDate.Month(), startDate.Day(), tb.End.Hour(), tb.End.Minute(), 0, 0, tb.Start.Location())
+}
