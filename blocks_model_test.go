@@ -13,8 +13,7 @@ import (
  * and that the block can be retrieved.
  */
 func TestBlocksIUS(t *testing.T) {
-
-	err := startDb() // setup
+	err := startDb()
 	defer db.Close() // defer teardown
 
 	block := TimeBlock{
@@ -56,4 +55,5 @@ func TestBlocksIUS(t *testing.T) {
 		t.Fail()
 		t.Log("Failed to retrieve inserted block")
 	}
+	t.Log("IUS test successful")
 }
