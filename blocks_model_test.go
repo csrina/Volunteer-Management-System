@@ -20,9 +20,9 @@ func TestBlocksIUS(t *testing.T) {
 	block := TimeBlock{
 		Start:    time.Now(),
 		End:      time.Now(),
-		Room:     0,
-		Modifier: 1.00,
-		Note:     []string{"note"}}
+		Room:     1,
+		Modifier: 1,
+		Note:     "note"}
 
 	block.End.Add(24000)
 
@@ -39,7 +39,7 @@ func TestBlocksIUS(t *testing.T) {
 	blocksGot, err := getBlocks(block.Start, endD)
 	if err != nil || len(blocksGot) == 0 {
 		t.Fail()
-		t.Log("Failed to retrieve inserted block")
+		t.Log("Failed to retrieve inserted block\n", err)
 	}
 
 	// test updating
