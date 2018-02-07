@@ -15,14 +15,14 @@ type TimeBlock struct {
 	End      time.Time `db:"block_end" json:"end"`
 	Room     int       `db:"room_id" json:"room"`
 	Modifier int       `db:"modifier" json:"modifier"`
-	Note     []string  `db:"note" json:"note"`
+	Note     string    `db:"note" json:"note"`
 }
 
 /*
  * Inserts tb into the database.
  */
 func (tb *TimeBlock) insertBlock() error {
-	q := `INSERT INTO time_block (block_start, block_end, room, modifier, note)
+	q := `INSERT INTO time_block (block_start, block_end, room_id, modifier, note)
 			VALUES ($1, $2, $3, $4, $5)
 			RETURNING block_id`
 	err := db.QueryRow(q, tb.Start, tb.End, tb.Room, tb.Modifier, tb.Note).Scan(&tb.ID)
@@ -38,12 +38,8 @@ func (tb *TimeBlock) insertBlock() error {
  */
 func (tb *TimeBlock) updateBlock() error {
 	q := `UPDATE time_block
-			SET block_id = $1
-			SET block_start = $2
-			SET block_end = $3
-			SET room_id = $4
-			SET modifier = $5
-			SET note = $6
+			SET(block_id, block_start, block_end, room_id, modifier, note)
+			= ($1, $2, $3, $4, $5, $6)
 		WHERE (time_block.block_id = $1)`
 
 	_, err := db.Exec(q, tb.ID, tb.Start, tb.End, tb.Room, tb.Modifier, tb.Note)
@@ -57,7 +53,7 @@ func (tb *TimeBlock) updateBlock() error {
 func getBlocks(start time.Time, end time.Time) ([]TimeBlock, error) {
 	// Retrieve blocks w/in date range
 	q := `SELECT * FROM time_block
-			   WHERE ($1 <= block_start AND $2 > block_end)`
+			   WHERE ($1 >= block_start AND $2 <= block_end)`
 
 	blocks := []TimeBlock{}
 	err := db.Select(&blocks, q, start, end)
@@ -69,4 +65,10 @@ func getBlocks(start time.Time, end time.Time) ([]TimeBlock, error) {
 	} else {
 		return nil, nil
 	}
+}
+
+/* Setter for day field of timeblock */
+func (tb *TimeBlock) setDay(startDate time.Time) {
+	tb.Start = time.Date(startDate.Year(), startDate.Month(), startDate.Day(), tb.Start.Hour(), tb.Start.Minute(), 0, 0, tb.Start.Location())
+	tb.End = time.Date(startDate.Year(), startDate.Month(), startDate.Day(), tb.End.Hour(), tb.End.Minute(), 0, 0, tb.Start.Location())
 }
