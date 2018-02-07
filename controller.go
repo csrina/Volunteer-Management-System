@@ -16,3 +16,9 @@ func renderCalendar(w http.ResponseWriter, r *http.Request) {
 	t, _ := template.ParseFiles("views/calendar.gohtml")
 	t.Execute(w, p)
 }
+
+func renderDashboard(w http.ResponseWriter, r *http.Request) {
+	p := &Page{Title: "F Schedule"}
+	t, _ := template.ParseFiles("views/dashboard.gohtml")
+	t.Execute(w, p)
+}

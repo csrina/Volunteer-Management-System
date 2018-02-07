@@ -34,7 +34,12 @@ func createRouter() (*mux.Router, error) {
 	s.HandleFunc("/login/", logging(loginHandler)).Methods("POST")
 	s.HandleFunc("/admin/calendar/setup/", calSetup).Methods("POST")
 	s.HandleFunc("/admin/calendar/setup/", undoSetup).Methods("DELETE")
-	s.HandleFunc("/schedule/", logging(renderCalendar)).Methods("GET")
+
+	v := r.PathPrefix("/app").Subrouter()
+	// need redirect for '/' -> '/dashboard'
+	v.HandleFunc("/dashboard/", logging(renderDashboard)).Methods("GET")
+	v.HandleFunc("/schedule/", logging(renderCalendar)).Methods("GET")
+
 	return r, nil
 }
 
