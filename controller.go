@@ -10,6 +10,7 @@ type Page struct {
 	Title string
 }
 
+/* Render template view using data in page */
 func renderView(w http.ResponseWriter, view string, p *Page) {
 	t, _ := template.ParseFiles(view + ".gohtml")
 	t.Execute(w, p)
