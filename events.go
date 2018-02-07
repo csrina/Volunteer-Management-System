@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"time"
 )
@@ -48,19 +49,30 @@ func getEvents(w http.ResponseWriter, r *http.Request) {
 	if err1 != nil {
 		panic(err1)
 	}
+	serveEventJSON(w, makeEvents(blocks))
+}
+
+/*
+ * Serves the event json stream via the io writer (generic io writer need for testing)
+ */
+func serveEventJSON(w io.Writer, events []*Event) {
+	/* Create and serve JSON*/
+	enc := json.NewEncoder(w)
+	enc.SetEscapeHTML(true)
+	enc.Encode(events)
+}
+
+/*
+ * Creates Events from slice of time blocks
+ */
+func makeEvents(blocks []TimeBlock) []*Event {
 	/* Get events from blocks */
 	var events []*Event
 	for _, b := range blocks {
 		events = append(events, NewEvent(&b))
 	}
-
-	events = append(events, &Event{Start: time.Now(), End: time.Now().Add(10), Title: "TEST", Room: "yellow"})
-
-	/* Create and serve JSON */
 	logger.Println(events)
-	enc := json.NewEncoder(w)
-	enc.SetEscapeHTML(true)
-	enc.Encode(events)
+	return events
 }
 
 /*

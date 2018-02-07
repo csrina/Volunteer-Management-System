@@ -31,7 +31,7 @@ func TestBlocksIUS(t *testing.T) {
 		t.Fail()
 		t.Log("Failed on insertBlock\n", err)
 	}
-
+	t.Log("Successfully inserted block\n")
 	// test retrieval after insert
 	endD := block.End
 	endD.Add(50000)
@@ -40,7 +40,7 @@ func TestBlocksIUS(t *testing.T) {
 		t.Fail()
 		t.Log("Failed to retrieve inserted block\n", err)
 	}
-
+	t.Log("Successfully retrieved block(s)\n")
 	// test updating
 	block.End.Add(5000)
 	err = block.updateBlock()
@@ -48,12 +48,12 @@ func TestBlocksIUS(t *testing.T) {
 		t.Fail()
 		t.Log("Failed to update the block", err)
 	}
-
+	t.Log("Block update operation complete\n")
 	// test retrieval post update
 	blocksGot, err = getBlocks(block.Start, endD)
 	if err != nil || len(blocksGot) == 0 {
 		t.Fail()
 		t.Log("Failed to retrieve inserted block")
 	}
-	t.Log("IUS test successful")
+	t.Log("IUS test successful\n")
 }
