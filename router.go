@@ -34,6 +34,8 @@ func createRouter() (*mux.Router, error) {
 	s.HandleFunc("/login/", logging(loginHandler)).Methods("POST")
 	s.HandleFunc("/admin/calendar/setup/", calSetup).Methods("POST")
 	s.HandleFunc("/admin/calendar/setup/", undoSetup).Methods("DELETE")
+	s.HandleFunc("/events", getEvents).Methods("GET") // will be the blocks + bookings as a json stream
+	//s.HandleFunc("/events", addBooking).Methods("POST") // Update block bookings
 
 	v := r.PathPrefix("/app").Subrouter()
 	// need redirect for '/' -> '/dashboard'
