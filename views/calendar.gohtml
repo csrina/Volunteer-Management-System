@@ -1,14 +1,12 @@
 <!DOCTYPE html>  
 <html lang="en">  
   <head>
-    <!-- jQuery qTip plugin !-->
-    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/jquery.qtip.min.js"></script>
-    <link rel='stylesheet' type='text/css' href="http://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/jquery.qtip.min.css" />
     <!-- fullCalendar dependencies -->
     <link rel='stylesheet' type='text/css' href='/views/fullcalendar/fullcalendar.css'/>
     <script type="text/javascript" src='/views/fullcalendar/lib/jquery.min.js'></script>
     <script type="text/javascript" src='/views/fullcalendar/lib/moment.min.js'></script>
     <script type="text/javascript" src='/views/fullcalendar/fullcalendar.js'></script>
+    <link rel="stylesheet" type='text/css' href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <script type="text/javascript">
         $(document).ready(function() {
             // page is now ready, initialize the calendar...
@@ -21,11 +19,7 @@
                 },
                 events: "/api/v1/events",    // link to events (bookings + blocks feed)
                 allDayDefault: false,        // blocks are not all-day unless specified
-                eventRender: function(event, element) {
-                                element.qtip({
-                        content: event.note
-                    });
-                }
+                themeSystem: "bootstrap3"
             })
         });
     </script>
