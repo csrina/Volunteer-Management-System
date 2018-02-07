@@ -1,6 +1,9 @@
 <!DOCTYPE html>  
 <html lang="en">  
   <head>
+    <!-- jQuery qTip plugin !-->
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/jquery.qtip.min.js"></script>
+    <link rel='stylesheet' type='text/css' href="http://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/jquery.qtip.min.css" />
     <!-- fullCalendar dependencies -->
     <link rel='stylesheet' type='text/css' href='/views/fullcalendar/fullcalendar.css'/>
     <script type="text/javascript" src='/views/fullcalendar/lib/jquery.min.js'></script>
@@ -15,6 +18,13 @@
                     left: 'today',
                     center: 'prev, title, next',
                     right: 'agendaWeek, month'
+                },
+                events: "/api/v1/events",    // link to events (bookings + blocks feed)
+                allDayDefault: false,        // blocks are not all-day unless specified
+                eventRender: function(event, element) {
+                                element.qtip({
+                        content: event.note
+                    });
                 }
             })
         });
