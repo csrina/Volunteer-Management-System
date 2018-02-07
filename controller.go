@@ -10,15 +10,19 @@ type Page struct {
 	Title string
 }
 
-/* Renders the calendar found in views/calendar.gohtml */
-func renderCalendar(w http.ResponseWriter, r *http.Request) {
-	p := &Page{Title: "F Schedule"}
-	t, _ := template.ParseFiles("views/calendar.gohtml")
+func renderView(w http.ResponseWriter, view string, p *Page) {
+	t, _ := template.ParseFiles(view + ".gohtml")
 	t.Execute(w, p)
 }
 
-func renderDashboard(w http.ResponseWriter, r *http.Request) {
+/* Renders the calendar found in views/calendar.gohtml */
+func renderCalendar(w http.ResponseWriter, r *http.Request) {
 	p := &Page{Title: "F Schedule"}
-	t, _ := template.ParseFiles("views/dashboard.gohtml")
-	t.Execute(w, p)
+	renderView(w, "views/calendar", p)
+}
+
+/* renders the dashboard for a user */
+func renderDashboard(w http.ResponseWriter, r *http.Request) {
+	p := &Page{Title: "F Dashboard"}
+	renderView(w, "views/dashboard", p)
 }
