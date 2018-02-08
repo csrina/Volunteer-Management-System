@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 )
 
@@ -16,22 +17,35 @@ type User struct {
 	Password string `json:"password" db:"password"`
 }
 
-func logging(f http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func logging(f http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		logger.Println(r.URL.Path)
-		f(w, r)
-	}
+		f.ServeHTTP(w, r)
+	})
+}
+
+func errorMessage(f http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		errResp := context.Get(r, "error")
+		if errResp != nil {
+			fmt.Println("CONTEXT PASSED")
+			w.WriteHeader(errResp.(int))
+		}
+		f.ServeHTTP(w, r)
+	})
 }
 
 func createRouter() (*mux.Router, error) {
 	r := mux.NewRouter()
+	r.Use(logging)
+	r.Use(errorMessage)
 	r.StrictSlash(true)
 	// static file handling (put assets in views folder)
 	r.PathPrefix("/views/").Handler(http.StripPrefix("/views/", http.FileServer(http.Dir("./views/"))))
 
 	s := r.PathPrefix("/api/v1").Subrouter()
-	s.HandleFunc("/", logging(baseRoute))
-	s.HandleFunc("/login/", logging(loginHandler)).Methods("POST")
+	s.HandleFunc("/", baseRoute)
+	s.HandleFunc("/login/", loginHandler).Methods("POST")
 	s.HandleFunc("/admin/calendar/setup/", calSetup).Methods("POST")
 	s.HandleFunc("/admin/calendar/setup/", undoSetup).Methods("DELETE")
 	s.HandleFunc("/events", getEvents).Methods("GET") // will be the blocks + bookings as a json stream
@@ -39,8 +53,8 @@ func createRouter() (*mux.Router, error) {
 
 	v := r.PathPrefix("/app").Subrouter()
 	// need redirect for '/' -> '/dashboard'
-	v.HandleFunc("/dashboard/", logging(renderDashboard)).Methods("GET")
-	v.HandleFunc("/schedule/", logging(renderCalendar)).Methods("GET")
+	v.HandleFunc("/dashboard/", renderDashboard).Methods("GET")
+	v.HandleFunc("/schedule/", renderCalendar).Methods("GET")
 
 	return r, nil
 }

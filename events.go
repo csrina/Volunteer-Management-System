@@ -5,14 +5,9 @@ import (
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/gorilla/context"
 )
-
-// Contains the implementation details for events json streaming
-
-// Models record from Booking table in DB
-type Booking struct {
-	block_id int
-}
 
 // An Event is a time block + a booking array + other details needed by calendar
 type Event struct {
@@ -23,7 +18,7 @@ type Event struct {
 	End   time.Time `db:"block_end" json:"end"`
 	Room  string    `db:"room_name" json:"color"` // fullCalendar will make blocks colour of room
 	// bookings data
-	Bookings []Booking `json:"bookings"`
+	Bookings []bookingBlock `json:"bookings"`
 	// description
 	Note []string `json:"note"`
 }
@@ -37,10 +32,12 @@ const (
 // Using url encoded params, responds with a json event stream
 func getEvents(w http.ResponseWriter, r *http.Request) {
 	params := r.URL.Query() // Get the params from url as a {key : value} string map
-	start, err1 := parseDate(params["start"][0])
-	end, err2 := parseDate(params["end"][0])
+	start, err1 := parseDate(params.Get("start"))
+	end, err2 := parseDate(params.Get("end"))
 	if err1 != nil || err2 != nil {
-		logger.Fatal("Could not parse dates")
+		logger.Println("Could not parse dates")
+		context.Set(r, "error", http.StatusBadRequest)
+		return
 	}
 
 	logger.Println("Start Date: " + start.String() + "\nEnd Date: " + end.String())
