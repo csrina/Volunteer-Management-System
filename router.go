@@ -25,11 +25,22 @@ func logging(f http.HandlerFunc) http.HandlerFunc {
 
 func createRouter() (*mux.Router, error) {
 	r := mux.NewRouter()
+	r.StrictSlash(true)
+	// static file handling (put assets in views folder)
+	r.PathPrefix("/views/").Handler(http.StripPrefix("/views/", http.FileServer(http.Dir("./views/"))))
+
 	s := r.PathPrefix("/api/v1").Subrouter()
 	s.HandleFunc("/", logging(baseRoute))
 	s.HandleFunc("/login/", logging(loginHandler)).Methods("POST")
 	s.HandleFunc("/admin/calendar/setup/", calSetup).Methods("POST")
 	s.HandleFunc("/admin/calendar/setup/", undoSetup).Methods("DELETE")
+	s.HandleFunc("/events", getEvents).Methods("GET") // will be the blocks + bookings as a json stream
+	//s.HandleFunc("/events", addBooking).Methods("POST") // Update block bookings
+
+	v := r.PathPrefix("/app").Subrouter()
+	// need redirect for '/' -> '/dashboard'
+	v.HandleFunc("/dashboard/", logging(renderDashboard)).Methods("GET")
+	v.HandleFunc("/schedule/", logging(renderCalendar)).Methods("GET")
 
 	return r, nil
 }

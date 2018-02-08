@@ -69,11 +69,6 @@ func applyTemplate(startDate time.Time, stopDate time.Time, blocks []TimeBlock) 
 	return nil
 }
 
-func (tb *TimeBlock) setDay(startDate time.Time) {
-	tb.Start = time.Date(startDate.Year(), startDate.Month(), startDate.Day(), tb.Start.Hour(), tb.Start.Minute(), 0, 0, tb.Start.Location())
-	tb.End = time.Date(startDate.Year(), startDate.Month(), startDate.Day(), tb.End.Hour(), tb.End.Minute(), 0, 0, tb.Start.Location())
-}
-
 // DO NOT USE THIS UNLESS 100% REQUIRED
 func undoSetup(w http.ResponseWriter, r *http.Request) {
 	//NEEDS AUTH CHECK
