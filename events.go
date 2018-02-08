@@ -7,13 +7,6 @@ import (
 	"time"
 )
 
-// Contains the implementation details for events json streaming
-
-// Models record from Booking table in DB
-type Booking struct {
-	block_id int
-}
-
 // An Event is a time block + a booking array + other details needed by calendar
 type Event struct {
 	// Block info + a title (required field for calendar)
@@ -23,7 +16,7 @@ type Event struct {
 	End   time.Time `db:"block_end" json:"end"`
 	Room  string    `db:"room_name" json:"color"` // fullCalendar will make blocks colour of room
 	// bookings data
-	Bookings []Booking `json:"bookings"`
+	Bookings []bookingBlock `json:"bookings"`
 	// description
 	Note []string `json:"note"`
 }
