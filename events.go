@@ -5,8 +5,6 @@ import (
 	"io"
 	"net/http"
 	"time"
-
-	"github.com/gorilla/context"
 )
 
 // An Event is a time block + a booking array + other details needed by calendar
@@ -36,7 +34,8 @@ func getEvents(w http.ResponseWriter, r *http.Request) {
 	end, err2 := parseDate(params.Get("end"))
 	if err1 != nil || err2 != nil {
 		logger.Println("Could not parse dates")
-		context.Set(r, "error", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		//context.Set(r, "error", http.StatusBadRequest)
 		return
 	}
 
