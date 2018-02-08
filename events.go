@@ -5,6 +5,8 @@ import (
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/gorilla/context"
 )
 
 // An Event is a time block + a booking array + other details needed by calendar
@@ -30,10 +32,12 @@ const (
 // Using url encoded params, responds with a json event stream
 func getEvents(w http.ResponseWriter, r *http.Request) {
 	params := r.URL.Query() // Get the params from url as a {key : value} string map
-	start, err1 := parseDate(params["start"][0])
-	end, err2 := parseDate(params["end"][0])
+	start, err1 := parseDate(params.Get("start"))
+	end, err2 := parseDate(params.Get("end"))
 	if err1 != nil || err2 != nil {
-		logger.Fatal("Could not parse dates")
+		logger.Println("Could not parse dates")
+		context.Set(r, "error", http.StatusBadRequest)
+		return
 	}
 
 	logger.Println("Start Date: " + start.String() + "\nEnd Date: " + end.String())
