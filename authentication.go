@@ -1,8 +1,31 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+
 	_ "github.com/lib/pq"
 )
+
+// tmp user struct just holds username and password
+type User struct {
+	Username string `json:"username" db:"username"`
+	Password string `json:"password" db:"password"`
+}
+
+func loginHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Login stuffs here")
+	decoder := json.NewDecoder(r.Body)
+	var u User
+	err := decoder.Decode(&u)
+	if err != nil {
+		logger.Println(err)
+	}
+	defer r.Body.Close()
+	logger.Println("login request for user " + u.Username + u.Password)
+	auth(u.Username, u.Password)
+}
 
 func auth(username string, password string) {
 	q := `SELECT username, password
