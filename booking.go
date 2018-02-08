@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// bookingBlock - struct matching a booking record
 type bookingBlock struct {
 	BookingID int       `db:"booking_id" json:"bookingId"`
 	BlockID   int       `db:"block_id" json:"blockId"`
@@ -14,6 +15,7 @@ type bookingBlock struct {
 	End       time.Time `db:"booking_end" json:"end"`
 }
 
+// inserts a booking into the database
 func (b *bookingBlock) insertBooking() error {
 	q := `INSERT INTO booking (block_id, family_id, user_id, 
 			booking_start, booking_end) 
@@ -27,6 +29,7 @@ func (b *bookingBlock) insertBooking() error {
 	return nil
 }
 
+// updates an existing booking in the database
 func (b *bookingBlock) updateBooking() error {
 	q := `UPDATE booking SET booking_start = $2, booking_end = $3
 			WHERE booking_id = $3`
@@ -46,6 +49,7 @@ func (b *bookingBlock) updateBooking() error {
 	return nil
 }
 
+// deletes an existing booking in the database
 func (b *bookingBlock) deleteBooking() error {
 	q := `DELETE FROM booking WHERE bookind_id = $1`
 
