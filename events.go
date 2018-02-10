@@ -29,12 +29,16 @@ const (
 	iso_time_full  = "2006-01-02T15:04:05"
 )
 
-/* Update an event upon a POST request from calendar */
+/*
+ * Update the time block of an event upon a POST request from calendar
+ * --> NEW DURATION AND/OR START/END TIMES WILL BE UPDATED
+ * TODO: Add modifier and Note to be updated if changed as well
+ */
 func updateEvent(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		return
 	}
-
+	/* Read the json posted from calendar */
 	body, _ := ioutil.ReadAll(r.Body)
 	logger.Println(string(body))
 
@@ -57,7 +61,7 @@ func updateEvent(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
+	/* Update DB reference */
 	q := `UPDATE time_block 
 			SET (block_start, block_end) = ($2, $3)
 			WHERE (block_id = $1)`
