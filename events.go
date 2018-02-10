@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"time"
 )
@@ -26,6 +27,22 @@ const (
 	iso_time_short = "2006-01-02"
 	iso_time_full  = "2006-01-02T15:04:05-0700"
 )
+
+/* Update an event upon a POST request from calendar */
+func updateEvent(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		return
+	}
+
+	body, _ := ioutil.ReadAll(r.Body)
+	logger.Println(string(body))
+	var ev map[string]string
+	json.Unmarshal(body, &ev)
+	logger.Println(ev)
+	w.Write(body)
+
+	// Update code needed
+}
 
 // Using url encoded params, responds with a json event stream
 func getEvents(w http.ResponseWriter, r *http.Request) {

@@ -19,7 +19,42 @@
                 },
                 events: "/api/v1/events",    // link to events (bookings + blocks feed)
                 allDayDefault: false,        // blocks are not all-day unless specified
-                themeSystem: "bootstrap3"
+                themeSystem: "bootstrap3",
+                editable: true,                 // Need to use templating engine to change bool based on user's role
+                // DOM-Event handling for Calendar Eventblocks (why do js people suck at naming)
+                eventOverlap: function(stillEvent, movingEvent) {      // Event blocks in different rooms may overlap, events in same room may not
+                    // Note: events may overlap on import; moving events will not be allowed to over lap
+                    //       That is, we must constrain the overlap when we make event creation possible
+                    if (stillEvent.color === movingEvent.color) {
+                        return false;
+                    }
+                    return true;
+                },
+                // When an event is resized (post duration change) it will callback the function
+                // revertFunc is fullCalendar function which reverts the display should the request fail
+                eventResize: function(event, delta, revertFunc, jsEvent, ui, view) {
+                    // Extract block data required for updating on server
+                    event_json = JSON.stringify({
+                       id: event.id,
+                       start: event.start,
+                       end:   event.end
+                    });
+                    // Make ajax post request with updated event data
+                    $.ajax({
+                        url: '/api/v1/events',
+                        type: 'POST',
+                        contentType:'json',
+                        data: event_json,
+                        dataType:'json',
+                        success: function(data) { 
+                            alert("Event updated successfully!");
+                        },
+                        error: function(xhr, ajaxOptions, thrownError) {
+                            revertFunc();
+                            alert("Request failed: " + xhr + "\n" + thrownError);
+                        }
+                    });
+                 }
             })
         });
     </script>
