@@ -101,8 +101,8 @@ func NewEvent(b *TimeBlock) *Event {
 	/* Add note to event */
 	e.Note = append(e.Note, b.Note)
 	/* Get room and bookings for the Event */
-	db.Select(e, `SELECT room_name FROM room WHERE $1 = room_id`, b.Room) // Get the room name
-	db.Select(e, `SELECT count(*) FROM booking WHERE $1 = block_id`, b.ID)
+	db.QueryRow(`SELECT room_name FROM room WHERE $1 = room_id`, b.Room).Scan(&e.Room) // Get the room name
+
 	/* Set title */
 	e.Title = e.Room + "Facilitation"
 
