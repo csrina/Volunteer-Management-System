@@ -11,11 +11,12 @@ import (
 // An Event is a time block + a booking array + other details needed by calendar
 type Event struct {
 	// Block info + a title (required field for calendar)
-	ID    int       `db:"block_id" json:"id"`
-	Title string    `db:"note" json:"title"`
-	Start time.Time `db:"block_start" json:"start"`
-	End   time.Time `db:"block_end" json:"end"`
-	Room  string    `db:"room_name" json:"color"` // fullCalendar will make blocks colour of room
+	ID       int       `db:"block_id" json:"id"`
+	Title    string    `db:"note" json:"title"`
+	Start    time.Time `db:"block_start" json:"start"`
+	End      time.Time `db:"block_end" json:"end"`
+	Room     string    `db:"room_name" json:"color"` // fullCalendar will make blocks colour of room
+	Modifier int       `db:"Modifier" json:"value"`
 	// bookings data
 	Bookings []bookingBlock `json:"bookings"`
 	// description
@@ -25,7 +26,7 @@ type Event struct {
 // Expected time formats from calendar
 const (
 	iso_time_short = "2006-01-02"
-	iso_time_full  = "2006-01-02T15:04:05-0700"
+	iso_time_full  = "2006-01-02T15:04:05"
 )
 
 /* Update an event upon a POST request from calendar */
@@ -36,12 +37,37 @@ func updateEvent(w http.ResponseWriter, r *http.Request) {
 
 	body, _ := ioutil.ReadAll(r.Body)
 	logger.Println(string(body))
-	var ev map[string]string
-	json.Unmarshal(body, &ev)
-	logger.Println(ev)
-	w.Write(body)
 
-	// Update code needed
+	/*
+	 * Unmarshal json into string:string map intermediate.
+	 * 		We require the intermediate, because go doesn't
+	 *      parse the timestamps correctly. However, psql
+	 *      parses the date string just fine, we don't even
+	 *      need to use parseDate to insert!
+	 */
+	var evInterface interface{}
+	json.Unmarshal(body, &evInterface)
+
+	ev := evInterface.(map[string]interface{})
+	logger.Println(ev)
+
+	id, ok := ev["id"].(float64)
+	if ok != true {
+		logger.Println("Invalid id given")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	q := `UPDATE time_block 
+			SET (block_start, block_end) = ($2, $3)
+			WHERE (block_id = $1)`
+	_, err := db.Exec(q, int(id), ev["start"], ev["end"])
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+	} else {
+		w.Write(body)
+	}
 }
 
 // Using url encoded params, responds with a json event stream
