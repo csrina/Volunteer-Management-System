@@ -39,7 +39,7 @@ func getEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logger.Println("Start Date: " + start.String() + "\nEnd Date: " + end.String())
+	logger.Println("Start Date: " + start.String() + "\tEnd Date: " + end.String())
 	/* Get time blocks in range */
 	blocks, err1 := getBlocks(start, end)
 	if err1 != nil {
@@ -101,14 +101,20 @@ func NewEvent(b *TimeBlock) *Event {
 	/* Add note to event */
 	e.Note = append(e.Note, b.Note)
 	/* Get room and bookings for the Event */
-	db.QueryRow(`SELECT room_name FROM room WHERE $1 = room_id`, b.Room).Scan(&e.Room) // Get the room name
-
+	err := db.QueryRow(`SELECT room_name FROM room WHERE $1 = room_id`, b.Room).Scan(&e.Room) // Get the room name
+	if err != nil {
+		logger.Println(err)
+	}
+	err = db.Select(&e.Bookings, `SELECT booking_id, block_id, user_id FROM booking WHERE $1 = block_id`, b.ID)
+	if err != nil {
+		logger.Println(err)
+	}
 	/* Set title */
 	e.Title = e.Room + "Facilitation"
 
 	/* Debug logging */
-	logger.Println("New event created: ", e)
-	logger.Println("From block: ", b)
+	//logger.Println("New event created: ", e.Title)
+	//logger.Println("From block: ", b)
 
 	return e
 }
