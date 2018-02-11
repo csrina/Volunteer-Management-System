@@ -3,27 +3,22 @@ package main
 import (
 	"encoding/json"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"time"
 )
 
-// Contains the implementation details for events json streaming
-
-// Models record from Booking table in DB
-type Booking struct {
-	block_id int
-}
-
 // An Event is a time block + a booking array + other details needed by calendar
 type Event struct {
 	// Block info + a title (required field for calendar)
-	ID    int       `db:"block_id" json:"id"`
-	Title string    `db:"note" json:"title"`
-	Start time.Time `db:"block_start" json:"start"`
-	End   time.Time `db:"block_end" json:"end"`
-	Room  string    `db:"room_name" json:"color"` // fullCalendar will make blocks colour of room
+	ID       int       `db:"block_id" json:"id"`
+	Title    string    `db:"note" json:"title"`
+	Start    time.Time `db:"block_start" json:"start"`
+	End      time.Time `db:"block_end" json:"end"`
+	Room     string    `db:"room_name" json:"color"` // fullCalendar will make blocks colour of room
+	Modifier int       `db:"Modifier" json:"value"`
 	// bookings data
-	Bookings []Booking `json:"bookings"`
+	Bookings []bookingBlock `json:"bookings"`
 	// description
 	Note []string `json:"note"`
 }
@@ -31,19 +26,67 @@ type Event struct {
 // Expected time formats from calendar
 const (
 	iso_time_short = "2006-01-02"
-	iso_time_full  = "2006-01-02T15:04:05-0700"
+	iso_time_full  = "2006-01-02T15:04:05"
 )
+
+/*
+ * Update the time block of an event upon a POST request from calendar
+ * --> NEW DURATION AND/OR START/END TIMES WILL BE UPDATED
+ * TODO: Add modifier and Note to be updated if changed as well
+ */
+func updateEvent(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		return
+	}
+	/* Read the json posted from calendar */
+	body, _ := ioutil.ReadAll(r.Body)
+	logger.Println(string(body))
+
+	/*
+	 * Unmarshal json into string:string map intermediate.
+	 * 		We require the intermediate, because go doesn't
+	 *      parse the timestamps correctly. However, psql
+	 *      parses the date string just fine, we don't even
+	 *      need to use parseDate to insert!
+	 */
+	var evInterface interface{}
+	json.Unmarshal(body, &evInterface)
+
+	ev := evInterface.(map[string]interface{})
+	logger.Println(ev)
+
+	id, ok := ev["id"].(float64)
+	if ok != true {
+		logger.Println("Invalid id given")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	/* Update DB reference */
+	q := `UPDATE time_block 
+			SET (block_start, block_end) = ($2, $3)
+			WHERE (block_id = $1)`
+	_, err := db.Exec(q, int(id), ev["start"], ev["end"])
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+	} else {
+		w.Write(body)
+	}
+}
 
 // Using url encoded params, responds with a json event stream
 func getEvents(w http.ResponseWriter, r *http.Request) {
 	params := r.URL.Query() // Get the params from url as a {key : value} string map
-	start, err1 := parseDate(params["start"][0])
-	end, err2 := parseDate(params["end"][0])
+	start, err1 := parseDate(params.Get("start"))
+	end, err2 := parseDate(params.Get("end"))
 	if err1 != nil || err2 != nil {
-		logger.Fatal("Could not parse dates")
+		logger.Println("Could not parse dates")
+		w.WriteHeader(http.StatusBadRequest)
+		//context.Set(r, "error", http.StatusBadRequest)
+		return
 	}
 
-	logger.Println("Start Date: " + start.String() + "\nEnd Date: " + end.String())
+	logger.Println("Start Date: " + start.String() + "\tEnd Date: " + end.String())
 	/* Get time blocks in range */
 	blocks, err1 := getBlocks(start, end)
 	if err1 != nil {
@@ -105,14 +148,20 @@ func NewEvent(b *TimeBlock) *Event {
 	/* Add note to event */
 	e.Note = append(e.Note, b.Note)
 	/* Get room and bookings for the Event */
-	db.Select(e, `SELECT room_name FROM room WHERE $1 = room_id`, b.Room) // Get the room name
-	db.Select(e, `SELECT count(*) FROM booking WHERE $1 = block_id`, b.ID)
+	err := db.QueryRow(`SELECT room_name FROM room WHERE $1 = room_id`, b.Room).Scan(&e.Room) // Get the room name
+	if err != nil {
+		logger.Println(err)
+	}
+	err = db.Select(&e.Bookings, `SELECT booking_id, block_id, user_id FROM booking WHERE $1 = block_id`, b.ID)
+	if err != nil {
+		logger.Println(err)
+	}
 	/* Set title */
 	e.Title = e.Room + "Facilitation"
 
 	/* Debug logging */
-	logger.Println("New event created: ", e)
-	logger.Println("From block: ", b)
+	//logger.Println("New event created: ", e.Title)
+	//logger.Println("From block: ", b)
 
 	return e
 }

@@ -53,8 +53,7 @@ func (tb *TimeBlock) updateBlock() error {
 func getBlocks(start time.Time, end time.Time) ([]TimeBlock, error) {
 	// Retrieve blocks w/in date range
 	q := `SELECT * FROM time_block
-			   WHERE ($1 >= block_start AND $2 <= block_end)`
-
+			   WHERE block_start >= $1 AND block_end <= $2`
 	blocks := []TimeBlock{}
 	err := db.Select(&blocks, q, start, end)
 
