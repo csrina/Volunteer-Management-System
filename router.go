@@ -42,15 +42,9 @@ func createRouter() (*mux.Router, error) {
 	r.PathPrefix("/views/").Handler(http.StripPrefix("/views/", http.FileServer(http.Dir("./views/"))))
 	r.PathPrefix("/login/").Handler(http.StripPrefix("/login/", http.FileServer(http.Dir("./views/login/"))))
 	s := r.PathPrefix("/api/v1").Subrouter()
-<<<<<<< HEAD
-	s.HandleFunc("/", logging(baseRoute))
-	s.HandleFunc("/login/facilitator/", logging(loginHandler)).Methods("POST")
-	s.HandleFunc("/login/teacher/", logging(loginHandler)).Methods("POST")
-	s.HandleFunc("/login/admin/", logging(loginHandler)).Methods("POST")
-=======
-	s.HandleFunc("/", baseRoute)
-	s.HandleFunc("/login/", loginHandler).Methods("POST")
->>>>>>> fc6eb61ff15395ea2b5b73be1f1d970b281f9e58
+	s.HandleFunc("/login/facilitator/", loginHandler).Methods("POST")
+	s.HandleFunc("/login/teacher/", loginHandler).Methods("POST")
+	s.HandleFunc("/login/admin/", loginHandler).Methods("POST")
 	s.HandleFunc("/admin/calendar/setup/", calSetup).Methods("POST")
 	s.HandleFunc("/admin/calendar/setup/", undoSetup).Methods("DELETE")
 	/* Events JSON routes for scheduler system */
