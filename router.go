@@ -21,10 +21,12 @@ func createRouter() (*mux.Router, error) {
 	r.StrictSlash(true)
 	// static file handling (put assets in views folder)
 	r.PathPrefix("/views/").Handler(http.StripPrefix("/views/", http.FileServer(http.Dir("./views/"))))
-	r.HandleFunc("/login", http.FileServer(http.Dir("./views/login.html")))
+	r.PathPrefix("/login/").Handler(http.StripPrefix("/login/", http.FileServer(http.Dir("./views/login/"))))
 	s := r.PathPrefix("/api/v1").Subrouter()
 	s.HandleFunc("/", logging(baseRoute))
-	s.HandleFunc("/login/", logging(loginHandler)).Methods("POST")
+	s.HandleFunc("/login/facilitator/", logging(loginHandler)).Methods("POST")
+	s.HandleFunc("/login/teacher/", logging(loginHandler)).Methods("POST")
+	s.HandleFunc("/login/admin/", logging(loginHandler)).Methods("POST")
 	s.HandleFunc("/admin/calendar/setup/", calSetup).Methods("POST")
 	s.HandleFunc("/admin/calendar/setup/", undoSetup).Methods("DELETE")
 	s.HandleFunc("/events", getEvents).Methods("GET") // will be the blocks + bookings as a json stream
@@ -40,4 +42,8 @@ func createRouter() (*mux.Router, error) {
 
 func baseRoute(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Base route to Caraway API")
+}
+
+func loadLogin(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "./views/login/facilitatorLogin.html")
 }
