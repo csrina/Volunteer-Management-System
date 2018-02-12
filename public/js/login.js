@@ -38,11 +38,11 @@ function missingCheck(name, pass) {
 
 function getApiCall(cur) {
     var u = "/api/v1/login/";
-    if(cur == "/login/facilitator.html") {
+    if(cur == "/login/facilitator") {
         u = u.concat("facilitator/")
-    } else if (cur == "/login/teacher.html") {
+    } else if (cur == "/login/teacher") {
         u = u.concat("teacher/")
-    } else if (cur == "/login/admin.html") {
+    } else if (cur == "/login/admin") {
         u = u.concat("admin/")
     }
     return u;
