@@ -1,4 +1,4 @@
-
+\c caraway
 --add parent to january 1 all 3 blocks room 1
 INSERT INTO booking (block_id, user_id)
 VALUES (1, 1);

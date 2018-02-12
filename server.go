@@ -2,9 +2,12 @@ package main
 
 import (
 	"flag"
+	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -12,6 +15,7 @@ import (
 
 var db *sqlx.DB
 var logger *log.Logger
+var tmpls *template.Template
 
 type args struct {
 	ServerPort string
@@ -41,6 +45,27 @@ func init() {
 		logger = log.New(os.Stderr, "status: ", log.LstdFlags)
 	}
 
+}
+
+func parseTemplates() error {
+	var allFiles []string
+
+	files, err := ioutil.ReadDir("./templates")
+
+	if err != nil {
+		return err
+	}
+	for _, file := range files {
+		filename := file.Name()
+		if strings.HasSuffix(filename, ".tmpl") {
+			allFiles = append(allFiles, "./templates/"+filename)
+		}
+	}
+	tmpls, err = template.ParseFiles(allFiles...) //parses all .tmpl files in the 'templates' folder
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func startDb() error {
@@ -84,6 +109,11 @@ func main() {
 		log.Fatal("Could not create router")
 	}
 	logger.Println("Routes created")
+	err = parseTemplates()
+	if err != nil {
+		log.Fatal("Could not parse golang html templates")
+	}
+	logger.Println("Golang html templates parsed successfully")
 
 	logger.Println("Server running......")
 	err = http.ListenAndServe(Args.ServerPort, r)

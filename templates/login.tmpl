@@ -1,0 +1,29 @@
+
+{{define "loginForm"}}
+
+{{template "header"}}
+        <main>
+            <br><br><br><br>
+            <div class="container" style="width: 40%" >
+                <div class ="well"> 
+                    <h4 class="text-center">{{.}}</h4>
+                    <div class="form-group" id="usrgroup">
+                        <label class="control-label" for="usr">Username:</label>
+                        <input type="text" class="form-control text-left" id="usr">
+                    </div>
+                    <div class="form-group" id="pwdgroup">
+                        <label class="control-label" for="pwd">Password:</label>
+                        <input type="password" class="form-control text-left" id="pwd">
+                    </div>           
+                    <div id="errorbox">
+                        
+                    </div>
+                    <div class="form-group text-right">
+                        <button type="button" class="btn btn-primary" id="loginbtn" onclick="login()">Login</button>
+                    </div>          
+                </div>
+            </div>
+        </main>
+{{template "footer"}}
+
+{{end}}

@@ -1,14 +1,11 @@
-function login(){
-    $(".alert").alert('close');
+function clearErrors() {
     var ngroup = document.querySelector("#usrgroup");
     var pgroup = document.querySelector("#pwdgroup");
     ngroup.classList.remove('has-error');
     pgroup.classList.remove('has-error');
-    
-    
-    
-    var name= document.querySelector("#usr").value;
-    var pass = document.querySelector("#pwd").value;
+}
+
+function missingCheck(name, pass) {
     if (name == "" && pass == "") {
         console.log("both missing");
         var theDiv = document.querySelector("#errorbox");
@@ -17,7 +14,7 @@ function login(){
         var pgroup = document.querySelector("#pwdgroup");
         ngroup.classList.add('has-error');
         pgroup.classList.add('has-error');
-        return;
+        return false;
     }
     if (name == "") {
         console.log("name missing");
@@ -25,7 +22,7 @@ function login(){
         theDiv.innerHTML= `<div class="alert alert-danger" role="alert">Username is missing</div>`
         var ngroup = document.querySelector("#usrgroup");
         ngroup.classList.add('has-error');
-        return;
+        return false;
     }
     
     if (pass == "") {
@@ -34,23 +31,34 @@ function login(){
         theDiv.innerHTML= `<div class="alert alert-danger" role="alert">Password is missing</div>`
         var pgroup = document.querySelector("#pwdgroup");
         pgroup.classList.add('has-error');
-        return;
+        return false;
     }
-    var u ="/api/v1/login/"
+    return true;
+}
 
-    var cur = window.location.pathname;    
+function getApiCall(cur) {
+    var u = "/api/v1/login/";
     if(cur == "/login/facilitator.html") {
         u = u.concat("facilitator/")
     } else if (cur == "/login/teacher.html") {
         u = u.concat("teacher/")
     } else if (cur == "/login/admin.html") {
         u = u.concat("admin/")
-    } else {
-        console.log("error when loging in")
+    }
+    return u;
+}
+
+function login(){
+    clearErrors();
+    
+    var name= document.querySelector("#usr").value;
+    var pass = document.querySelector("#pwd").value;
+    var filled = missingCheck(name, pass)
+    if (filled == false) {
         return
     }
-    
-    console.log(u)
+    var u = getApiCall(window.location.pathname);
+
     var xmlhttp = new XMLHttpRequest();   // new HttpRequest instance 
     xmlhttp.onreadystatechange= function() {
         if (this.readyState!==4) return; // not ready yet
@@ -79,13 +87,13 @@ function login(){
 }
 
 function gotoFlogin(){
-    window.location="/login/facilitator.html";
+     window.location="/login/facilitator";
 }
 
 function gotoTlogin(){
-    window.location="/login/teacher.html";
+    window.location="/login/teacher";
 }
 
 function gotoAlogin(){
-    window.location="/login/admin.html";
+    window.location="/login/admin";
 }
