@@ -1,16 +1,57 @@
 <!DOCTYPE html>  
-<html lang="en">  
-  <head>
-    <!-- fullCalendar dependencies -->
+<html lang="en"> 
+  <head> 
+    <!-- fullCalendar & scheduler dependencies -->
     <link rel='stylesheet' type='text/css' href='/views/fullcalendar/fullcalendar.css'/>
+    <link rel='stylesheet' type='text/css' href='http://cdn.jsdelivr.net/qtip2/3.0.3/jquery.qtip.min.css'/>
+    <link rel="stylesheet" type='text/css' href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <script type="text/javascript" src='/views/fullcalendar/lib/jquery.min.js'></script>
     <script type="text/javascript" src='/views/fullcalendar/lib/moment.min.js'></script>
+    <script type="text/javascript" src='http://cdn.jsdelivr.net/qtip2/3.0.3/jquery.qtip.min.js'></script>
     <script type="text/javascript" src='/views/fullcalendar/fullcalendar.js'></script>
-    <link rel="stylesheet" type='text/css' href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- Full Calendar Configuration Script -->
     <script type="text/javascript">
+        // Callback function for drag/drops and resizes of existing events
+        // Note: We dont want this to be populated if we aren't admin.
+        function storeChangesToEvent(event, delta, revertFunc, jsEvent, ui, view) {
+            // Extract block data required for updating on server
+            event_json = JSON.stringify({
+                id: event.id,
+                start: event.start,
+                end:   event.end,
+                modifier: event.value
+            });
+            // Make ajax post request with updated event data
+            $.ajax({
+                url: '/api/v1/events',
+                type: 'POST',
+                contentType:'json',
+                data: event_json,
+                dataType:'json',
+                success: function(data) { 
+                    alert("Event updated successfully!");
+                },
+                error: function(xhr, ajaxOptions, thrownError) {
+                    revertFunc();
+                    alert("Request failed: " + xhr + "\n" + thrownError);
+                }
+            });
+        }
+        
+        // Determines the event rendering
+        function renderEvent(event, element) {
+            // Create speechbubble which displays info about event
+            $(element).qtip({
+                content: event.note + "<br>Attending: " + event.bookings
+            });
+        }
+
         $(document).ready(function() {
             // page is now ready, initialize the calendar...
             $('#calendar').fullCalendar({
+                // Education use (both now and if deployed!)
+                schedulerLicenseKey: "CC-Attribution-NonCommercial-NoDerivatives",
                 weekends: false,
                 header: {
                     left: 'today',
@@ -21,6 +62,9 @@
                 allDayDefault: false,        // blocks are not all-day unless specified
                 themeSystem: "bootstrap3",
                 editable: true,                 // Need to use templating engine to change bool based on user's role
+                eventRender: function(event, element) { 
+                    renderEvent(event, element)
+                },
                 // DOM-Event handling for Calendar Eventblocks (why do js people suck at naming)
                 eventOverlap: function(stillEvent, movingEvent) {      // Event blocks in different rooms may overlap, events in same room may not
                     // Note: events may overlap on import; moving events will not be allowed to over lap
@@ -30,31 +74,16 @@
                     }
                     return true;
                 },
+                // When and event is drag/dropped to new day/time --> updates db & stuff
+                // revertFunc is called should our update request fail
+                eventDrop: function(ev, delta, revertFunc, jsEvent, ui, view) {
+                    storeChangesToEvent(ev, delta, revertFunc, jsEvent, ui, view);
+                },
                 // When an event is resized (post duration change) it will callback the function
                 // revertFunc is fullCalendar function which reverts the display should the request fail
-                eventResize: function(event, delta, revertFunc, jsEvent, ui, view) {
-                    // Extract block data required for updating on server
-                    event_json = JSON.stringify({
-                       id: event.id,
-                       start: event.start,
-                       end:   event.end
-                    });
-                    // Make ajax post request with updated event data
-                    $.ajax({
-                        url: '/api/v1/events',
-                        type: 'POST',
-                        contentType:'json',
-                        data: event_json,
-                        dataType:'json',
-                        success: function(data) { 
-                            alert("Event updated successfully!");
-                        },
-                        error: function(xhr, ajaxOptions, thrownError) {
-                            revertFunc();
-                            alert("Request failed: " + xhr + "\n" + thrownError);
-                        }
-                    });
-                 }
+                eventResize: function(ev, delta, revertFunc, jsEvent, ui, view) {
+                    storeChangesToEvent(ev, delta, revertFunc, jsEvent, ui, view);
+                }
             })
         });
     </script>

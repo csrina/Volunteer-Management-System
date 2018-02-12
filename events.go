@@ -17,10 +17,10 @@ type Event struct {
 	End      time.Time `db:"block_end" json:"end"`
 	Room     string    `db:"room_name" json:"color"` // fullCalendar will make blocks colour of room
 	Modifier int       `db:"Modifier" json:"value"`
-	// bookings data
-	Bookings []bookingBlock `json:"bookings"`
+	// booking ids for lookup
+	BookingCount int `json:"bookings"`
 	// description
-	Note []string `json:"note"`
+	Note string `json:"note"`
 }
 
 // Expected time formats from calendar
@@ -144,20 +144,19 @@ func NewEvent(b *TimeBlock) *Event {
 		ID:    b.ID,
 		Start: b.Start,
 		End:   b.End,
+		Note:  b.Note,
+		Title: "Facilitation",
 	}
-	/* Add note to event */
-	e.Note = append(e.Note, b.Note)
 	/* Get room and bookings for the Event */
 	err := db.QueryRow(`SELECT room_name FROM room WHERE $1 = room_id`, b.Room).Scan(&e.Room) // Get the room name
 	if err != nil {
 		logger.Println(err)
 	}
-	err = db.Select(&e.Bookings, `SELECT booking_id, block_id, user_id FROM booking WHERE $1 = block_id`, b.ID)
+	err = db.QueryRow(`SELECT count(*) FROM booking WHERE $1 = block_id`, b.ID).Scan(&e.BookingCount)
 	if err != nil {
-		logger.Println(err)
+		logger.Println(err.Error())
 	}
-	/* Set title */
-	e.Title = e.Room + "Facilitation"
+	logger.Println("COUNT: ", e.BookingCount)
 
 	/* Debug logging */
 	//logger.Println("New event created: ", e.Title)
