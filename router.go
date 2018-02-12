@@ -32,7 +32,6 @@ func errorMessage(f http.Handler) http.Handler {
 		f.ServeHTTP(w, r)
 	})
 }
-
 func createRouter() (*mux.Router, error) {
 	r := mux.NewRouter()
 	r.Use(logging)
@@ -40,11 +39,17 @@ func createRouter() (*mux.Router, error) {
 	r.StrictSlash(true)
 	// static file handling (put assets in views folder)
 	r.PathPrefix("/views/").Handler(http.StripPrefix("/views/", http.FileServer(http.Dir("./views/"))))
-	r.PathPrefix("/login/").Handler(http.StripPrefix("/login/", http.FileServer(http.Dir("./views/login/"))))
+	r.PathPrefix("/tmp/").Handler(http.StripPrefix("/tmp/", http.FileServer(http.Dir("./public/"))))
+	// r.Handle("/tmp/", http.StripPrefix("/tmp/", http.FileServer(http.Dir("public"))))
+
+	r.HandleFunc("/login", loadMainLogin)
+	l := r.PathPrefix("/login").Subrouter()
+	l.HandleFunc("/facilitator", loadLogin)
+	l.HandleFunc("/teacher", loadLogin)
+	l.HandleFunc("/admin", loadLogin)
+
 	s := r.PathPrefix("/api/v1").Subrouter()
-	s.HandleFunc("/login/facilitator/", loginHandler).Methods("POST")
-	s.HandleFunc("/login/teacher/", loginHandler).Methods("POST")
-	s.HandleFunc("/login/admin/", loginHandler).Methods("POST")
+
 	s.HandleFunc("/admin/calendar/setup/", calSetup).Methods("POST")
 	s.HandleFunc("/admin/calendar/setup/", undoSetup).Methods("DELETE")
 	/* Events JSON routes for scheduler system */
@@ -57,13 +62,14 @@ func createRouter() (*mux.Router, error) {
 	/* Calendar requests */
 	v.HandleFunc("/schedule/", renderCalendar).Methods("GET")
 
+	l = s.PathPrefix("/login").Subrouter()
+	l.HandleFunc("/facilitator/", loginHandler).Methods("POST")
+	l.HandleFunc("/teacher/", loginHandler).Methods("POST")
+	l.HandleFunc("/admin/", loginHandler).Methods("POST")
+
 	return r, nil
 }
 
 func baseRoute(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Base route to Caraway API")
-}
-
-func loadLogin(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "./views/login/facilitatorLogin.html")
 }

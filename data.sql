@@ -1,4 +1,4 @@
-
+\c caraway
 --Adds users
 
 INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number)
