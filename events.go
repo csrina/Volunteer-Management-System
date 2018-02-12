@@ -128,7 +128,7 @@ func unbookBooking(w http.ResponseWriter, r *http.Request, bid int) {
 		return
 	}
 	enc := json.NewEncoder(w)
-	ret := RetData{Msg: "Sucessfully deleted booking!"}
+	ret := RetData{Msg: "Sucessfully deleted booking!" + "\nBooking ID was: " + strconv.Itoa(bid)}
 	enc.Encode(ret)
 }
 
