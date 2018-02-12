@@ -4,6 +4,6 @@
 # user to have acccess,  this script will create/reset
 # the your caraway db with only the testing data.
 echo "DROP DATABASE caraway" | psql postgres
-psql postgres < dbinit.sql
-psql caraway  < data.sql
-psql caraway  < bookingdata.sql
+psql postgres < ../database/dbinit.sql
+psql caraway  < ../database/data.sql
+psql caraway  < ../database/bookingdata.sql
