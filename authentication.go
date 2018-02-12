@@ -54,7 +54,6 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
-	logger.Printf("'%v'\n", u.Password)
 	auth(w, u.Username, u.Password, role)
 }
 
