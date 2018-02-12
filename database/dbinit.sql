@@ -23,7 +23,7 @@ CREATE TABLE room (
 
 CREATE TABLE family (
     family_id       SERIAL      PRIMARY KEY,
-    family_name     TEXT        UNIQUE,
+    family_name     TEXT,        
     parent_one      INT         REFERENCES users (user_id),
     parent_two      INT         REFERENCES users (user_id),
     children		INT

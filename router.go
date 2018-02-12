@@ -54,8 +54,7 @@ func createRouter() (*mux.Router, error) {
 	s.HandleFunc("/admin/calendar/setup/", undoSetup).Methods("DELETE")
 	/* Events JSON routes for scheduler system */
 	s.HandleFunc("/events", getEvents).Methods("GET")
-	s.HandleFunc("/events", updateEvent).Methods("POST") // Changes made to schedule,  update block
-
+	s.HandleFunc("/events/{target}", eventPostHandler).Methods("POST")
 	v := r.PathPrefix("/app").Subrouter()
 	// need redirect for '/' -> '/dashboard'
 	v.HandleFunc("/dashboard/", renderDashboard).Methods("GET")
