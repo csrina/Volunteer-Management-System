@@ -2,11 +2,11 @@
 --Adds basic users
 
 INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number)
-VALUES (1, 'parent', 'pass', 'parentfirst', 'parentlast', 'email', '123-4567');
+VALUES (1, 'parent', '$2a$10$SqeZIWv4nkdfppU8TL7.hO2lwcrPPP7Dg01LXHqBW1NWQNf8Vcf6C', 'parentfirst', 'parentlast', 'email', '123-4567');
 INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number)
-VALUES (2, 'teacher', 'pass', 'teacherfirst', 'teacherlast', 'email', '123-4567');
+VALUES (2, 'teacher', '$2a$10$SqeZIWv4nkdfppU8TL7.hO2lwcrPPP7Dg01LXHqBW1NWQNf8Vcf6C', 'teacherfirst', 'teacherlast', 'email', '123-4567');
 INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number)
-VALUES (3, 'admin', 'pass', 'adminfirst', 'adminlast', 'email', '123-4567');
+VALUES (3, 'admin', '$2a$10$SqeZIWv4nkdfppU8TL7.hO2lwcrPPP7Dg01LXHqBW1NWQNf8Vcf6C', 'adminfirst', 'adminlast', 'email', '123-4567');
 
 --Adds parents to be associated with families
 
