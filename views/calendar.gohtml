@@ -68,21 +68,12 @@
                     alert("Request failed: " + thrownError);
                 }
             });
-        }
-
-        // Determines the event rendering
-        function renderEvent(event, element) {
-            // Create speechbubble which displays info about event
-            $(element).qtip({
-                content: event.note + "<br>Attending: " + event.bookingCount
-            });
-        }
+        }  
 
         $(document).ready(function() {
             // page is now ready, initialize the calendar...
             $('#calendar').fullCalendar({
                 // Education use (both now and if deployed!)
-                schedulerLicenseKey: "CC-Attribution-NonCommercial-NoDerivatives",
                 weekends: false,
                 header: {
                     left: 'today',
@@ -92,10 +83,7 @@
                 events: "/api/v1/events",    // link to events (bookings + blocks feed)
                 allDayDefault: false,        // blocks are not all-day unless specified
                 themeSystem: "bootstrap3",
-                editable: true,                 // Need to use templating engine to change bool based on user's role
-                eventRender: function(event, element) { 
-                    renderEvent(event, element)
-                },
+                editable: true,                 // Need to use templating engine to change bool based on user's rolego ,
                 // DOM-Event handling for Calendar Eventblocks (why do js people suck at naming)
                 eventOverlap: function(stillEvent, movingEvent) {      // Event blocks in different rooms may overlap, events in same room may not
                     // Note: events may overlap on import; moving events will not be allowed to over lap
@@ -119,7 +107,18 @@
                     if (confirm("Confirm booking change?")) {
                         requestBooking(event, jsEvent, view)
                     }
-                }
+                },
+                businessHours: {
+                    // days of week. an array of zero-based day of week integers (0=Sunday)
+                    dow: [1, 2, 3, 4, 5], // Monday - Thursday
+                    start: '8:00', // a start time (10am in this example)
+                    end: '18:00', // an end time (6pm in this example)
+                },
+                // Controls view of agendaWeek
+                minTime: '07:00:00',
+                maxTime: '18:00:00',
+                allDaySlot: false,       // shows slot @ top for allday events
+                slotDuration: '00:30:00' // hourly divisions
             })
         });
     </script>
