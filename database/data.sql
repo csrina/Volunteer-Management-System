@@ -1,5 +1,5 @@
 \c caraway
---Adds users
+--Adds basic users
 
 INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number)
 VALUES (1, 'parent', 'pass', 'parentfirst', 'parentlast', 'email', '123-4567');
@@ -7,6 +7,27 @@ INSERT INTO users (user_role, username, password, first_name, last_name, email, 
 VALUES (2, 'teacher', 'pass', 'teacherfirst', 'teacherlast', 'email', '123-4567');
 INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number)
 VALUES (3, 'admin', 'pass', 'adminfirst', 'adminlast', 'email', '123-4567');
+
+--Adds parents to be associated with families
+
+INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number)
+VALUES(1, 'Will', 'pass', 'William', 'Robert', 'billybob@gmail.com', '132-4365');
+INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number)
+VALUES(1, 'Lope', 'pass', 'Penelope', 'Name', 'penName@gmail.com', '132-4365');
+INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number)
+VALUES(1, 'Susie', 'pass', 'Susie', 'Samename', 'susie53@gmail.com', '132-4365');
+INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number)
+VALUES(1, 'Stevie', 'pass', 'Stevie', 'Samename', 'stevie54@gmail.com', '132-4365');
+INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number)
+VALUES(1, '1234', '1234', 'Bad', 'Username', 'badusername@gmail.com', '132-4365');
+--Adds families with corresponding users
+
+INSERT INTO family (family_name, parent_one, children)
+VALUES ('Robert',4, 2);
+INSERT INTO family (family_name, parent_one, parent_two, children)
+VALUES ('Name', 5, 8, 1);
+INSERT INTO family (family_name, parent_one, parent_two, children)
+VALUES ('Samename', 6, 7, 10);
 
 --Adds rooms
 
