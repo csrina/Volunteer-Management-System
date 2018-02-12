@@ -4,13 +4,16 @@ import (
 	"encoding/json"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
+	"strconv"
 	"strings"
+	"time"
 )
 
 // tmp user struct just holds username and password
 type User struct {
 	Username string `json:"username" db:"username"`
 	Password []byte `json:"password" db:"password"`
+	UserID   int    `db:"user_id"`
 }
 
 func loadMainLogin(w http.ResponseWriter, r *http.Request) {
@@ -70,7 +73,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 */
 
 func auth(w http.ResponseWriter, username string, password []byte, role int) {
-	q := `SELECT username, password
+	q := `SELECT username, password, user_id
 			FROM users
 			where username = $1 AND user_role = $2`
 	logger.Println("Checking if user exits")
@@ -95,6 +98,14 @@ func auth(w http.ResponseWriter, username string, password []byte, role int) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
+	expire := time.Now().AddDate(0, 0, 1)
+	cookie := http.Cookie{
+		Name:    "SessionToken",
+		Value:   strconv.Itoa(users[0].UserID),
+		Expires: expire,
+	}
+
+	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusAccepted)
 	logger.Printf("Password is correct for user %v\n", username)
 }
