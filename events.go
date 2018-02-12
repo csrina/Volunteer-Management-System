@@ -77,13 +77,14 @@ func bookBooking(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Get family_id and user_id from request soemhow for dis
-	fid := 7357
-	uid := 7555
+	fid := 1 // placeholder id for entry in DB
+	uid := 1 // parent with uid 1 is in family 1 for now
 
 	q := `INSERT INTO booking (block_id, family_id, user_id, 
 			booking_start, booking_end) 
 			VALUES ($1, $2, $3, $4, $5)
 			RETURNING booking_id`
+
 	var book_id int
 	err = db.QueryRow(q, id, fid, uid, ev["start"], ev["end"]).Scan(&book_id)
 	if err != nil {
