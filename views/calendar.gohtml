@@ -47,9 +47,10 @@
         function requestBooking(event, jsEvent, view) {
             // Block info for booking
             booking_json = JSON.stringify({
-                id:   event.id,
+                id:         event.id,
                 start:      event.start,
                 end:        event.end,
+                bookingIds: event.bookingIds
             });
 
             // Make ajax POST request with booking request or request bookign delete if already booked
@@ -61,10 +62,10 @@
                 dataType:'json',
                 success: function(data) {  // We expect the server to return json data with a msg field
                     alert(data.msg);
-                    event.bookings++;
+                    $('#calendar').fullCalendar('refetchEvents')
                 },
                 error: function(xhr, ajaxOptions, thrownError) {
-                    alert("Request failed: " + xhr + "\n" + thrownError);
+                    alert("Request failed: " + thrownError);
                 }
             });
         }
@@ -73,7 +74,7 @@
         function renderEvent(event, element) {
             // Create speechbubble which displays info about event
             $(element).qtip({
-                content: event.note + "<br>Attending: " + event.bookings
+                content: event.note + "<br>Attending: " + event.bookingCount
             });
         }
 
@@ -115,7 +116,7 @@
                     storeChangesToEvent(ev, delta, revertFunc, jsEvent, ui, view);
                 },
                 eventClick: function(event, jsEvent, view) {
-                    if (confirm("Confirm booking?")) {
+                    if (confirm("Confirm booking change?")) {
                         requestBooking(event, jsEvent, view)
                     }
                 }
