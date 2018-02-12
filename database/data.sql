@@ -26,20 +26,6 @@ VALUES('2018-01-01 12:00:00', '2018-01-01 14:00:00', 1, 2, 'noon block!');
 INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
 VALUES('2018-01-01 15:00:00', '2018-01-01 17:00:00', 1, 1, 'afternoon block!');
 
-INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
-VALUES('2018-01-01 08:00:00', '2018-01-01 11:00:00', 2, 1, 'morning block!');
-INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
-VALUES('2018-01-01 12:00:00', '2018-01-01 14:00:00', 2, 2, 'noon block!');
-INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
-VALUES('2018-01-01 15:00:00', '2018-01-01 17:00:00', 2, 1, 'afternoon block!');
-
-INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
-VALUES('2018-01-01 08:00:00', '2018-01-01 11:00:00', 3, 1, 'morning block!');
-INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
-VALUES('2018-01-01 12:00:00', '2018-01-01 14:00:00', 3, 2, 'noon block!');
-INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
-VALUES('2018-01-01 15:00:00', '2018-01-01 17:00:00', 3, 1, 'afternoon block!');
-
 --Adds time blocks room 1 (january 2)
 
 INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
@@ -47,14 +33,7 @@ VALUES('2018-01-02 08:00:00', '2018-01-02 11:00:00', 1, 1, 'morning block!');
 INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
 VALUES('2018-01-02 12:00:00', '2018-01-02 14:00:00', 1, 1, 'noon block!');
 INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
-VALUES('2018-01-02 15:00:00', '2018-01-02 17:00:00', 1, 1, 'afternoon block!');
-
-INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
-VALUES('2018-01-02 08:00:00', '2018-01-02 11:00:00', 2, 1, 'morning block!');
-INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
-VALUES('2018-01-02 12:00:00', '2018-01-02 14:00:00', 2, 2, 'noon block!');
-INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
-VALUES('2018-01-02 15:00:00', '2018-01-02 17:00:00', 2, 1, 'afternoon block!');
+VALUES('2018-01-02 15:00:00', '2018-01-02 17:00:00', 1, 1, 'afternoon block!'); 
 
 --Adds time blocks room 1 (january 3)
 
