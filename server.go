@@ -38,7 +38,7 @@ func init() {
 		}
 		logger = log.New(f, "status: ", log.LstdFlags)
 	} else {
-		logger = log.New(os.Stdout, "status: ", log.LstdFlags)
+		logger = log.New(os.Stderr, "status: ", log.LstdFlags)
 	}
 
 }
