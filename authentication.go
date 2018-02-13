@@ -19,7 +19,6 @@ type User struct {
 func loadMainLogin(w http.ResponseWriter, r *http.Request) {
 	s := tmpls.Lookup("mainLogin.tmpl")
 	s.ExecuteTemplate(w, "content", nil)
-	s.Execute(w, nil)
 }
 func loadLogin(w http.ResponseWriter, r *http.Request) {
 	var title string
@@ -34,7 +33,6 @@ func loadLogin(w http.ResponseWriter, r *http.Request) {
 	title = title + "Login"
 	s := tmpls.Lookup("login.tmpl")
 	s.ExecuteTemplate(w, "loginForm", title)
-	s.Execute(w, title)
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {

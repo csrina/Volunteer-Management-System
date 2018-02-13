@@ -70,8 +70,9 @@ function login(){
         } else {
             console.log(this.status);
             console.log("Login attempt pass");
-            var theDiv = document.querySelector("#errorbox");
-            theDiv.innerHTML= `<div class="alert alert-success" role="alert">Login attempt was a success</div>`
+            // var theDiv = document.querySelector("#errorbox");
+            // theDiv.innerHTML= `<div class="alert alert-success" role="alert">Login attempt was a success</div>`
+            window.location="/dashboard";
         }
     };
     xmlhttp.open("POST", u, true);
@@ -84,16 +85,4 @@ function login(){
     
     xmlhttp.send(JSON.stringify({username:name, password:data}));
     
-}
-
-function gotoFlogin(){
-     window.location="/login/facilitator";
-}
-
-function gotoTlogin(){
-    window.location="/login/teacher";
-}
-
-function gotoAlogin(){
-    window.location="/login/admin";
 }

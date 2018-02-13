@@ -2,15 +2,21 @@
 {{define "content"}}
 
 {{template "header"}}
+				
+			</div>
+
+            
+        </header>
+        <br><br><br><br>
 
     <main>
         <br><br><br><br>
         <div class="container" style="width: 40%" >
             <div class ="well text-center" > 
                 <div class="btn-group-vertical" style="width: 90%">
-                    <button id="flogin" type="button" class="btn btn-primary" onclick="gotoFlogin()">Facilitator Login</button>
-                    <button id="tlogin" type="button" class="btn btn-primary" onclick="gotoTlogin()">Teacher Login</button>
-                    <button id="alogin" type="button" class="btn btn-primary" onclick="gotoAlogin()">Admin Login</button>
+                    <a id="flogin" class="btn btn-primary" href="/login/facilitator" role="button">Facilitator Login</a>
+                    <a id="tlogin" class="btn btn-primary" href="/login/teacher" role="button">Teacher Login</a>
+                    <a id="alogin" class="btn btn-primary" href="/login/admin" role="button">Admin Login</a>
                 </div>
             </div>
         </div>
