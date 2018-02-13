@@ -50,7 +50,7 @@ func init() {
 func parseTemplates() error {
 	var allFiles []string
 
-	files, err := ioutil.ReadDir("./templates")
+	files, err := ioutil.ReadDir("./views/templates")
 
 	if err != nil {
 		return err
@@ -58,7 +58,7 @@ func parseTemplates() error {
 	for _, file := range files {
 		filename := file.Name()
 		if strings.HasSuffix(filename, ".tmpl") {
-			allFiles = append(allFiles, "./templates/"+filename)
+			allFiles = append(allFiles, "./views/templates/"+filename)
 		}
 	}
 	tmpls, err = template.ParseFiles(allFiles...) //parses all .tmpl files in the 'templates' folder

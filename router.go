@@ -39,7 +39,7 @@ func createRouter() (*mux.Router, error) {
 	r.StrictSlash(true)
 	// static file handling (put assets in views folder)
 	r.PathPrefix("/views/").Handler(http.StripPrefix("/views/", http.FileServer(http.Dir("./views/"))))
-	r.PathPrefix("/tmp/").Handler(http.StripPrefix("/tmp/", http.FileServer(http.Dir("./public/"))))
+	// r.PathPrefix("/tmp/").Handler(http.StripPrefix("/tmp/", http.FileServer(http.Dir("./public/"))))
 
 	r.HandleFunc("/dashboard", loadDashboard)
 	r.HandleFunc("/calendar", loadCalendar)
