@@ -39,8 +39,10 @@ func createRouter() (*mux.Router, error) {
 	r.StrictSlash(true)
 	// static file handling (put assets in views folder)
 	r.PathPrefix("/views/").Handler(http.StripPrefix("/views/", http.FileServer(http.Dir("./views/"))))
-	r.PathPrefix("/tmp/").Handler(http.StripPrefix("/tmp/", http.FileServer(http.Dir("./public/"))))
-	// r.Handle("/tmp/", http.StripPrefix("/tmp/", http.FileServer(http.Dir("public"))))
+	// r.PathPrefix("/tmp/").Handler(http.StripPrefix("/tmp/", http.FileServer(http.Dir("./public/"))))
+
+	r.HandleFunc("/dashboard", loadDashboard)
+	r.HandleFunc("/calendar", loadCalendar)
 
 	r.HandleFunc("/login", loadMainLogin)
 	l := r.PathPrefix("/login").Subrouter()
@@ -71,4 +73,14 @@ func createRouter() (*mux.Router, error) {
 
 func baseRoute(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Base route to Caraway API")
+}
+
+func loadDashboard(w http.ResponseWriter, r *http.Request) {
+	s := tmpls.Lookup("dashboard.tmpl")
+	s.ExecuteTemplate(w, "dashboard", nil)
+}
+
+func loadCalendar(w http.ResponseWriter, r *http.Request) {
+	s := tmpls.Lookup("calendar.tmpl")
+	s.ExecuteTemplate(w, "calendar", nil)
 }
