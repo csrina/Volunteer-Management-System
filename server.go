@@ -8,7 +8,9 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/gorilla/sessions"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
@@ -24,6 +26,8 @@ type args struct {
 
 // Args used to hold any command line arguments
 var Args args
+
+var store = sessions.NewCookieStore([]byte(time.Now().String()))
 
 func init() {
 	flag.Usage = func() {
@@ -43,6 +47,12 @@ func init() {
 		logger = log.New(f, "status: ", log.LstdFlags)
 	} else {
 		logger = log.New(os.Stderr, "status: ", log.LstdFlags)
+	}
+
+	store.Options = &sessions.Options{
+		Path:     "/",
+		MaxAge:   60, // 1 min
+		HttpOnly: true,
 	}
 
 }

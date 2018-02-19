@@ -5,6 +5,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
@@ -13,8 +14,9 @@ import (
 func logging(f http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
 
-		logger.Println(r.URL.Path)
+		logger.Printf("'%v' %v", r.Method, r.URL.Path)
 		f.ServeHTTP(w, r)
 
 	})
@@ -31,6 +33,30 @@ func errorMessage(f http.Handler) http.Handler {
 		f.ServeHTTP(w, r)
 	})
 }
+
+func checkSession(f http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		session, err := store.Get(r, "loginSession")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// Retrieve our struct and type-assert it
+		val := session.Values["username"]
+		if val != nil {
+			logger.Println(val)
+			f.ServeHTTP(w, r)
+		} else {
+			if strings.Contains(r.URL.Path, "login") {
+				f.ServeHTTP(w, r)
+			}
+			logger.Println("you don't have acess to this")
+		}
+		return
+	})
+}
+
 func createRouter() (*mux.Router, error) {
 	r := mux.NewRouter()
 	r.Use(logging)
@@ -49,6 +75,8 @@ func createRouter() (*mux.Router, error) {
 	l.HandleFunc("/facilitator", loadLogin)
 	l.HandleFunc("/teacher", loadLogin)
 	l.HandleFunc("/admin", loadLogin)
+
+	r.Use(checkSession)
 
 	//load dashboard and calendar pages
 	r.HandleFunc("/dashboard", loadDashboard)
@@ -77,6 +105,7 @@ func baseRoute(w http.ResponseWriter, r *http.Request) {
 func loadDashboard(w http.ResponseWriter, r *http.Request) {
 	s := tmpls.Lookup("dashboard.tmpl")
 	s.ExecuteTemplate(w, "dashboard", nil)
+
 }
 
 func loadCalendar(w http.ResponseWriter, r *http.Request) {
