@@ -12,11 +12,11 @@
 
         <!-- jQuery library -->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-
         <!-- Latest compiled JavaScript -->
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
         <script src="/views/public/js/login.js" type="text/javascript"><%= text/javascript %></script>
         <meta name="viewport" content="width=device-width, initial-scale=1">
+    
     </head>
     <body>
         <header >
@@ -25,4 +25,34 @@
 					<h2>Caraway Volunteer Management System</h2>
 				</div>	
 
+{{end}}
+
+{{define "calendarHeader"}}
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Caraway Volunteer Management System</title>
+        <meta charset="UTF-8">
+        <!-- Latest compiled and minified CSS -->       
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+        <!-- fullCalendar dependencies -->
+        <link rel="stylesheet" type='text/css' href='/views/fullcalendar/fullcalendar.css'/>
+        <script type="text/javascript" src='/views/fullcalendar/lib/jquery.min.js'></script>
+        <script type="text/javascript" src='/views/fullcalendar/lib/moment.min.js'></script>
+        <script type="text/javascript" src='/views/fullcalendar/fullcalendar.js'></script>
+        <script type="text/javascript" src='/views/public/js/calendarClient.js'><%= text/javascript %></script>
+        
+        <!-- Latest compiled JavaScript -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <script src="/views/public/js/login.js" type="text/javascript"><%= text/javascript %></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    </head>
+    <body>
+        <header >
+			<div class="col-sm-12" style="background-color:skyblue">
+				<div class="col-sm-6 col-sm-offset-1">
+					<h2>Caraway Volunteer Management System</h2>
+				</div>	
 {{end}}
