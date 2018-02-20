@@ -47,6 +47,9 @@ func eventPostHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		return
 	}
+	logger.Println("The cookie: ")
+	logger.Println(r.Cookies())
+
 	// Determine POST destination from URL
 	dest := mux.Vars(r)["target"]
 
@@ -79,7 +82,6 @@ func bookBooking(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Get family_id and user_id from request soemhow for dis
-	fid := 1 // placeholder id for entry in DB
 	uid := 1 // parent with uid 1 is in family 1 for now
 	bids, ok := ev["bookingIds"].([]interface{})
 	if ok != true && reflect.TypeOf(ev["bookingIds"]) != nil {
@@ -97,13 +99,13 @@ func bookBooking(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	q := `INSERT INTO booking (block_id, family_id, user_id, 
+	q := `INSERT INTO booking (block_id, user_id, 
 			booking_start, booking_end) 
-			VALUES ($1, $2, $3, $4, $5)
+			VALUES ($1, $2, $3, $4)
 			RETURNING booking_id`
 
 	var book_id int
-	err = db.QueryRow(q, id, fid, uid, ev["start"], ev["end"]).Scan(&book_id)
+	err = db.QueryRow(q, id, uid, ev["start"], ev["end"]).Scan(&book_id)
 	if err != nil {
 		logger.Println("Error creating booking: ", err, "\nevent data: ", ev)
 		w.WriteHeader(http.StatusBadRequest)
@@ -158,9 +160,9 @@ func isBookAlready(bookingIds []interface{}, uid int) (int, error) {
 	}
 	/* Get the uids which correspond to booking ids given */
 	bookId := -1
-	logger.Println("QUery: ", q)
+	logger.Println("Query: ", q)
 	db.QueryRow(q, uid).Scan(&bookId)
-	logger.Println("Bookg id: ", bookId)
+	logger.Println("Booking id: ", bookId)
 	return bookId, nil
 }
 
@@ -204,7 +206,6 @@ func updateEvent(w http.ResponseWriter, r *http.Request) {
 func mapJSONRequest(r *http.Request) (map[string]interface{}, error) {
 	/* Read the json posted from calendar */
 	body, err := ioutil.ReadAll(r.Body)
-
 	if err != nil {
 		return nil, err
 	}
@@ -307,13 +308,6 @@ func NewEvent(b *TimeBlock) *Event {
 	if err != nil {
 		logger.Println(err.Error())
 	}
-	logger.Println(e.BookingIds)
 	e.BookingCount = len(e.BookingIds)
-	logger.Println("COUNT: ", e.BookingCount)
-
-	/* Debug logging */
-	//logger.Println("New event created: ", e.Title)
-	//logger.Println("From block: ", b)
-
 	return e
 }

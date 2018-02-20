@@ -112,7 +112,7 @@ func loadDashboard(w http.ResponseWriter, r *http.Request) {
 
 func loadCalendar(w http.ResponseWriter, r *http.Request) {
 	s := tmpls.Lookup("calendar.tmpl")
-	s.ExecuteTemplate(w, "calendar", nil)
+	logger.Println(s.ExecuteTemplate(w, "calendar", nil))
 }
 
 func handleLogout(w http.ResponseWriter, r *http.Request) {

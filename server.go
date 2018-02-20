@@ -121,6 +121,7 @@ func main() {
 	logger.Println("Routes created")
 	err = parseTemplates()
 	if err != nil {
+		logger.Println(err)
 		log.Fatal("Could not parse golang html templates")
 	}
 	logger.Println("Golang html templates parsed successfully")
