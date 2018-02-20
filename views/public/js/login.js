@@ -86,3 +86,8 @@ function login(){
     xmlhttp.send(JSON.stringify({username:name, password:data}));
     
 }
+
+function logout() {
+    window.location="/logout";
+    console.log("test")
+}

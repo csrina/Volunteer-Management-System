@@ -50,8 +50,9 @@ func checkSession(f http.Handler) http.Handler {
 		} else {
 			if strings.Contains(r.URL.Path, "login") {
 				f.ServeHTTP(w, r)
+			} else {
+				http.Redirect(w, r, "/login", http.StatusFound)
 			}
-			logger.Println("you don't have acess to this")
 		}
 		return
 	})
@@ -71,6 +72,7 @@ func createRouter() (*mux.Router, error) {
 
 	// load login pages html tmplts
 	r.HandleFunc("/login", loadMainLogin)
+	r.HandleFunc("/logout", handleLogout)
 	l := r.PathPrefix("/login").Subrouter()
 	l.HandleFunc("/facilitator", loadLogin)
 	l.HandleFunc("/teacher", loadLogin)
@@ -111,4 +113,18 @@ func loadDashboard(w http.ResponseWriter, r *http.Request) {
 func loadCalendar(w http.ResponseWriter, r *http.Request) {
 	s := tmpls.Lookup("calendar.tmpl")
 	s.ExecuteTemplate(w, "calendar", nil)
+}
+
+func handleLogout(w http.ResponseWriter, r *http.Request) {
+	session, err := store.Get(r, "loginSession")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Retrieve our struct and type-assert it
+	session.Values["username"] = nil
+	session.Save(r, w)
+	http.Redirect(w, r, "/login", http.StatusFound)
+
 }
