@@ -2,11 +2,10 @@ package main
 
 import (
 	"encoding/json"
-	"golang.org/x/crypto/bcrypt"
 	"net/http"
-	"strconv"
 	"strings"
-	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 // tmp user struct just holds username and password
@@ -44,6 +43,13 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 	logger.Println("login request for user " + u.Username)
+	session, err := store.New(r, "loginSession")
+	if err != nil {
+		logger.Println(err)
+		return
+	}
+	session.Values["username"] = u.Username
+	session.Save(r, w)
 	cur := r.URL.Path
 	var role int
 	if strings.Contains(cur, "facilitator") {
@@ -56,6 +62,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 	auth(w, u.Username, u.Password, role)
+
 }
 
 /* genreate password hash to work with the auth below
@@ -96,14 +103,7 @@ func auth(w http.ResponseWriter, username string, password []byte, role int) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	expire := time.Now().AddDate(0, 0, 1)
-	cookie := http.Cookie{
-		Name:    "SessionToken",
-		Value:   strconv.Itoa(users[0].UserID),
-		Expires: expire,
-	}
-
-	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusAccepted)
 	logger.Printf("Password is correct for user %v\n", username)
+
 }
