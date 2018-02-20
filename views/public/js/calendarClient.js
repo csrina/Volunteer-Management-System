@@ -48,13 +48,15 @@ function requestBooking(event, jsEvent, view) {
         dataType:'json',
         success: function(data) {  // We expect the server to return json data with a msg field
             alert(data.msg);
-            event.bookingIds.push(data.bookId)
+            console.log(event);
+            event.bookingIds.push(data.bookId);
             $('#calendar').fullCalendar('updateEvent', event);
         },
         error: function(xhr, ajaxOptions, thrownError) {
             alert("Request failed: " + thrownError);
         }
     });
+    
 }  
 
 $(document).ready(function() {
