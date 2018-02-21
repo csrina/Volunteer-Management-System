@@ -14,12 +14,12 @@ import (
 // An Event is a time block + a booking array + other details needed by calendar
 type Event struct {
 	// Block info + a title (required field for calendar)
-	ID       int       `db:"block_id" json:"id"`
-	Title    string    `db:"note" json:"title"`
-	Start    time.Time `db:"block_start" json:"start"`
-	End      time.Time `db:"block_end" json:"end"`
-	Room     string    `db:"room_name" json:"color"` // fullCalendar will make blocks colour of room
-	Modifier int       `db:"Modifier" json:"value"`
+	ID     int       `db:"block_id" json:"id"`
+	Title  string    `db:"note" json:"title"`
+	Start  time.Time `db:"block_start" json:"start"`
+	End    time.Time `db:"block_end" json:"end"`
+	Room   string    `db:"room_name" json:"room"` // fullCalendar will make blocks colour of room
+	Colour string    `json:"color"`               // color code for event rendering (corresponds to the room name)
 	// booking ids for lookup
 	BookingCount int  `json:"bookingCount"`
 	Booked       bool `json:"booked"`
@@ -318,7 +318,7 @@ func NewEvent(b *TimeBlock) *Event {
 	if err != nil {
 		logger.Println(err)
 	}
-
+	e.updateColourCode()
 	return e
 }
 
@@ -340,4 +340,43 @@ func (e *Event) setBookingStatus(uid int) (*Event, error) {
 		return e, err
 	}
 	return e, nil
+}
+
+/* Prety coloour plalalalette */
+const (
+	RED       = "#F44336"
+	PINK      = "#E91E63"
+	PURPLE    = "#9C27B0"
+	BLUE      = "#2196F3"
+	DGREEN    = "#4CAF50"
+	LGREEN    = "#76FF03"
+	LIME      = "#AEEA00"
+	YELLOW    = "#FAD201"
+	ORANGE    = "#FF9800"
+	GREY      = "#9E9E9E"
+	BLUE_GREY = "#607D8B"
+)
+
+/* CHanges the color code to correspond to the room name of the event */
+func (e *Event) updateColourCode() {
+	switch e.Room {
+	case "red":
+		e.Colour = RED
+	case "pink":
+		e.Colour = PINK
+	case "purple":
+		e.Colour = PURPLE
+	case "grey":
+		e.Colour = GREY
+	case "blue":
+		e.Colour = BLUE
+	case "green":
+		e.Colour = LGREEN
+	case "orange":
+		e.Colour = ORANGE
+	case "yellow":
+		e.Colour = YELLOW
+	default:
+		e.Colour = e.Room
+	}
 }

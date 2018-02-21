@@ -10,7 +10,7 @@ function requestBooking(event, jsEvent, view) {
     } else {
         promptStr += "Booking (";
     }
-    if (!confirm(promptStr + event.start.toString() + ", in the " + event.color + " room)")) {
+    if (!confirm(promptStr + event.start.toString() + ", in the " + event.room + " room)")) {
         return;
     }
     // Block info for booking
