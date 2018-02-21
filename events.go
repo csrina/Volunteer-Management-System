@@ -2,11 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
-	"reflect"
 	"strconv"
 	"time"
 
@@ -23,15 +21,16 @@ type Event struct {
 	Room     string    `db:"room_name" json:"color"` // fullCalendar will make blocks colour of room
 	Modifier int       `db:"Modifier" json:"value"`
 	// booking ids for lookup
-	BookingCount int   `json:"bookingCount"`
-	BookingIds   []int `json:"bookingIds"`
+	BookingCount int  `json:"bookingCount"`
+	Booked       bool `json:"booked"`
 	// description
 	Note string `json:"note"`
 }
 
 type RetData struct {
-	Msg string `json:"msg"`
-	BID int    `json:"bookId"`
+	Msg    string `json:"msg"`
+	BID    int    `json:"bookId"`
+	Booked bool   `json:"booked"`
 }
 
 // Expected time formats from calendar
@@ -65,6 +64,18 @@ func eventPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/* Returns the booking id for the event/user if it exists */
+func getBookingID(eID int, uID int) (int, error) {
+	bid := -1
+	q := `SELECT booking_id FROM booking WHERE (block_id = $1 AND user_id = $2)`
+	err := db.QueryRow(q, eID, uID).Scan(&bid)
+	if err != nil {
+		return -1, err
+	}
+	logger.Println("Booking ID returned: ", bid)
+	return bid, nil
+}
+
 /*
  * Makes a booking for the event block
  */
@@ -75,47 +86,35 @@ func bookBooking(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, ok := ev["id"].(float64)
+	eID, ok := ev["id"].(float64)
 	if ok != true {
 		logger.Println("Invalid id given")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	// Get family_id and user_id from request soemhow for dis
-	uid := 1 // parent with uid 1 is in family 1 for now
-	bids, ok := ev["bookingIds"].([]interface{})
-	if ok != true && reflect.TypeOf(ev["bookingIds"]) != nil {
-		logger.Println("Invalid booking ids given: type= ", reflect.TypeOf(ev["bookingIds"]))
-		w.WriteHeader(http.StatusBadRequest)
+
+	uID := getUID(r)
+	bID, _ := getBookingID(int(eID), uID)
+	if bID >= 0 {
+		unbookBooking(w, r, bID)
 		return
-	} else if reflect.TypeOf(ev["bookingIds"]) != nil {
-		toBookOrNotToBook, err := isBookAlready(bids, uid)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			logger.Println("Error: ", err)
-			return
-		} else if toBookOrNotToBook > 0 {
-			unbookBooking(w, r, toBookOrNotToBook)
-			return
-		}
 	}
 	q := `INSERT INTO booking (block_id, user_id, 
 			booking_start, booking_end) 
 			VALUES ($1, $2, $3, $4)
 			RETURNING booking_id`
 
-	var book_id int
-	err = db.QueryRow(q, id, uid, ev["start"], ev["end"]).Scan(&book_id)
+	err = db.QueryRow(q, eID, uID, ev["start"], ev["end"]).Scan(&bID)
 	if err != nil {
 		logger.Println("Error creating booking: ", err, "\nevent data: ", ev)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	logger.Println("New Booking created!\nBooking id: ", book_id)
+	logger.Println("New Booking created!\nBooking id: ", bID)
 	/* Create and serve JSON request response */
 	enc := json.NewEncoder(w)
-	enc.Encode(RetData{Msg: "Booking created!\nBooking ID: " + strconv.Itoa(book_id),
-		BID: book_id})
+	enc.Encode(RetData{Msg: "Booking created!\nBooking ID: " + strconv.Itoa(bID),
+		BID: bID})
 }
 
 /*
@@ -130,40 +129,8 @@ func unbookBooking(w http.ResponseWriter, r *http.Request, bid int) {
 		return
 	}
 	enc := json.NewEncoder(w)
-	ret := RetData{Msg: "Sucessfully deleted booking!" + "\nBooking ID was: " + strconv.Itoa(bid)}
+	ret := RetData{Msg: "Sucessfully deleted booking " + strconv.Itoa(bid)}
 	enc.Encode(ret)
-}
-
-/*
- * If booking id found which matches user, returns the booking id that is booked
- */
-func isBookAlready(bookingIds []interface{}, uid int) (int, error) {
-
-	q := `SELECT booking_id FROM booking WHERE (user_id = $1 AND (`
-	/* Extract ids from interface array and add to querystring */
-	for i, bid := range bookingIds {
-		bbid, ok := bid.(float64)
-		if ok != true {
-			bid, ok = bid.(int)
-			if ok != true {
-				return -1, errors.New("Booking ids must be numeric type")
-			}
-		} else {
-			bid = int(bbid)
-		}
-		q += "booking_id = " + strconv.Itoa(bid.(int))
-		if i != len(bookingIds)-1 {
-			q += " OR "
-		} else {
-			q += "))"
-		}
-	}
-	/* Get the uids which correspond to booking ids given */
-	bookId := -1
-	logger.Println("Query: ", q)
-	db.QueryRow(q, uid).Scan(&bookId)
-	logger.Println("Booking id: ", bookId)
-	return bookId, nil
 }
 
 /*
@@ -244,7 +211,35 @@ func getEvents(w http.ResponseWriter, r *http.Request) {
 	if err1 != nil {
 		panic(err1)
 	}
-	serveEventJSON(w, makeEvents(blocks))
+
+	uid := getUID(r)
+	if uid < 0 {
+		w.WriteHeader(http.StatusBadRequest)
+	}
+	evs := makeEvents(blocks)
+	for _, e := range evs {
+		e.setBookingStatus(uid)
+		logger.Println("IsUIDBooked? ", e.Booked, " CountBookings: ", e.BookingCount)
+	}
+	serveEventJSON(w, evs)
+}
+
+func getUID(r *http.Request) int {
+	// get session
+	sesh, _ := store.Get(r, "loginSession")
+	username, ok := sesh.Values["username"].(string)
+	if !ok {
+		logger.Println("Invalid user token: ", username)
+		return -1
+	}
+
+	q := `SELECT user_id FROM users WHERE username = $1`
+	var uid int
+	err := db.QueryRow(q, username).Scan(&uid)
+	if err != nil {
+		return -1
+	}
+	return uid
 }
 
 /*
@@ -304,10 +299,26 @@ func NewEvent(b *TimeBlock) *Event {
 	if err != nil {
 		logger.Println(err)
 	}
-	err = db.Select(&e.BookingIds, `SELECT booking_id FROM booking WHERE $1 = block_id`, b.ID)
-	if err != nil {
-		logger.Println(err.Error())
-	}
-	e.BookingCount = len(e.BookingIds)
+
 	return e
+}
+
+func (e *Event) setBookingStatus(uid int) (*Event, error) {
+	/* Set the booked flag based on the provided uid */
+	booked := 0
+	q := `SELECT count(*) FROM booking WHERE (block_id = $1 AND user_id = $2)`
+	db.QueryRow(q, e.ID, uid).Scan(&booked)
+	if booked == 0 {
+		e.Booked = false
+	} else {
+		e.Booked = true
+	}
+	/* Get the booked count */
+	q = `SELECT count(*) FROM booking WHERE block_id = $1`
+	err := db.QueryRow(q, e.ID).Scan(&e.BookingCount)
+	if err != nil {
+		logger.Println(err)
+		return e, err
+	}
+	return e, nil
 }

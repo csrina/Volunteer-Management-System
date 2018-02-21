@@ -31,12 +31,19 @@ function storeChangesToEvent(event, delta, revertFunc, jsEvent, ui, view) {
 // and have the templates populate based on role. Additional auth checks
 // server side to ensure correct user/role and such should still take place
 function requestBooking(event, jsEvent, view) {
+    var promptStr = "Confirm booking ";
+    console.log(event.booked);
+    if (event.booked == true) {
+        promptStr += "Cancellation (";
+    } else {
+        promptStr += "Booking (";
+    }
+    if (!confirm(promptStr + event.start.toString() + ", in the " + event.color + " room)")) {
+        return;
+    }
     // Block info for booking
     booking_json = JSON.stringify({
-        id:         event.id,
-        start:      event.start,
-        end:        event.end,
-        bookingIds: event.bookingIds
+        id:         event.id
     });
 
     // Make ajax POST request with booking request or request bookign delete if already booked
@@ -48,16 +55,19 @@ function requestBooking(event, jsEvent, view) {
         dataType:'json',
         success: function(data) {  // We expect the server to return json data with a msg field
             alert(data.msg);
-            console.log(event);
-            event.bookingIds.push(data.bookId);
+            event.booked = !event.booked;
+            if (event.booked == true) {
+                event.bookingCount++;
+            } else {
+                event.bookingCount--;
+            }
             $('#calendar').fullCalendar('updateEvent', event);
         },
         error: function(xhr, ajaxOptions, thrownError) {
             alert("Request failed: " + thrownError);
         }
     });
-    
-}  
+}
 
 $(document).ready(function() {
     // page is now ready, initialize the calendar...
@@ -74,6 +84,12 @@ $(document).ready(function() {
         allDayDefault: false,        // blocks are not all-day unless specified
         themeSystem: "bootstrap3",
         editable: true,                 // Need to use templating engine to change bool based on user's rolego ,
+        eventRender: function(event, element, view) {
+            element.find('.fc-title').append("<br/>" + event.bookingCount + " / 3");
+            if (event.booked) {
+                element.find('.fc-title').append("<br/>" + "<span class='glyphicon glyphicon-pushpin' aria-valuetext='You are booked in this block!'></span>");
+            }
+        },
         // DOM-Event handling for Calendar Eventblocks (why do js people suck at naming)
         eventOverlap: function(stillEvent, movingEvent) {      // Event blocks in different rooms may overlap, events in same room may not
             // Note: events may overlap on import; moving events will not be allowed to over lap
@@ -94,9 +110,7 @@ $(document).ready(function() {
             storeChangesToEvent(ev, delta, revertFunc, jsEvent, ui, view);
         },
         eventClick: function(event, jsEvent, view) {
-            if (confirm("Confirm booking change?\n" + event.Title + "\n" + event.start + " -- " + event.end)) {
-                requestBooking(event, jsEvent, view)
-            }
+                requestBooking(event, jsEvent, view);
         },
         businessHours: {
             // days of week. an array of zero-based day of week integers (0=Sunday)
