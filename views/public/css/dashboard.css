@@ -19,11 +19,14 @@ td {
 }
 #hoursDone{
     height: 45%;
-    font-size: 10vw;
+    font-size: 8vw;
     text-align: center;
 }
 #hoursBooked{
     height: 45%;
-    font-size: 10vw;
+    font-size: 8vw;
     text-align: center;
+}
+p {
+    color: lightgreen;
 }

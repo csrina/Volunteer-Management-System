@@ -8,27 +8,27 @@ function load() {
     req.send();
 }
 function input(data) {
+    let needed = 2.5;
     let done = document.getElementById("hoursDone");
     let booked = document.getElementById("hoursBooked");
     let table = document.getElementById("events");
-    let time = 0;
-    for (let i = 0; i < data.length; i++) {
-	let row = document.createElement("tr");
-	let start = new Date(data[i].BlockStart);	
-	let startMonth = start.getMonth();
-	let startDate = start.getDate();
-	let startHours = start.getHours();
-	let startMinutes = start.getMinutes();
-	let end = new Date(data[i].BlockEnd);
-	let endMonth = end.getMonth();
-	let endDate = end.getDate();
-	let endHours = end.getHours();
-	let endMinutes = end.getMinutes();
-	row.innerHTML = `
-	    <td style="border: solid">${startMonth}, ${startDate} at ${startHours}:${startMinutes}</td>
-	    <td style="border: solid">${endMonth}, ${endDate}</td>`
-	time += Math.abs(new Date(data[i].BlockEnd)- new Date(data[i].BlockStart))
-	table.appendChild(row);
+
+    if (data.hoursDone/needed > 0.99) {
+	done.style.color = "green"
+    } else if (data.hoursDone/needed > 0.66) {
+	done.style.color = "yellow"
+    } else if (data.hoursDone/needed > 0.33) {
+	done.style.color = "orange"
+    } else {
+	done.style.color = "red"
+    }
+    
+    done.innerHTML = data.hoursDone;
+    booked.innerHTML = data.hoursBooked;
+    for (let i = 0; i < data.eventlist.length; i++) {
+	let item = document.createElement("li");
+	item.innerHTML = data.eventlist[i];
+	table.appendChild(item)
     }
 }
 load();

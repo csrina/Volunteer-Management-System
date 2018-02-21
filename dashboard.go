@@ -15,11 +15,16 @@ join booking and time block
 pull out username, user_id, block_start, block_end
 */
 type WeeklyBooking struct {
-	UserName string `db:"username"`
-	UserId   int    `db:"user_id"`
-	//	BlockId    int       `db:"block_id"`
+	UserName   string    `db:"username"`
+	UserId     int       `db:"user_id"`
 	BlockStart time.Time `db:"block_start"`
 	BlockEnd   time.Time `db:"block_end"`
+}
+
+type FriendlyFormat struct {
+	Eventlist   []string `json:"eventlist"`
+	HoursBooked float64  `json:"hoursBooked"`
+	HoursDone   float64  `json:"hoursDone"`
 }
 
 func startOfWeek(current time.Time) time.Time {
@@ -61,7 +66,26 @@ WHERE r.user_id = $1 AND block_start > $2 AND block_start < $3`
 	if err != nil {
 		fmt.Printf("%v", err)
 	}
+	var friendly FriendlyFormat
+	i := 0
+	hoursDone := 0.0
+	hoursBooked := 0.0
+	layout := "Mon Jan 2 15:04"
+	for each := range bookings {
+		friendly.Eventlist = append(friendly.Eventlist, bookings[each].BlockStart.Format(layout)+" to ")
+		friendly.Eventlist[i] = friendly.Eventlist[i] + bookings[each].BlockEnd.Format(layout)
+		if bookings[each].BlockEnd.Before(time.Now()) {
+			hoursDone += bookings[each].BlockEnd.Sub(bookings[each].BlockStart).Hours()
+		}
+		hoursBooked += bookings[each].BlockEnd.Sub(bookings[each].BlockStart).Hours()
+		i++
+	}
+	friendly.HoursBooked = hoursBooked
+	friendly.HoursDone = hoursDone
 
 	encoder := json.NewEncoder(w)
-	err = encoder.Encode(bookings)
+	err = encoder.Encode(friendly)
+	if err != nil {
+		fmt.Printf("%v", err)
+	}
 }
