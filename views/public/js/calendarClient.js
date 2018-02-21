@@ -85,10 +85,14 @@ $(document).ready(function() {
         themeSystem: "bootstrap3",
         editable: true,                 // Need to use templating engine to change bool based on user's rolego ,
         eventRender: function(event, element, view) {
-            element.find('.fc-title').append("<br/>" + event.bookingCount + " / 3");
+            element.find('.fc-time').css("font-size", "1.5em");
+            element.find('.fc-title').css("font-size", "1.5em");
             if (event.booked) {
-                element.find('.fc-title').append("<br/>" + "<span class='glyphicon glyphicon-pushpin' aria-valuetext='You are booked in this block!'></span>");
+                element.find('.fc-title').prepend("<span class='glyphicon glyphicon-pushpin' aria-valuetext='You are booked in this block!'></span><br/>");
+            } else {
+                element.find('.fc-title').prepend("<br/>");
             }
+            element.find('.fc-title').append("<br/>" + event.bookingCount + " / 3<br/>");
         },
         // DOM-Event handling for Calendar Eventblocks (why do js people suck at naming)
         eventOverlap: function(stillEvent, movingEvent) {      // Event blocks in different rooms may overlap, events in same room may not
