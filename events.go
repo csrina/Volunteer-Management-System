@@ -76,6 +76,13 @@ func getBookingID(eID int, uID int) (int, error) {
 	return bid, nil
 }
 
+func getBookingCount(eID int) int {
+	cnt := 0
+	q := `SELECT count(*) FROM booking WHERE block_id = $1`
+	db.QueryRow(q, eID).Scan(&cnt)
+	return cnt
+}
+
 /*
  * Makes a booking for the event block
  */
@@ -97,6 +104,18 @@ func bookBooking(w http.ResponseWriter, r *http.Request) {
 	bID, _ := getBookingID(int(eID), uID)
 	if bID >= 0 {
 		unbookBooking(w, r, bID)
+		return
+	}
+	role, err := getRoleNum(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	bookingCount := getBookingCount(int(eID))
+	if role == FACILITATOR && bookingCount > 2 {
+		logger.Println("Error creating booking, only administrators may over-book time blocks.")
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	q := `INSERT INTO booking (block_id, user_id, 
