@@ -76,6 +76,10 @@ $(document).ready(function() {
             return true;
         },
         eventClick: function(event, jsEvent, view) {
+                if (event.bookingCount > 3) {
+                    alert("Sorry, only administrators can over-book time blocks.")
+                    return;
+                }
                 requestBooking(event, jsEvent, view);
         },
         businessHours: {
