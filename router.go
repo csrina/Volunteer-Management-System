@@ -3,6 +3,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -106,14 +107,26 @@ func baseRoute(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Base route to Caraway API")
 }
 
+/* Stores data for filling templates */
+type Page struct {
+	Role     string
+	Username string
+}
+
 func loadDashboard(w http.ResponseWriter, r *http.Request) {
 	s := tmpls.Lookup("dashboard.tmpl")
 	s.ExecuteTemplate(w, "dashboard", nil)
 }
 
 func loadCalendar(w http.ResponseWriter, r *http.Request) {
+	pg, err := loadPage(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusForbidden)
+		return
+	}
 	s := tmpls.Lookup("calendar.tmpl")
-	logger.Println(s.ExecuteTemplate(w, "calendar", nil))
+	logger.Println(pg)
+	logger.Println(s.ExecuteTemplate(w, "calendar", pg))
 }
 
 func handleLogout(w http.ResponseWriter, r *http.Request) {
@@ -128,4 +141,51 @@ func handleLogout(w http.ResponseWriter, r *http.Request) {
 	session.Save(r, w)
 	http.Redirect(w, r, "/login", http.StatusFound)
 
+}
+
+/* loads a Page struct with data from the request & returns ptr to it */
+func loadPage(r *http.Request) (*Page, error) {
+	data := &Page{}
+	role, err := getRoleNum(r)
+	if err != nil {
+		return nil, err
+	}
+	switch role {
+	case FACILITATOR:
+		data.Role = "Facilitator"
+	case TEACHER:
+		data.Role = "Teacher"
+	case ADMIN:
+		data.Role = "Admin"
+	default:
+		return nil, errors.New("You have insufficient access rights. Contact your administrator for details.")
+	}
+	/* Get user name for filling in template too */
+	sesh, _ := store.Get(r, "loginSession")
+	uname, ok := sesh.Values["username"].(string)
+	if !ok {
+		return nil, errors.New("You have an invalid username. Contact your administrator.")
+	}
+	data.Username = uname
+	return data, nil
+}
+
+/* Retrieves the role of the requesting party */
+func getRoleNum(r *http.Request) (int, error) {
+	sesh, err := store.Get(r, "loginSession")
+	if err != nil {
+		return -1, err
+	}
+	uname, ok := sesh.Values["username"].(string)
+	if !ok {
+		return -1, errors.New("Username of session invalid type")
+	}
+	/* Get and return the role */
+	var role int
+	q := `SELECT user_role FROM users WHERE (username = $1)`
+	err = db.QueryRow(q, uname).Scan(&role)
+	if err != nil {
+		return -1, err
+	}
+	return role, nil
 }
