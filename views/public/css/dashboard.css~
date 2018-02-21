@@ -1,0 +1,14 @@
+div{
+    display: inline-block;
+}
+td{
+    border: 2 px solid #73AD21;
+}
+.left-column{
+    left: 0px;
+//    width: 45%;
+}
+.right-column{
+    right: 0px;
+//    width: 45%;
+}

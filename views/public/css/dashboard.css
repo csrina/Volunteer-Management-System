@@ -1,0 +1,29 @@
+td {
+    border: 2 px solid #73AD21;
+}
+.left-column {
+    float: left;
+    left: 0px;
+    width: 49%;
+    background: black;
+}
+.right-column{
+    float: right;
+    background: grey;
+    right: 0px;
+    width: 49%;
+    color: blue;
+}
+.top {
+    top:0px
+}
+#hoursDone{
+    height: 45%;
+    font-size: 10vw;
+    text-align: center;
+}
+#hoursBooked{
+    height: 45%;
+    font-size: 10vw;
+    text-align: center;
+}
