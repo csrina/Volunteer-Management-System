@@ -51,6 +51,7 @@ $(document).ready(function() {
             center: 'prev, title, next',
             right: 'agendaWeek, month'
         },
+        agendaEventMinHeight: 5,
         defaultView: "agendaWeek",
         events: "/api/v1/events",    // link to events (bookings + blocks feed)
         allDayDefault: false,        // blocks are not all-day unless specified
@@ -82,6 +83,12 @@ $(document).ready(function() {
                 }
                 requestBooking(event, jsEvent, view);
         },
+        eventMouseover: function (event, jsEvent, view) {
+            $(this).addClass("expand");
+        },
+        eventMouseout: function (event, jsEvent, view) {
+            $(this).removeClass("expand");
+        },
         businessHours: {
             // days of week. an array of zero-based day of week integers (0=Sunday)
             dow: [1, 2, 3, 4, 5], // Monday - Thursday
@@ -94,4 +101,5 @@ $(document).ready(function() {
         allDaySlot: false,       // shows slot @ top for allday events
         slotDuration: '00:30:00' // hourly divisions
     })
+
 });
