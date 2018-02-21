@@ -8,6 +8,14 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+/* Role constants */
+const (
+	_ = iota // We start our roles at 1 -- therefore ignore 0
+	FACILITATOR
+	TEACHER
+	ADMIN
+)
+
 // tmp user struct just holds username and password
 type User struct {
 	Username string `json:"username" db:"username"`
