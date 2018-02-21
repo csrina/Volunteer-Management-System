@@ -91,6 +91,8 @@ func apiRoutes(r *mux.Router) {
 	s := r.PathPrefix("/api/v1").Subrouter()
 	s.HandleFunc("/admin/calendar/setup/", calSetup).Methods("POST")
 	s.HandleFunc("/admin/calendar/setup/", undoSetup).Methods("DELETE")
+	s.HandleFunc("/dashboard", dashboardData).Methods("GET")
+
 	/* Events JSON routes for scheduler system */
 	s.HandleFunc("/events", getEvents).Methods("GET")
 	s.HandleFunc("/events/{target}", eventPostHandler).Methods("POST")
@@ -107,7 +109,6 @@ func baseRoute(w http.ResponseWriter, r *http.Request) {
 func loadDashboard(w http.ResponseWriter, r *http.Request) {
 	s := tmpls.Lookup("dashboard.tmpl")
 	s.ExecuteTemplate(w, "dashboard", nil)
-
 }
 
 func loadCalendar(w http.ResponseWriter, r *http.Request) {
