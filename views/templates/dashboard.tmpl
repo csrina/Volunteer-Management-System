@@ -5,13 +5,30 @@
 						<li class="col-sm-5 text-left" style="color: black" ><a href="/calendar">Calendar</a></li>
 					</ul>
 			</div>
-
             
-        </header>
-        <br><br><br><br>
     <main>
-        <br><br>
-        <p>Dashboard stuffs here</p>
+    <link rel="stylesheet" type="text/css" href="/views/public/css/dashboard.css">
+    <div class="left-column">
+    	<p>
+		Hours completed
+	</p>
+	<p id="hoursDone" class="top">
+	   
+	</p>
+	<p>
+		Hours booked
+	</p>
+	<p id="hoursBooked">
+	   
+	</p>	
+    </div>
+    <div class="right-column top">
+    	<h2 class="top">Upcoming events</h2>
+	<ul id="events">
+    	</ul>
+    </div>
+
+    <script src="/views/public/js/dashboard.js"> </script>    
     </main>
 
 {{template "footer"}}
