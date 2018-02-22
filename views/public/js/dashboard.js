@@ -8,7 +8,12 @@ function load() {
     req.send();
 }
 function input(data) {
-    let needed = 2.5;
+    let needed = 0;
+    if (data.children == 1) {
+	needed = 2.5;
+    } else {
+	needed = 5;
+    }
     let done = document.getElementById("hoursDone");
     let booked = document.getElementById("hoursBooked");
     let table = document.getElementById("events");
