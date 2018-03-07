@@ -1,14 +1,12 @@
 {{define "calendar"}}
 
-{{template "cNav" .}}
-						<li class="col-sm-5 text-right " style="color: black"><a href="/dashboard">Dashboard</a></li>
-						<li class="col-sm-5 text-left active" style="color: black" ><a href="/calendar">Calendar</a></li>
-					</ul>
-			</div>
-        </header>
-        <br><br><br><br>
+{{template "header" .}}
+
+<br><br><br><br>
     <main>
-        <div style="margin: 2px; padding: 2px;"><div id="calendar"></div></div>
+        <div class="main-container">
+            <div id="calendar"></div>
+        </div>
     </main>
 
 {{template "footer"}}

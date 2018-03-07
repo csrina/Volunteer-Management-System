@@ -82,17 +82,17 @@ func startDb() error {
 	// open config file
 	logger.Println("Reading config file...")
 
-	config_file, err := os.Open(".config")
+	configFile, err := os.Open(".config")
 	if err != nil {
 		panic(err)
 	}
 
 	b := make([]byte, 100)
-	read, err := config_file.Read(b)
+	read, err := configFile.Read(b)
 	if err != nil {
 		panic(err)
 	}
-	config_file.Close()
+	configFile.Close()
 
 	//pull out connection string
 	//an example of mine is:

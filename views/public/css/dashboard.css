@@ -1,23 +1,22 @@
 
 .left-column {
     float: left;
-    left: 0px;
+    left: 0;
     width: 50%;
     background: black;
 }
 .right-column{
     float: right;
     background: grey;
-    right: 0px;
+    right: 0;
     width: 50%;
     color: blue;
 }
 .top {
-    top:0px
+    top:0
 }
 .left-division {
-    border-color: coral;
-    border: solid;
+    border: solid coral;
     display: inline-block;
     width: 49%;
 }

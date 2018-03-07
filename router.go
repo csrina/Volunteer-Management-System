@@ -3,7 +3,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -95,7 +94,7 @@ func apiRoutes(r *mux.Router) {
 	s.HandleFunc("/dashboard", dashboardData).Methods("GET")
 
 	/* Events JSON routes for scheduler system */
-	s.HandleFunc("/events", getEvents).Methods("GET")
+	s.HandleFunc("/events/{target}", getEvents).Methods("GET")
 	s.HandleFunc("/events/{target}", eventPostHandler).Methods("POST")
 	l := s.PathPrefix("/login").Subrouter()
 	l.HandleFunc("/facilitator/", loginHandler).Methods("POST")
@@ -103,23 +102,23 @@ func apiRoutes(r *mux.Router) {
 	l.HandleFunc("/admin/", loginHandler).Methods("POST")
 }
 
+//noinspection ALL
 func baseRoute(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Base route to Caraway API")
-}
-
-/* Stores data for filling templates */
-type Page struct {
-	Role     string
-	Username string
+	fmt.Fprintln(w, "Base route to Caraway API")
 }
 
 func loadDashboard(w http.ResponseWriter, r *http.Request) {
+	pg, err := loadPage("dashboard", r) // load page
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusForbidden)
+		return
+	}
 	s := tmpls.Lookup("dashboard.tmpl")
-	s.ExecuteTemplate(w, "dashboard", nil)
+	s.ExecuteTemplate(w, "dashboard", pg) // include page struct
 }
 
 func loadCalendar(w http.ResponseWriter, r *http.Request) {
-	pg, err := loadPage(r)
+	pg, err := loadPage("calendar", r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusForbidden)
 		return
@@ -135,57 +134,8 @@ func handleLogout(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
 	// Retrieve our struct and type-assert it
 	session.Values["username"] = nil
 	session.Save(r, w)
 	http.Redirect(w, r, "/login", http.StatusFound)
-
-}
-
-/* loads a Page struct with data from the request & returns ptr to it */
-func loadPage(r *http.Request) (*Page, error) {
-	data := &Page{}
-	role, err := getRoleNum(r)
-	if err != nil {
-		return nil, err
-	}
-	switch role {
-	case FACILITATOR:
-		data.Role = "Facilitator"
-	case TEACHER:
-		data.Role = "Teacher"
-	case ADMIN:
-		data.Role = "Admin"
-	default:
-		return nil, errors.New("You have insufficient access rights. Contact your administrator for details.")
-	}
-	/* Get user name for filling in template too */
-	sesh, _ := store.Get(r, "loginSession")
-	uname, ok := sesh.Values["username"].(string)
-	if !ok {
-		return nil, errors.New("You have an invalid username. Contact your administrator.")
-	}
-	data.Username = uname
-	return data, nil
-}
-
-/* Retrieves the role of the requesting party */
-func getRoleNum(r *http.Request) (int, error) {
-	sesh, err := store.Get(r, "loginSession")
-	if err != nil {
-		return -1, err
-	}
-	uname, ok := sesh.Values["username"].(string)
-	if !ok {
-		return -1, errors.New("Username of session invalid type")
-	}
-	/* Get and return the role */
-	var role int
-	q := `SELECT user_role FROM users WHERE (username = $1)`
-	err = db.QueryRow(q, uname).Scan(&role)
-	if err != nil {
-		return -1, err
-	}
-	return role, nil
 }

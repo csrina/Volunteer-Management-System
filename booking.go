@@ -6,6 +6,7 @@ import (
 )
 
 // bookingBlock - struct matching a booking record
+//noinspection GoUnusedType
 type bookingBlock struct {
 	BookingID int       `db:"booking_id" json:"bookingId"`
 	BlockID   int       `db:"block_id" json:"blockId"`

@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+//noinspection GoUnusedParameter
 func calSetup(w http.ResponseWriter, r *http.Request) {
 	//blocave to be filled by either json decode or from forms
 	//start / end also need to be pulled from the request body
@@ -23,6 +24,7 @@ func setAndInsertBlock(t *sql.Tx, block TimeBlock, newDate time.Time) error {
 	return nil
 }
 
+//noinspection GoUnusedFunction
 func applyTemplate(startDate time.Time, stopDate time.Time, blocks []TimeBlock) error {
 	Tx, err := db.Begin()
 	if err != nil {
@@ -70,6 +72,7 @@ func applyTemplate(startDate time.Time, stopDate time.Time, blocks []TimeBlock) 
 }
 
 // DO NOT USE THIS UNLESS 100% REQUIRED
+//noinspection GoUnusedParameter
 func undoSetup(w http.ResponseWriter, r *http.Request) {
 	//NEEDS AUTH CHECK
 	//REQUIRES NOTIFICATIONS FOR ALL USERS ALREADY WITH BLOCKS SCHEDULED
