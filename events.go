@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -103,7 +104,7 @@ func bookBooking(w http.ResponseWriter, r *http.Request) {
 	uID := getUID(r)
 	bID, _ := getBookingID(int(eID), uID)
 	if bID >= 0 {
-		unbookBookingByBID(w, r, bID)
+		unbookBookingByBID(w, bID)
 		return
 	}
 	role, err := getRoleNum(r)
@@ -139,7 +140,7 @@ func bookBooking(w http.ResponseWriter, r *http.Request) {
 /*
  * Removes a booking
  */
-func unbookBookingByBID(w http.ResponseWriter, r *http.Request, bid int) {
+func unbookBookingByBID(w http.ResponseWriter, bid int) {
 	q := `DELETE FROM booking WHERE booking_id = $1`
 	_, err := db.Exec(q, bid)
 	if err != nil {
@@ -214,9 +215,12 @@ func mapJSONRequest(r *http.Request) (map[string]interface{}, error) {
 
 func obtainDatesFromURL(r *http.Request) ([]time.Time, error) {
 	params := r.URL.Query() // Get the params from url as a {key : value} string map
-	start, err1 := parseDate(params.Get("start"))
-	end, err2 := parseDate(params.Get("end"))
-	if err1 != nil || err2 != nil {
+	start, err := parseDate(params.Get("start"))
+	if err != nil {
+		return nil, err
+	}
+	end, err := parseDate(params.Get("end"))
+	if err != nil {
 		return nil, err
 	}
 	// return start, end in a slice
@@ -243,7 +247,7 @@ func listEvents(r *http.Request) ([]*Event, error) {
 	/* Make the eventz */
 	uid := getUID(r)
 	if uid < 0 {
-		w.WriteHeader(http.StatusBadRequest)
+		return nil, errors.New("uid unresolved")
 	}
 
 	evs := makeEvents(blocks)
@@ -376,6 +380,7 @@ func (e *Event) setBookingStatus(uid int) (*Event, error) {
 }
 
 /* Prety coloour plalalalette */
+//noinspection GoUnusedConst,GoUnusedConst,GoUnusedConst
 const (
 	RED       = "#F44336"
 	PINK      = "#E91E63"

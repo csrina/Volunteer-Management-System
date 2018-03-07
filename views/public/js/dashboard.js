@@ -9,7 +9,7 @@ function load() {
 }
 function input(data) {
     let needed = 0;
-    if (data.children == 1) {
+    if (data.children === 1) {
 	needed = 2.5;
     } else {
 	needed = 5;
@@ -39,13 +39,13 @@ function input(data) {
 
 // This function will send a booking removal request to the server
 function requestRemoval(event) {
-    var promptStr = "Are you sure you want to remove yourself from:\n";
+    let promptStr = "Are you sure you want to remove yourself from:\n";
 
     if (!confirm(promptStr + event.start.toString() + ", in the " + event.room + " room")) {
         return;
     }
     // Block info for booking
-    var booking_json = JSON.stringify({
+    let booking_json = JSON.stringify({
         id:         event.id
     });
 

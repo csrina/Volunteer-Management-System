@@ -3,18 +3,19 @@
 // and have the templates populate based on role. Additional auth checks
 // server side to ensure correct user/role and such should still take place
 function requestBooking(event, jsEvent, view) {
-    var promptStr = "Confirm booking ";
+    let promptStr = "Confirm booking ";
     console.log(event.booked);
-    if (event.booked == true) {
+    if (event.booked === true) {
         promptStr += "Cancellation (";
     } else {
         promptStr += "Booking (";
     }
+    // noinspection Annotator
     if (!confirm(promptStr + event.start.toString() + ", in the " + event.room + " room)")) {
         return;
     }
     // Block info for booking
-    booking_json = JSON.stringify({
+    let booking_json = JSON.stringify({
         id:         event.id
     });
 
@@ -26,11 +27,14 @@ function requestBooking(event, jsEvent, view) {
         data: booking_json,
         dataType:'json',
         success: function(data) {  // We expect the server to return json data with a msg field
+            // noinspection Annotator
             alert(data.msg);
             event.booked = !event.booked;
-            if (event.booked == true) {
+            if (event.booked === true) {
+                // noinspection Annotator
                 event.bookingCount++;
             } else {
+                // noinspection Annotator
                 event.bookingCount--;
             }
             $('#calendar').fullCalendar('updateEvent', event);
@@ -65,20 +69,16 @@ $(document).ready(function() {
             } else {
                 element.find('.fc-title').prepend("<br/>");
             }
+            // noinspection Annotator
             element.find('.fc-title').append("<br/>" + event.bookingCount + " / 3<br/>");
         },
-        // DOM-Event handling for Calendar Eventblocks (why do js people suck at naming)
-        eventOverlap: function(stillEvent, movingEvent) {      // Event blocks in different rooms may overlap, events in same room may not
-            // Note: events may overlap on import; moving events will not be allowed to over lap
-            //       That is, we must constrain the overlap when we make event creation possible
-            if (stillEvent.color === movingEvent.color) {
-                return false;
-            }
-            return true;
+        eventOverlap: function(stillEvent, movingEvent) {
+            return stillEvent.color === movingEvent.color;
         },
         eventClick: function(event, jsEvent, view) {
-                if (event.bookingCount > 3) {
-                    alert("Sorry, only administrators can over-book time blocks.")
+                // noinspection Annotator
+            if (event.bookingCount > 3) {
+                    alert("Sorry, only administrators can over-book time blocks.");
                     return;
                 }
                 requestBooking(event, jsEvent, view);
@@ -95,5 +95,4 @@ $(document).ready(function() {
         allDaySlot: false,       // shows slot @ top for allday events
         slotDuration: '00:30:00' // hourly divisions
     })
-
 });

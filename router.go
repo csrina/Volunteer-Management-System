@@ -104,6 +104,7 @@ func apiRoutes(r *mux.Router) {
 	l.HandleFunc("/admin/", loginHandler).Methods("POST")
 }
 
+//noinspection ALL
 func baseRoute(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Base route to Caraway API")
 }
@@ -148,7 +149,7 @@ type Page struct {
 	Role     string
 	Username string
 	/* Dependency flags for templates */
-	Calendar boolean // page has calendar --> set flag to true
+	Calendar bool // page has calendar --> set flag to true
 }
 
 /* loads a Page struct with data from the request & returns ptr to it */

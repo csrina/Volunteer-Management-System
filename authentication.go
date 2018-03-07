@@ -23,6 +23,7 @@ type User struct {
 	UserID   int    `db:"user_id"`
 }
 
+//noinspection GoUnusedParameter
 func loadMainLogin(w http.ResponseWriter, r *http.Request) {
 	s := tmpls.Lookup("mainLogin.tmpl")
 	s.ExecuteTemplate(w, "content", nil)
@@ -91,7 +92,7 @@ func auth(w http.ResponseWriter, username string, password []byte, role int) {
 			where username = $1 AND user_role = $2`
 	logger.Println("Checking if user exits")
 	logger.Println(q + " " + username)
-	users := []User{}
+	var users []User
 	if err := db.Select(&users, q, username, role); err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		logger.Println(err)

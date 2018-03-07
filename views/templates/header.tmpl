@@ -9,16 +9,23 @@
         <meta charset="UTF-8">
         <!-- Latest compiled and minified CSS -->       
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        // If page requires a calendar, provide the relevant libraries
         {{if .Calendar eq true}}
             <!-- fullCalendar dependencies -->
             <link rel="stylesheet" type='text/css' href='/views/fullcalendar/fullcalendar.css'/>
-            <script type="text/javascript" src='/views/fullcalendar/lib/moment.min.js'></script>
-            <script type="text/javascript" src='/views/fullcalendar/fullcalendar.js'></script>
-            <script type="text/javascript" src='/views/public/js/calendar {{- .Role -}} .js'><%= text/javascript %></script>
+            <script type="text/javascript" src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js'></script>
+            <script type="text/javascript" src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.js'></script>
+            <script type="text/javascript" src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.css'></script>
+            <script type="text/javascript" src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.print.css'></script>
             <!-- slate theme for calendar -->
             <link rel="stylesheet" type="text/css" href="https://bootswatch.com/3/slate/bootstrap.min.css">
         {{end}}
-        {{if .PageName eq "dashboard"}} <script src="/views/public/js/dashboard.js"> </script> {{end}}
+        // Select javascript based on pagename (and further by role of user) -- given as data to the template
+        {{if .PageName eq "calendar"}}
+            <script type="text/javascript" src='/views/public/js/calendar {{- .Role -}} .js'><%= text/javascript %></script>
+        {{else if .PageName eq "dashboard"}}
+            <script src="/views/public/js/dashboard.js"></script>
+        {{end}}
             <!-- Latest compiled JavaScript -->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <script src="/views/public/js/login.js" type="text/javascript"></script>
