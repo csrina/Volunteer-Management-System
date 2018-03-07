@@ -60,6 +60,7 @@ $(document).ready(function() {
         events: "/api/v1/events",    // link to events (bookings + blocks feed)
         allDayDefault: false,        // blocks are not all-day unless specified
         themeSystem: "bootstrap3",
+        theme: "bootstrap",
         editable: false,                 // Need to use templating engine to change bool based on user's rolego ,
         eventRender: function(event, element, view) {
             element.find('.fc-time').css("font-size", "1.5em");
@@ -94,5 +95,6 @@ $(document).ready(function() {
         maxTime: '18:00:00',
         allDaySlot: false,       // shows slot @ top for allday events
         slotDuration: '00:30:00' // hourly divisions
-    })
+    });
+    $('#calendar').fullCalendar('render');
 });

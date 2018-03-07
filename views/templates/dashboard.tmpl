@@ -3,30 +3,22 @@
 {{template "header" .}}
 
 <main>
-    <div class="left-column">
-      <div class="left-division">
-	<div>
-	    	 Hours completed
-	</div>
-	<div id="hoursDone" class="top hours">	   
-	</div>
-      </div>
-      <div class="left-division">
-        <div>	
-	  <div>
-	    Hours booked
-	  </div>
-	  <div id="hoursBooked" class="hours">	   
-	  </div>	
+    <div class="container">
+        <div class="col-md-7">
+            <h2>Hours completed</h2>
+            <div id="hoursDone" class="top hours"></div>
         </div>
-      </div>
-    </div>  
-    <div class="right-column top">
-      <h4 class="top">Upcoming events</h4>
-        <div id="calendar"></div>
+        <div class="col-md-7">
+            <h2>Hours booked</h2>
+            <div id="hoursBooked" class="hours"></div>
+        </div>
+        <div class="col-md-5">
+            <h4 class="top">Upcoming events</h4>
+            <div id="calendar"></div>
+        </div>
     </div>
 </main>
     
-    {{template "footer"}}
+{{template "footer"}}
     
-    {{end}}
+{{end}}

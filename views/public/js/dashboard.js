@@ -76,6 +76,8 @@ $(document).ready(function() {
             left: 'title',
             right: 'prev, today, next'
         },
+        theme: "bootstrap",
+        aspectRatio: 0.33,
         defaultView: "list",
         duration: {days: 14},        // two week intervals shown for upcoming events
         events: "/api/v1/events/dash",    // EventsFeed with dash as its target
@@ -96,7 +98,8 @@ $(document).ready(function() {
             start: '8:00',
             end: '18:00'
         }
-    })
+    });
+    $('#calendar').fullCalendar('render');
 });
 
 load();

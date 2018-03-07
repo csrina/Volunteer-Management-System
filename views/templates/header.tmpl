@@ -13,12 +13,13 @@
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
         <!-- Provide calendar if page wants it -->
         {{if .Calendar }}
-            <!-- fullCalendar dependencies -->
-            <link rel="stylesheet" type='text/css' href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.print.css'/>
-            <link rel="stylesheet" type='text/css' href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.css'/>
             <!-- slate theme for calendar -->
             <link rel="stylesheet" type="text/css" href="https://bootswatch.com/3/slate/bootstrap.min.css">
-            <script type="text/javascript" src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.js'></script>
+            <!-- fullCalendar dependencies -->
+            <link rel="stylesheet" type='text/css' href='/views/fc/fullcalendar.css'/>
+            <!--<script type="text/javascript" src='/views/fc/lib/jquery.min.js'></script> -->
+            <script type="text/javascript" src='/views/fc/lib/moment.min.js'></script>
+            <script type="text/javascript" src='/views/fc/fullcalendar.js'></script>
         {{end}}
         <!--Select javascript based on pagename (and further by role of user) -- given as data to the template -->
         {{if eq .PageName "calendar" }}
