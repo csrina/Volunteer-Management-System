@@ -66,6 +66,22 @@ func getBlocks(start time.Time, end time.Time) ([]TimeBlock, error) {
 	}
 }
 
+func getBlocksWithMoments(start string, end string) ([]TimeBlock, error) {
+	// Retrieve blocks w/in date range
+	q := `SELECT * FROM time_block
+			   WHERE block_start >= $1 AND block_end <= $2`
+	var blocks []TimeBlock
+	err := db.Select(&blocks, q, start, end)
+
+	if err != nil {
+		return nil, err
+	} else if len(blocks) > 0 {
+		return blocks, nil
+	} else {
+		return nil, nil
+	}
+}
+
 /* Setter for day field of timeblock */
 func (tb *TimeBlock) setDay(startDate time.Time) {
 	tb.Start = time.Date(startDate.Year(), startDate.Month(), startDate.Day(), tb.Start.Hour(), tb.Start.Minute(), 0, 0, tb.Start.Location())

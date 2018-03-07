@@ -94,7 +94,6 @@ func apiRoutes(r *mux.Router) {
 	s.HandleFunc("/dashboard", dashboardData).Methods("GET")
 
 	/* Events JSON routes for scheduler system */
-	s.HandleFunc("/events", getEvents).Methods("GET")
 	s.HandleFunc("/events/{target}", getEvents).Methods("GET")
 	s.HandleFunc("/events/{target}", eventPostHandler).Methods("POST")
 	l := s.PathPrefix("/login").Subrouter()

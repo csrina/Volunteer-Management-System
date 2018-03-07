@@ -57,7 +57,7 @@ $(document).ready(function() {
         },
         agendaEventMinHeight: 5,
         defaultView: "agendaWeek",
-        events: "/api/v1/events",    // link to events (bookings + blocks feed)
+        events: "/api/v1/events/scheduler",    // link to events (bookings + blocks feed)
         allDayDefault: false,        // blocks are not all-day unless specified
         themeSystem: "bootstrap3",
         theme: "bootstrap",

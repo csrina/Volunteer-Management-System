@@ -2,11 +2,13 @@ function load() {
     let req = new XMLHttpRequest();
     req.addEventListener("load", function(evt) {
 	    let data = JSON.parse(req.response);
+	    console.log(req.response);
 	    input(data);
     });
     req.open("GET", "http://localhost:8080/api/v1/dashboard");
     req.send();
 }
+
 function input(data) {
     let needed = 0;
     if (data.children === 1) {
@@ -27,14 +29,8 @@ function input(data) {
     } else {
 	done.style.color = "red"
     }
-    
     done.innerHTML = data.hoursDone;
     booked.innerHTML = data.hoursBooked;
-   /* for (let i = 0; i < data.eventlist.length; i++) {
-	let item = document.createElement("li");
-	item.innerHTML = data.eventlist[i];
-	table.appendChild(item)
-    } */
 }
 
 // This function will send a booking removal request to the server
@@ -85,7 +81,7 @@ $(document).ready(function() {
         themeSystem: "bootstrap3",
         editable: false,                 // Need to use templating engine to change bool based on user's rolego ,
         eventRender: function(event, element, view) {
-            element.find('.fc-title').append("  " + event.bookingCount + " / 3  ");
+            element.find('.fc-list-item-title').append("  " + event.bookingCount + " / 3  ");
         },
         // DOM-Event handling for Calendar Eventblocks (why do js people suck at naming)
         eventOverlap: false,

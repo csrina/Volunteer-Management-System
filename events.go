@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"strings"
 )
 
 // An Event is a time block + a booking array + other details needed by calendar
@@ -213,33 +214,22 @@ func mapJSONRequest(r *http.Request) (map[string]interface{}, error) {
 	return ev, nil
 }
 
-func obtainDatesFromURL(r *http.Request) ([]time.Time, error) {
-	params := r.URL.Query() // Get the params from url as a {key : value} string map
-	start, err := parseDate(params.Get("start"))
-	if err != nil {
-		return nil, err
-	}
-	end, err := parseDate(params.Get("end"))
-	if err != nil {
-		return nil, err
-	}
-	// return start, end in a slice
-	dates := append(make([]time.Time, 2, 2), start, end)
-	return dates, nil
-}
-
 /* Lists the events requested */
 func listEvents(r *http.Request) ([]*Event, error) {
 	/* obtain the blockz in range */
-	dates, err := obtainDatesFromURL(r)
-	if err != nil {
-		logger.Println("Could not parse dates")
-		return nil, err
-	}
+	params := r.URL.Query() // Get the params from url as a {key : value} string map
 
-	logger.Println("Start Date: " + dates[0].String() + "\tEnd Date: " + dates[1].String())
+	start := params.Get("start")
+	end := params.Get("end")
+	if start == "" || end == "" {
+		return nil, errors.New("date(s) couldn't be resolved")
+	}
+	logger.Println("Start Date: " + start + "\tEnd Date: " + end)
+	if strings.ContainsAny(start, ";") || strings.ContainsAny(end, ";"){
+		return nil, errors.New("';' in date, scary")
+	}
 	/* Get time blocks in range */
-	blocks, err1 := getBlocks(dates[0], dates[1])
+	blocks, err1 := getBlocksWithMoments(start, end)
 	if err1 != nil {
 		panic(err1)
 	}
@@ -258,7 +248,7 @@ func listEvents(r *http.Request) ([]*Event, error) {
 	/* If target given, and target is dash --> only return events for which the user is booked */
 	dest := mux.Vars(r)["target"]
 	if dest == "dash" {
-		evs2 := make([]*Event, len(evs), len(evs)+1)
+		evs2 := []*Event{}
 		for _, e := range evs {
 			if e.Booked {
 				evs2 = append(evs2, e) // add to evs2 if booked
@@ -328,12 +318,13 @@ func makeEvents(blocks []TimeBlock) []*Event {
  */
 func parseDate(date string) (time.Time, error) {
 	// try parsing long-form
-	d, err := time.Parse(isoTimeFull, date)
+
+	d, err := time.Parse(isoTimeShort, date)
 	if err == nil {
 		return d, nil
 	}
 	// try short form
-	d, err = time.Parse(isoTimeShort, date)
+	d, err = time.Parse(isoTimeFull, date)
 	if err == nil {
 		return d, nil
 	}
