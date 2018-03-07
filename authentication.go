@@ -26,7 +26,13 @@ type User struct {
 //noinspection GoUnusedParameter
 func loadMainLogin(w http.ResponseWriter, r *http.Request) {
 	s := tmpls.Lookup("mainLogin.tmpl")
-	s.ExecuteTemplate(w, "content", nil)
+	p:= &Page{
+		PageName: "mainLogin",
+		Role: "",
+		Username: "",
+		Calendar: false,
+	}
+	s.ExecuteTemplate(w, "content", p)
 }
 func loadLogin(w http.ResponseWriter, r *http.Request) {
 	var title string
@@ -38,9 +44,14 @@ func loadLogin(w http.ResponseWriter, r *http.Request) {
 	} else if strings.Contains(cur, "admin") {
 		title = "Admin "
 	}
-	title = title + "Login"
+	p:= &Page{
+		PageName: "login",
+		Role: title,
+		Username: "",
+		Calendar: false,
+	}
 	s := tmpls.Lookup("login.tmpl")
-	s.ExecuteTemplate(w, "loginForm", title)
+	s.ExecuteTemplate(w, "loginForm", p)
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {

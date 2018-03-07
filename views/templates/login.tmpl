@@ -1,7 +1,7 @@
 
 {{define "loginForm"}}
 
-{{template "header"}}
+{{template "header" .}}
 
 			</div>
         </header>
@@ -10,7 +10,7 @@
             <br><br><br><br>
             <div class="container" style="width: 40%" >
                 <div class ="well"> 
-                    <h4 class="text-center">{{.}}</h4>
+                    <h4 class="text-center">{{.Role}} Login</h4>
                     <div class="form-group" id="usrgroup">
                         <label class="control-label" for="usr">Username:</label>
                         <input type="text" class="form-control text-left" id="usr">

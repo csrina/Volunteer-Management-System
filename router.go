@@ -3,7 +3,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -136,86 +135,8 @@ func handleLogout(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
 	// Retrieve our struct and type-assert it
 	session.Values["username"] = nil
 	session.Save(r, w)
 	http.Redirect(w, r, "/login", http.StatusFound)
-}
-
-/* Stores data for filling templates */
-type Page struct {
-	PageName string
-	Role     string
-	Username string
-	/* Dependency flags for templates */
-	Calendar bool // page has calendar --> set flag to true
-}
-
-/* loads a Page struct with data from the request & returns ptr to it */
-//noinspection ALL
-func loadPage(pn string, r *http.Request) (*Page, error) {
-	data := &Page{
-		PageName: pn,
-	}
-	/* get user's role */
-	role, err := getRoleNum(r)
-	if err != nil {
-		return nil, err
-	}
-
-	switch role {
-	case FACILITATOR:
-		data.Role = "Facilitator"
-	case TEACHER:
-		data.Role = "Teacher"
-	case ADMIN:
-		data.Role = "Admin"
-	default:
-		return nil, errors.New("insufficient access rights")
-	}
-
-	/* Get user name for filling in template too */
-	sesh, _ := store.Get(r, "loginSession")
-	uname, ok := sesh.Values["username"].(string)
-	if !ok {
-		return nil, errors.New("invalid username")
-	}
-	data.Username = uname
-
-	/* Finally, using the data gathered about our page, set the dependency flags */
-	data.setDependencyFlags()
-	return data, nil
-}
-
-/* Retrieves the role of the requesting party */
-func getRoleNum(r *http.Request) (int, error) {
-	sesh, err := store.Get(r, "loginSession")
-	if err != nil {
-		return -1, err
-	}
-	uname, ok := sesh.Values["username"].(string)
-	if !ok {
-		return -1, errors.New("username of session invalid type")
-	}
-	/* Get and return the role */
-	var role int
-	q := `SELECT user_role FROM users WHERE (username = $1)`
-	err = db.QueryRow(q, uname).Scan(&role)
-	if err != nil {
-		return -1, err
-	}
-	return role, nil
-}
-
-/*
- * Reads Page struct and adds the {string:string} needed by templates.
- * e.g. if page requires calendar --> sets Calendar field to true
- */
-func (p *Page) setDependencyFlags() *Page {
-	// Pages which contain calendar
-	if p.PageName == "calendar" || p.PageName == "dashboard" {
-		p.Calendar = true
-	}
-	return p
 }
