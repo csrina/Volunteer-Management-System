@@ -23,6 +23,8 @@ VALUES(1, '1234', '1234', 'Bad', 'Username', 'badusername@gmail.com', '132-4365'
 --Adds families with corresponding users
 
 INSERT INTO family (family_name, parent_one, children)
+VALUES ('test', 1, 1);
+INSERT INTO family (family_name, parent_one, children)
 VALUES ('Robert',4, 2);
 INSERT INTO family (family_name, parent_one, parent_two, children)
 VALUES ('Name', 5, 8, 1);
@@ -135,3 +137,49 @@ VALUES('2018-01-05 15:00:00', '2018-01-05 17:00:00', 2, 1, 'afternoon block!');
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
+
+--february times
+
+INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
+VALUES('2018-02-19 08:00:00', '2018-02-19 11:00:00', 2, 1, 'morning block!');
+INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
+VALUES('2018-01-19 12:00:00', '2018-02-19 14:00:00', 2, 1, 'noon block!');
+INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
+VALUES('2018-01-19 15:00:00', '2018-02-19 17:00:00', 2, 1, 'afternoon block!');
+
+
+INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
+VALUES('2018-02-20 08:00:00', '2018-02-20 11:00:00', 2, 1, 'morning block!');
+INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
+VALUES('2018-01-20 12:00:00', '2018-02-20 14:00:00', 2, 1, 'noon block!');
+INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
+VALUES('2018-01-20 15:00:00', '2018-02-20 17:00:00', 2, 1, 'afternoon block!');
+
+INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
+VALUES('2018-02-21 08:00:00', '2018-02-21 11:00:00', 2, 1, 'morning block!');
+INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
+VALUES('2018-01-21 12:00:00', '2018-02-21 14:00:00', 2, 1, 'noon block!');
+INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
+VALUES('2018-01-21 15:00:00', '2018-02-21 17:00:00', 2, 1, 'afternoon block!');
+
+INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
+VALUES('2018-02-22 08:00:00', '2018-02-22 11:00:00', 2, 1, 'morning block!');
+INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
+VALUES('2018-01-22 12:00:00', '2018-02-22 14:00:00', 2, 1, 'noon block!');
+INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
+VALUES('2018-01-22 15:00:00', '2018-02-22 17:00:00', 2, 1, 'afternoon block!');
+
+INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
+VALUES('2018-02-23 08:00:00', '2018-02-23 11:00:00', 2, 1, 'morning block!');
+INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
+VALUES('2018-01-23 12:00:00', '2018-02-23 14:00:00', 2, 1, 'noon block!');
+INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
+VALUES('2018-01-23 15:00:00', '2018-02-23 17:00:00', 2, 1, 'afternoon block!');
+
+
+INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
+VALUES('2018-02-26 08:00:00', '2018-02-26 11:00:00', 2, 1, 'morning block!');
+INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
+VALUES('2018-01-26 12:00:00', '2018-02-26 14:00:00', 2, 1, 'noon block!');
+INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
+VALUES('2018-01-26 15:00:00', '2018-02-26 17:00:00', 2, 1, 'afternoon block!');
