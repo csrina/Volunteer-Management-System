@@ -1,0 +1,28 @@
+
+{{define "nav"}}
+    <header>
+        <div class="col-sm-12" style="background-color:skyblue">
+            <div class="col-sm-6 col-sm-offset-1">
+                <h2 style="color: black">Caraway Volunteer Management System</h2>
+            </div>
+        {{if and (ne .PageName "login") (ne .PageName "mainLogin")}}
+        <!-- We are logged in -->
+             <div class="col-sm-4">
+                <br>
+                <div class="col-sm-8 text-right" style="height: 34px;padding-right: 0;">
+                    <label style="margin-bottom: 0; height: 34px; margin-top: 6px;">{{.Username}}</label>
+                </div>
+                <div class="col-sm-4">
+                    <button type="button" class="btn btn-default">Logout</button>
+                </div>
+             </div>
+        </div>
+        <div class="col-sm-12" style="background-color:	skyblue;">
+            <ul class="nav nav-tabs nav-justified">
+                <li class="col-sm-5 text-right active" style="color: black"><a href="/dashboard">Dashboard</a></li>
+                <li class="col-sm-5 text-left" style="color: black" ><a href="/calendar">Calendar</a></li>
+            </ul>
+        </div>
+        {{end}}
+    </header>
+{{end}}

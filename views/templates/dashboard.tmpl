@@ -1,15 +1,8 @@
 {{define "dashboard"}}
 
-{{template "nav" .}}
-						<!--suppress HtmlUnknownTarget -->
-<li class="col-sm-5 text-right active" style="color: black"><a href="/dashboard">Dashboard</a></li>
-						<li class="col-sm-5 text-left" style="color: black" ><a href="/calendar">Calendar</a></li>
-					</ul>
-			</div>
-            
-    <main>
-    <link rel="stylesheet" type="text/css" href="/views/public/css/dashboard.css">
+{{template "header" .}}
 
+<main>
     <div class="left-column">
       <div class="left-division">
 	<div>
@@ -30,9 +23,9 @@
     </div>  
     <div class="right-column top">
       <h4 class="top">Upcoming events</h4>
-      <div id="calendar"></div>
+        <div id="calendar"></div>
     </div>
-    </main>
+</main>
     
     {{template "footer"}}
     
