@@ -1,6 +1,6 @@
 {{define "dashboard"}}
 
-{{template "nav"}}
+{{template "nav" .}}
 						<li class="col-sm-5 text-right active" style="color: black"><a href="/dashboard">Dashboard</a></li>
 						<li class="col-sm-5 text-left" style="color: black" ><a href="/calendar">Calendar</a></li>
 					</ul>
@@ -29,11 +29,8 @@
     </div>  
     <div class="right-column top">
       <h4 class="top">Upcoming events</h4>
-      <ul id="events">
-      </ul>
+      <div id="calendar"></div>
     </div>
-    
-    <script src="/views/public/js/dashboard.js"> </script>    
     </main>
     
     {{template "footer"}}

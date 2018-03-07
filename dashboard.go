@@ -62,7 +62,7 @@ ON b.block_id = t.block_id) s
 ON r.user_id = s.user_id
 WHERE r.user_id = $1 AND block_start > $2 AND block_start < $3`
 	} else {
-		fmt.Fprintf(w, "non facilitator doesnt have dashboard right now")
+		fmt.Fprintln(w, "non facilitator doesnt have dashboard right now")
 		return
 	}
 
@@ -78,7 +78,7 @@ WHERE r.user_id = $1 AND block_start > $2 AND block_start < $3`
 	hoursBooked := 0.0
 	layout := "Mon Jan 2 15:04"
 	if len(bookings) == 0 {
-		fmt.Fprintf(w, "no results")
+		fmt.Fprintln(w, "no results")
 		return
 	}
 	for each := range bookings {

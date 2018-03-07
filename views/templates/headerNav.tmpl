@@ -2,31 +2,12 @@
 
 {{define "nav"}}
 
-{{template "header"}}	
+{{template "header" .}}
+
 				<div class="col-sm-4">
 					<br>
 					<div class="col-sm-8 text-right" style="height: 34px;padding-right: 0px;">
-							<label style="margin-bottom: 0px; height: 34px; margin-top: 6px;">Family name here (username)</label>
-					</div>
-					<div class="col-sm-4">
-						<button type="button" class="btn btn-primary" id="logoutbtn" onclick="logout()">Log out</button>
-					</div>
-				</div>
-				
-			</div>
-			<div class="col-sm-12" style="background-color:	skyblue;">
-					<ul class="nav nav-tabs nav-justified">
-
-
-{{end}}
-
-{{define "cNav"}}
-
-{{template "calendarHeader" .}}	
-				<div class="col-sm-4">
-					<br>
-					<div class="col-sm-8 text-right" style="height: 34px;padding-right: 0px;">
-							<label style="margin-bottom: 0px; height: 34px; margin-top: 6px;"><font color="black">{{.Username}}</font></label>
+							<label style="margin-bottom: 0px; height: 34px; margin-top: 6px;">{{.Username}}</label>
 					</div>
 					<div class="col-sm-4">
 							<button type="button" class="btn btn-default">Logout</button>
@@ -35,6 +16,4 @@
 			</div>
 			<div class="col-sm-12" style="background-color:	skyblue;">
 					<ul class="nav nav-tabs nav-justified">
-
-
 {{end}}

@@ -35,8 +35,8 @@ type RetData struct {
 
 // Expected time formats from calendar
 const (
-	iso_time_short = "2006-01-02"
-	iso_time_full  = "2006-01-02T15:04:05"
+	isoTimeShort = "2006-01-02"
+	isoTimeFull  = "2006-01-02T15:04:05"
 )
 
 /*
@@ -103,7 +103,7 @@ func bookBooking(w http.ResponseWriter, r *http.Request) {
 	uID := getUID(r)
 	bID, _ := getBookingID(int(eID), uID)
 	if bID >= 0 {
-		unbookBooking(w, r, bID)
+		unbookBookingByBID(w, r, bID)
 		return
 	}
 	role, err := getRoleNum(r)
@@ -139,7 +139,7 @@ func bookBooking(w http.ResponseWriter, r *http.Request) {
 /*
  * Removes a booking
  */
-func unbookBooking(w http.ResponseWriter, r *http.Request, bid int) {
+func unbookBookingByBID(w http.ResponseWriter, r *http.Request, bid int) {
 	q := `DELETE FROM booking WHERE booking_id = $1`
 	_, err := db.Exec(q, bid)
 	if err != nil {
@@ -212,33 +212,66 @@ func mapJSONRequest(r *http.Request) (map[string]interface{}, error) {
 	return ev, nil
 }
 
-// Using url encoded params, responds with a json event stream
-func getEvents(w http.ResponseWriter, r *http.Request) {
+func obtainDatesFromURL(r *http.Request) ([]time.Time, error) {
 	params := r.URL.Query() // Get the params from url as a {key : value} string map
 	start, err1 := parseDate(params.Get("start"))
 	end, err2 := parseDate(params.Get("end"))
 	if err1 != nil || err2 != nil {
+		return nil, err
+	}
+	// return start, end in a slice
+	dates := append(make([]time.Time, 2, 2), start, end)
+	return dates, nil
+}
+
+/* Lists the events requested */
+func listEvents(r *http.Request) ([]*Event, error) {
+	/* obtain the blockz in range */
+	dates, err := obtainDatesFromURL(r)
+	if err != nil {
 		logger.Println("Could not parse dates")
-		w.WriteHeader(http.StatusBadRequest)
-		//context.Set(r, "error", http.StatusBadRequest)
-		return
+		return nil, err
 	}
 
-	logger.Println("Start Date: " + start.String() + "\tEnd Date: " + end.String())
+	logger.Println("Start Date: " + dates[0].String() + "\tEnd Date: " + dates[1].String())
 	/* Get time blocks in range */
-	blocks, err1 := getBlocks(start, end)
+	blocks, err1 := getBlocks(dates[0], dates[1])
 	if err1 != nil {
 		panic(err1)
 	}
 
+	/* Make the eventz */
 	uid := getUID(r)
 	if uid < 0 {
 		w.WriteHeader(http.StatusBadRequest)
 	}
+
 	evs := makeEvents(blocks)
 	for _, e := range evs {
 		e.setBookingStatus(uid)
-		logger.Println("IsUIDBooked? ", e.Booked, " CountBookings: ", e.BookingCount)
+	}
+
+	/* If target given, and target is dash --> only return events for which the user is booked */
+	dest := mux.Vars(r)["target"]
+	if dest == "dash" {
+		evs2 := make([]*Event, len(evs), len(evs)+1)
+		for _, e := range evs {
+			if e.Booked {
+				evs2 = append(evs2, e) // add to evs2 if booked
+			}
+		}
+		return evs2, nil // return booked events only
+	}
+	return evs, nil // return all events in range
+}
+
+/* Using a url encoded params, responds with a json event stream */
+func getEvents(w http.ResponseWriter, r *http.Request) {
+	evs, err := listEvents(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		//context.Set(r, "error", http.StatusBadRequest)
+		return
 	}
 	serveEventJSON(w, evs)
 }
@@ -291,12 +324,12 @@ func makeEvents(blocks []TimeBlock) []*Event {
  */
 func parseDate(date string) (time.Time, error) {
 	// try parsing long-form
-	d, err := time.Parse(iso_time_full, date)
+	d, err := time.Parse(isoTimeFull, date)
 	if err == nil {
 		return d, nil
 	}
 	// try short form
-	d, err = time.Parse(iso_time_short, date)
+	d, err = time.Parse(isoTimeShort, date)
 	if err == nil {
 		return d, nil
 	}

@@ -83,12 +83,6 @@ $(document).ready(function() {
                 }
                 requestBooking(event, jsEvent, view);
         },
-        eventMouseover: function (event, jsEvent, view) {
-            $(this).addClass("expand");
-        },
-        eventMouseout: function (event, jsEvent, view) {
-            $(this).removeClass("expand");
-        },
         businessHours: {
             // days of week. an array of zero-based day of week integers (0=Sunday)
             dow: [1, 2, 3, 4, 5], // Monday - Thursday
