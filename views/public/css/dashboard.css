@@ -5,29 +5,33 @@
     width: 50%;
     background: black;
 }
-.right-column{
-    float: right;
-    background: grey;
-    right: 0;
-    width: 50%;
-    color: blue;
-}
-.top {
-    top:0
-}
-.left-division {
-    border: solid coral;
-    display: inline-block;
-    width: 49%;
-}
-.hours{
-    font-size: 14vw;
+
+#wdgt-container {
+    font-weight: bold;
+    font-family: Calibri, sans-serif;
+    font-size: 4rem;
     text-align: center;
+    padding: 10px;
+    margin: 10px;
+    border: 1px solid #5a5a5a;
+    border-radius: 3px;
+}
+
+#hoursChart {
+    border: 1px solid #5a5a5a;
+    border-radius: 3px;
+}
+
+#calendar {
+    padding: 3px;
+    border: 1px solid #5a5a5a;
+    border-radius: 3px;
 }
 
 div {
     color: lightblue;
 }
+
 main {
-    background: black;
+    background-color: '#272b30';
 }

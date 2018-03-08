@@ -248,7 +248,7 @@ func listEvents(r *http.Request) ([]*Event, error) {
 	/* If target given, and target is dash --> only return events for which the user is booked */
 	dest := mux.Vars(r)["target"]
 	if dest == "dash" {
-		evs2 := []*Event{}
+		var evs2 []*Event
 		for _, e := range evs {
 			if e.Booked {
 				evs2 = append(evs2, e) // add to evs2 if booked
@@ -316,7 +316,7 @@ func makeEvents(blocks []TimeBlock) []*Event {
  * Attempts to get long-form, then short-form;
  * upon failure it returns the current datetime and the parsing error
  */
-func parseDate(date string) (time.Time, error) {
+func _(date string) (time.Time, error) {
 	// try parsing long-form
 
 	d, err := time.Parse(isoTimeShort, date)
@@ -373,17 +373,17 @@ func (e *Event) setBookingStatus(uid int) (*Event, error) {
 /* Prety coloour plalalalette */
 //noinspection GoUnusedConst,GoUnusedConst,GoUnusedConst
 const (
-	RED       = "#F44336"
-	PINK      = "#E91E63"
-	PURPLE    = "#9C27B0"
-	BLUE      = "#2196F3"
-	DGREEN    = "#4CAF50"
-	LGREEN    = "#76FF03"
-	LIME      = "#AEEA00"
-	YELLOW    = "#FAD201"
-	ORANGE    = "#FF9800"
-	GREY      = "#9E9E9E"
-	BLUE_GREY = "#607D8B"
+	RED      = "#F44336"
+	PINK     = "#E91E63"
+	PURPLE   = "#9C27B0"
+	BLUE     = "#2196F3"
+	DGREEN   = "#4CAF50"
+	LGREEN   = "#76FF03"
+	LIME     = "#AEEA00"
+	YELLOW   = "#FAD201"
+	ORANGE   = "#FF9800"
+	GREY     = "#9E9E9E"
+	BLUEGREY = "#607D8B"
 )
 
 /* CHanges the color code to correspond to the room name of the event */
