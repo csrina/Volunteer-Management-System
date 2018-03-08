@@ -44,7 +44,7 @@ func (b *bookingBlock) updateBooking() error {
 		return err
 	}
 	if count != 1 {
-		err = errors.New("Booking not updated")
+		err = errors.New("booking not updated")
 		return err
 	}
 	return nil
@@ -63,7 +63,7 @@ func (b *bookingBlock) deleteBooking() error {
 		return err
 	}
 	if count != 1 {
-		err = errors.New("Booking not deleted")
+		err = errors.New("booking not deleted")
 		return err
 	}
 	return nil
@@ -75,28 +75,31 @@ type Booking struct {
 	BlockID   	int       	`db:"block_id" json:"blockId"`
 	FamilyID  	int       	`db:"family_id" json:"familyId"`
 	UserID    	int       	`db:"user_id" json:"userID"`
-	Start     	time.Time 	`db:"booking_start" json:"start"`
-	End       	time.Time 	`db:"booking_end" json:"end"`
-	BlockStart 	time.Time 	`db:"block_start" json:"endBlock"`
-	BlockEnd   	time.Time 	`db:"block_end" json:"endBlock"`
+	Start 		time.Time 	`db:"block_start" json:"endBlock"`
+	End   		time.Time 	`db:"block_end" json:"endBlock"`
 	RoomID		int			`db:"room_id" json:"room_id"`
 	Modifier    int         `db:"modifier" json:"modifier"`
-	Note     	string    	`db:"note" json:"note"`
 }
 
 /* WHY */
 func getUserBookings(start time.Time, end time.Time, UID int) ([]Booking, error) {
-	/* Get all bookings in range start-now */
-	q := `SELECT * FROM booking NATURAL JOIN time_block
-			WHERE (time_block.block_id = booking.block_id
+	/* format dates for psql */
+	logger.Println("Preformat --> Start ", start, "\tEnd ", end)
+	startStr := start.Format(time.RFC3339Nano)
+	endStr:= end.Format(time.RFC3339Nano)
+	logger.Println("Formated --> Start ", startStr, "\tEnd ", endStr)
+	/* Get all bookings in range start-now  (start > block_start & end > blocK_end) */
+	q := `SELECT booking_id, block_id, family_id, user_id, block_start, block_end, room_id, modifier
+			FROM booking NATURAL JOIN time_block WHERE (
+					time_block.block_id = booking.block_id
 					AND booking.user_id = $1 
-					AND time_block.block_start >= $2 
-					AND time_block.block_end <= $3)
-			ORDER BY time_block.block_start`
+					AND $3 > time_block.block_end
+					AND $2 > time_block.block_start
+			) ORDER BY time_block.block_start`
 
 	var bookBlocks []Booking
-	err := db.Select(&bookBlocks, q, UID, start, end)
-	logger.Println("uid ", UID, "start ", start, " end ", end, "\nblocks: ", bookBlocks)
+	err := db.Select(&bookBlocks, q, UID, startStr, endStr)
+	logger.Println("Selected blocks: ", bookBlocks)
 	if err != nil {
 		logger.Println(err)
 		return nil, err
