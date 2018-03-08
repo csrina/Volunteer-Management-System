@@ -42,6 +42,7 @@ function requestRemoval(event) {
  */
 function chartInit(elementId, data) {
     let ctx = document.getElementById(elementId).getContext("2d");
+    // noinspection ES6ConvertVarToLetConst
     var hoursChart = new Chart(ctx, {
         type: "line",
         data:
@@ -62,7 +63,14 @@ function chartInit(elementId, data) {
                 ]
             },
         options:{
-            spanGaps: true
+            spanGaps: true,
+            scales: {
+                yAxes: [{
+                    min: 0,
+                    max: 12.5,
+                    stepSize: 1,
+                }]
+            }
         }
     });
 }
@@ -87,8 +95,10 @@ function gaugeInit(elementId, value, goal) {
         highDpiSupport: true,     // High resolution support
     };
 
-    var element = document.getElementById(elementId)
+    // noinspection ES6ConvertVarToLetConst
+    var element = document.getElementById(elementId);
     element.style.zIndex = 1;
+    // noinspection ES6ConvertVarToLetConst
     var gauge = new Gauge(element).setOptions(opts);
     gauge.maxValue = goal;
     gauge.setMinValue(0);
@@ -140,7 +150,8 @@ $(document).ready(function() {
 /* Wait for DOM to load, then get the gauges */
 document.addEventListener("DOMContentLoaded", () => {
         // get values from server
-        var data = {};
+        // noinspection ES6ConvertVarToLetConst
+    var data = {};
         $.ajax({
             url: "/api/v1/dashboard",
             type: 'GET',

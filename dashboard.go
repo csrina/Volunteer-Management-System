@@ -25,10 +25,10 @@ import (
   */
 func getDashData(w http.ResponseWriter, r *http.Request) {
 	UID 	:= getUID(r)
-	goal 	:= getHoursGoal(UID);
-	booked 	:= getHoursBooked(UID);
-	done 	:= getHoursDone(UID);
-	history := getHoursHistory(UID, time.Now());
+	goal 	:= getHoursGoal(UID)
+	booked 	:= getHoursBooked(UID)
+	done 	:= getHoursDone(UID)
+	history := getHoursHistory(UID, time.Now())
 
 	dd := &DashData{
 		HoursGoal: goal,
@@ -81,12 +81,13 @@ func getHoursBookingSlice(bookBlocks []Booking) float64 {
 	var duration float64
 	duration = 0.00
 	for _, bb := range bookBlocks {
-		duration += (bb.BlockEnd.Sub(bb.BlockStart).Hours() * float64(bb.Modifier))
+		duration += (bb.End.Sub(bb.Start).Hours() * float64(bb.Modifier))
 	}
 	return duration
 }
 
 /* Returns historical hours/week for past 3 months */
+/* Does not work yet. Do not expect good results yet */
 func getHoursHistory(UID int, curr time.Time) []float64 {
 	start := now.New(curr).BeginningOfWeek().AddDate(0,-3, 0) // 3 months prior to beginning of week
 	bookBlocks, err := getUserBookings(start, time.Now(), UID)
@@ -98,10 +99,10 @@ func getHoursHistory(UID int, curr time.Time) []float64 {
 	var duration float64
 	duration = 0.00
 	for i, bb := range bookBlocks {
-		duration += (bb.BlockEnd.Sub(bb.BlockStart).Hours() * float64(bb.Modifier))
-		if i != 0 && i % 5 == 0 {
+		duration = (bb.End.Sub(bb.Start).Hours() * float64(bb.Modifier))
+		if i % 5 == 0 { // Need to give this correct logic for deducing weeks
 			history = append(history, duration)
-			duration = 0 // reset to 0, week end
+			duration = 0.00 // reset to 0, week end
 		}
 	}
 	return history

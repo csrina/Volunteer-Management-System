@@ -115,8 +115,8 @@ func loadDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 	s := tmpls.Lookup("dashboard.tmpl")
 	// dependency flags for dashboard
-	pg.Calendar = true;
-	pg.Chart = true;
+	pg.Calendar = true
+	pg.Chart = true
 	s.ExecuteTemplate(w, "dashboard", pg) // include page struct
 }
 
@@ -128,7 +128,7 @@ func loadCalendar(w http.ResponseWriter, r *http.Request) {
 	}
 	s := tmpls.Lookup("calendar.tmpl")
 	// calendar dependency flag
-	pg.Calendar = true;
+	pg.Calendar = true
 	logger.Println(pg)
 	logger.Println(s.ExecuteTemplate(w, "calendar", pg))
 }

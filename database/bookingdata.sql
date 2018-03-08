@@ -130,3 +130,12 @@ INSERT INTO booking (block_id, user_id, family_id)
 VALUES (12, 8, 3);
 INSERT INTO booking (block_id, user_id, family_id)
 VALUES (14, 8, 3);
+
+
+--add parent to january 1 all 3 blocks room 1
+INSERT INTO booking (block_id, user_id, family_id)
+VALUES (49, 1, 1);
+INSERT INTO booking (block_id, user_id, family_id)
+VALUES (50, 1, 1);
+INSERT INTO booking (block_id, user_id, family_id)
+VALUES (51, 1, 1);

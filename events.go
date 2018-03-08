@@ -373,17 +373,17 @@ func (e *Event) setBookingStatus(uid int) (*Event, error) {
 /* Prety coloour plalalalette */
 //noinspection GoUnusedConst,GoUnusedConst,GoUnusedConst
 const (
-	RED       = "#F44336"
-	PINK      = "#E91E63"
-	PURPLE    = "#9C27B0"
-	BLUE      = "#2196F3"
-	DGREEN    = "#4CAF50"
-	LGREEN    = "#76FF03"
-	LIME      = "#AEEA00"
-	YELLOW    = "#FAD201"
-	ORANGE    = "#FF9800"
-	GREY      = "#9E9E9E"
-	BLUE_GREY = "#607D8B"
+	RED      = "#F44336"
+	PINK     = "#E91E63"
+	PURPLE   = "#9C27B0"
+	BLUE     = "#2196F3"
+	DGREEN   = "#4CAF50"
+	LGREEN   = "#76FF03"
+	LIME     = "#AEEA00"
+	YELLOW   = "#FAD201"
+	ORANGE   = "#FF9800"
+	GREY     = "#9E9E9E"
+	BLUEGREY = "#607D8B"
 )
 
 /* CHanges the color code to correspond to the room name of the event */
