@@ -248,7 +248,7 @@ func listEvents(r *http.Request) ([]*Event, error) {
 	/* If target given, and target is dash --> only return events for which the user is booked */
 	dest := mux.Vars(r)["target"]
 	if dest == "dash" {
-		evs2 := []*Event{}
+		var evs2 []*Event
 		for _, e := range evs {
 			if e.Booked {
 				evs2 = append(evs2, e) // add to evs2 if booked
@@ -316,7 +316,7 @@ func makeEvents(blocks []TimeBlock) []*Event {
  * Attempts to get long-form, then short-form;
  * upon failure it returns the current datetime and the parsing error
  */
-func parseDate(date string) (time.Time, error) {
+func _(date string) (time.Time, error) {
 	// try parsing long-form
 
 	d, err := time.Parse(isoTimeShort, date)

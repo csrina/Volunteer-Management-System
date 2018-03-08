@@ -10,6 +10,7 @@ type Page struct {
 	Username string
 	/* Dependency flags for templates */
 	Calendar bool // page has calendar --> set flag to true
+	Chart bool // page requires chart.js
 }
 
 /*
@@ -44,9 +45,6 @@ func loadPage(pn string, r *http.Request) (*Page, error) {
 		return nil, errors.New("invalid username")
 	}
 	data.Username = uname
-
-	/* Finally, using the data gathered about our page, set the dependency flags */
-	data.setDependencyFlags()
 	return data, nil
 }
 
@@ -70,17 +68,6 @@ func getRoleNum(r *http.Request) (int, error) {
 	return role, nil
 }
 
-/*
- * Reads Page struct and adds the {string:string} needed by templates.
- * e.g. if page requires calendar --> sets Calendar field to true
- */
-func (p *Page) setDependencyFlags() *Page {
-	// Pages which contain calendar
-	if p.PageName == "calendar" || p.PageName == "dashboard" {
-		p.Calendar = true
-	}
-	return p
-}
 
 /* CompareName returns true when PageName == comparator */
 func (p Page) CompareName(comparator string) bool {

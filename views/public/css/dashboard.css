@@ -20,14 +20,23 @@
     display: inline-block;
     width: 49%;
 }
-.hours{
+.hours {
     font-size: 14vw;
     text-align: center;
+}
+
+#gauge-container {
+    font-weight: bold;
+    font-family: Calibri, sans-serif;
+    font-size: 4rem;
+    text-align: center;
+    padding: 10px;
+    margin: 10px;
 }
 
 div {
     color: lightblue;
 }
 main {
-    background: black;
+    background: '#272b30';
 }
