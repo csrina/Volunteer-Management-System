@@ -4,28 +4,38 @@
 
 <main>
     <div class="container">
-        <div class="col-md-7">
-            <label id="gauge-container">Weekly Status</label>
-        </div>
-        <div class="col-md-7">
-            <div id="gauge-container">
-                <h2>Completed</h2>
-                <canvas width="200" height="200" id="hoursDone"></canvas>
-                <div id="hoursDone-text"></div>
+        <div class="row">
+            <div class="col-sm-6 pull-left">
+                <h2 style="text-align: center">Activity Tracker</h2>
             </div>
-            <div id="gauge-container">
-                <h2>Expected</h2>
-                <canvas width="200" height="200" id="hoursBooked"></canvas>
-                <div id="hoursBooked-text"></div>
+            <div class="col-sm-6 pull-right">
+                <h2 style="text-align: center">Upcoming Events</h2>
             </div>
         </div>
-        <div class="col-md-7">
-            <h2>Facilitation History</h2>
-            <canvas width="300" height="150" id="hoursChart"></canvas>
-        </div>
-        <div class="col-md-7">
-            <h2>Upcoming events</h2>
-            <div id="calendar"></div>
+        <div class="row">
+            <div class="col-sm-3">
+                <div id="wdgt-container">
+                    <h2>Complete</h2>
+                    <canvas width="200" height="200" id="hoursDone"></canvas>
+                    <div id="hoursDone-text"></div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div id="wdgt-container">
+                    <h2>Booked</h2>
+                    <canvas width="200" height="200" id="hoursBooked"></canvas>
+                    <div id="hoursBooked-text"></div>
+                </div>
+            </div>
+            <div class="col-sm-6 pull-right">
+                <div id="calendar"></div>
+            </div>
+            <div class="col-sm-6 pull-left">
+                <div id="wdgt-container">
+                    <h2>Facilitation History</h2>
+                    <canvas width="300" height="150" id="hoursChart"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 </main>

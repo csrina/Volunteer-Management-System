@@ -114,16 +114,6 @@ function gaugeInit(elementId, value) {
             strokeWidth: 0.00, // The thickness
             color: '#000000' // Fill color
         },
-        fontSize: 24,
-        renderTicks: {
-            divisions: 1,
-            divWidth: 5,
-            divLength: 1,
-            divColor: "#000000",
-            subDivisions: 0,
-            subLength: 0,
-            subWidth: 0,
-        },
         limitMax: true,     // If false, max value increases automatically if value > maxValue
         limitMin: true,     // If true, the min value of the gauge will be fixed
         percentColors: colorRange,
@@ -142,7 +132,7 @@ function gaugeInit(elementId, value) {
     // setup the text
     element = document.getElementById(elementId + "-text");
     element.style.color = gauge.getColorForValue(value);
-    element.innerHTML = value;
+    element.innerHTML = "<h3>" + value + "h</h3>";
     return gauge; // return for use
 }
 
@@ -164,7 +154,9 @@ $(document).ready(function() {
         themeSystem: "bootstrap3",
         editable: false,                 // Need to use templating engine to change bool based on user's rolego ,
         eventRender: function(event, element, view) {
-            element.find('.fc-list-item-title').append("  " + event.bookingCount + "/3");
+            element.find('.fc-list-item-title').append("  " + event.bookingCount + "/3    "
+                + "<span class='glyphicon glyphicon-pushpin' " +
+                        "aria-valuetext='You are booked in this block!'></span><br/>");
         },
         // DOM-Event handling for Calendar Eventblocks (why do js people suck at naming)
         eventOverlap: false,
@@ -186,6 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
         gaugeInit("hoursDone", 2); // replace literal value (2, 5) with value from server/calculated values
         gaugeInit("hoursBooked", 5);
         chartInit("hoursChart", "");
+        // adjust calendar heading
         load();
     });
 
