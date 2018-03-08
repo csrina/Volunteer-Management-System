@@ -84,6 +84,9 @@ func createRouter() (*mux.Router, error) {
 	r.HandleFunc("/dashboard", loadDashboard)
 	r.HandleFunc("/calendar", loadCalendar)
 
+	a := r.PathPrefix("/admin").Subrouter()
+	a.HandleFunc("/dashboard", loadAdminDash)
+
 	return r, nil
 }
 
@@ -113,8 +116,13 @@ func loadDashboard(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusForbidden)
 		return
 	}
-	s := tmpls.Lookup("dashboard.tmpl")
-	s.ExecuteTemplate(w, "dashboard", pg) // include page struct
+	if pg.Role == "Admin" {
+		s := tmpls.Lookup("admindashboard.tmpl")
+		s.ExecuteTemplate(w, "admindashboard", pg)
+	} else {
+		s := tmpls.Lookup("dashboard.tmpl")
+		s.ExecuteTemplate(w, "dashboard", pg)
+	}
 }
 
 func loadCalendar(w http.ResponseWriter, r *http.Request) {
