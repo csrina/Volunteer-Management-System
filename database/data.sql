@@ -20,6 +20,7 @@ INSERT INTO users (user_role, username, password, first_name, last_name, email, 
 VALUES(1, 'Stevie', 'pass', 'Stevie', 'Samename', 'stevie54@gmail.com', '132-4365');
 INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number)
 VALUES(1, '1234', '1234', 'Bad', 'Username', 'badusername@gmail.com', '132-4365');
+
 --Adds families with corresponding users
 
 INSERT INTO family (family_name, parent_one, children)
