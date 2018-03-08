@@ -96,5 +96,4 @@ $(document).ready(function() {
         allDaySlot: false,       // shows slot @ top for allday events
         slotDuration: '00:30:00' // hourly divisions
     });
-    $('#calendar').fullCalendar('render');
 });

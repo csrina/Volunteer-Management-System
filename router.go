@@ -94,7 +94,7 @@ func apiRoutes(r *mux.Router) {
 	s := r.PathPrefix("/api/v1").Subrouter()
 	s.HandleFunc("/admin/calendar/setup/", calSetup).Methods("POST")
 	s.HandleFunc("/admin/calendar/setup/", undoSetup).Methods("DELETE")
-	s.HandleFunc("/dashboard", dashboardData).Methods("GET")
+	s.HandleFunc("/dashboard", getDashData).Methods("GET")
 
 	/* Events JSON routes for scheduler system */
 	s.HandleFunc("/events/{target}", getEvents).Methods("GET")
@@ -116,13 +116,11 @@ func loadDashboard(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusForbidden)
 		return
 	}
-	if pg.Role == "Admin" {
-		s := tmpls.Lookup("admindashboard.tmpl")
-		s.ExecuteTemplate(w, "admindashboard", pg)
-	} else {
-		s := tmpls.Lookup("dashboard.tmpl")
-		s.ExecuteTemplate(w, "dashboard", pg)
-	}
+	s := tmpls.Lookup("dashboard.tmpl")
+	// dependency flags for dashboard
+	pg.Calendar = true
+	pg.Chart = true
+	s.ExecuteTemplate(w, "dashboard", pg) // include page struct
 }
 
 func loadCalendar(w http.ResponseWriter, r *http.Request) {
@@ -132,6 +130,8 @@ func loadCalendar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s := tmpls.Lookup("calendar.tmpl")
+	// calendar dependency flag
+	pg.Calendar = true
 	logger.Println(pg)
 	logger.Println(s.ExecuteTemplate(w, "calendar", pg))
 }

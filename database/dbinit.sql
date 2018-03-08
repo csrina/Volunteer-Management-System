@@ -26,7 +26,7 @@ CREATE TABLE family (
     family_name     TEXT,        
     parent_one      INT         REFERENCES users (user_id),
     parent_two      INT         REFERENCES users (user_id),
-    children		INT
+    children		    INT
 );
 
 CREATE TABLE time_block (
