@@ -2,7 +2,7 @@
 <header>
         <div class="col-sm-12" style="background-color:skyblue">
             <div class="col-sm-6 col-sm-offset-1">
-                <h2 style="color: black">ADMIN Caraway Volunteer Management System</h2>
+                <h2 style="color: black">Caraway Volunteer Management Administrator</h2>
             </div>
         {{if and (ne .PageName "login") (ne .PageName "mainLogin")}}
         <!-- We are logged in -->
@@ -18,10 +18,10 @@
         </div>
         <div class="col-sm-12" style="background-color:	skyblue;">
             <ul class="nav nav-tabs nav-justified">
-                <li class="col-sm-5 text-right active" style="color: black"><a href="/dashboard">Dashboard</a></li>
-                <li class="col-sm-5 text-left" style="color: black" ><a href="/reports">Reports</a></li>
-                <li class="col-sm-5 text-left" style="color: black" ><a href="/calendar">Calendar</a></li>
-                <li class="col-sm-5 text-left" style="color: black" ><a href="/Users">Users</a></li>
+                <li id="dashboardBtn" class="col-sm-5 text-left" style="color: black"><a href="dashboard">Dashboard</a></li>
+                <li id="reportsBtn" class="col-sm-5 text-left" style="color: black" ><a href="reports">Reports</a></li>
+                <li id="calendarBtn" class="col-sm-5 text-left" style="color: black" ><a href="calendar">Calendar</a></li>
+                <li id="usersBtn" class="col-sm-5 text-left" style="color: black" ><a href="users">Users</a></li>
             </ul>
         </div>
         {{end}}
