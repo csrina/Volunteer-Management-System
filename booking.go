@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"database/sql"
 	"time"
 )
 
@@ -73,7 +74,7 @@ func (b *bookingBlock) deleteBooking() error {
 type Booking struct {
 	BookingID 	int       	`db:"booking_id" json:"bookingId"`
 	BlockID   	int       	`db:"block_id" json:"blockId"`
-	FamilyID  	int       	`db:"family_id" json:"familyId"`
+	FamilyID  	sql.NullInt64       	`db:"family_id" json:"familyId"`
 	UserID    	int       	`db:"user_id" json:"userID"`
 	Start 		time.Time 	`db:"block_start" json:"endBlock"`
 	End   		time.Time 	`db:"block_end" json:"endBlock"`

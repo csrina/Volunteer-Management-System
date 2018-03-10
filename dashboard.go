@@ -50,6 +50,7 @@ func getHoursGoal(UID int) float64 {
 	err := db.QueryRow(q, UID).Scan(&numKids)
 	if err != nil {
 		logger.Println(err)
+		logger.Println(">> ERROR: gethoursgoal")
 		return -1
 	}
 	if numKids > 1 {
@@ -60,8 +61,18 @@ func getHoursGoal(UID int) float64 {
 
 /* Get the booked hours for a user */
 func getHoursBooked(UID int) float64 {
-	bookBlocks, err := getUserBookings(now.BeginningOfWeek(), now.EndOfWeek(), UID)
+	logger.Println("getting hours booked")
+	start := now.BeginningOfWeek()
+	end := now.EndOfWeek()
+	t := time.Now().Weekday()
+	if t == 6 || t == 0{ //its a weekend
+		start = start.AddDate(0,0,8)
+		end = end.AddDate(0,0,8)
+		logger.Println(">> Start: ", start, " end: ", end)
+	}
+	bookBlocks, err := getUserBookings(start, end, UID)
 	if err != nil {
+		logger.Println(">> ERROR: getHoursBooked")
 		return -1
 	}
 	return getHoursBookingSlice(bookBlocks)
@@ -69,8 +80,16 @@ func getHoursBooked(UID int) float64 {
 
 /* Gets hours completed this week */
 func getHoursDone(UID int) float64 {
-	bookBlocks, err := getUserBookings(now.BeginningOfWeek(), time.Now(), UID)
+	logger.Println("getting hours done")
+	start := now.BeginningOfWeek()
+	end := time.Now()
+	t := end.Weekday()
+	if t == 6 || t == 0{ //its a weekend
+		start = end 
+	}
+	bookBlocks, err := getUserBookings(start, end, UID)
 	if err != nil {
+		logger.Println(">> ERROR: getHoursDone")
 		return -1
 	}
 	return getHoursBookingSlice(bookBlocks)
