@@ -38,7 +38,10 @@ func checkSession(f http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session, err := store.Get(r, "loginSession")
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			//http.Error(w, err.Error(), http.StatusInternalServerError)
+			session.Values["username"] = nil
+			session.Save(r, w)
+			http.Redirect(w, r, "/login", http.StatusFound)
 			return
 		}
 
