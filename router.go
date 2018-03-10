@@ -116,6 +116,7 @@ func apiRoutes(r *mux.Router) {
 	s.HandleFunc("/admin/calendar/setup/", calSetup).Methods("POST")
 	s.HandleFunc("/admin/calendar/setup/", undoSetup).Methods("DELETE")
 	s.HandleFunc("/admin/users", getUserList).Methods("GET")
+	s.HandleFunc("/admin/families", getFamilyList).Methods("GET")
 	s.HandleFunc("/dashboard", getDashData).Methods("GET")
 
 	/* Events JSON routes for scheduler system */
