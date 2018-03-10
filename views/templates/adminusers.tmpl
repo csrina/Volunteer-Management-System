@@ -8,6 +8,9 @@
             <th>User ID</th>
             <th>Last Name</th>
             <th>First Name</th>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Phone</th>
             <th></th>
         </tr>
         {{`{{~it :value:index}}`}}
@@ -15,7 +18,27 @@
             <td>{{`{{=value.userId}}`}}</td>
             <td>{{`{{=value.lastName}}`}}</td>
             <td>{{`{{=value.firstName}}`}}</td>
-            
+            <td>{{`{{=value.userName}}`}}</td>
+            <td>{{`{{=value.email}}`}}</td>
+            <td>{{`{{=value.phoneNumber}}`}}</td>
+            <td><button id="edit_{{`{{=value.userId}}`}}" type="button">Edit User</button></td>
+        </tr>
+    {{`{{~}}`}}
+    </table>
+</script>
+
+<script id="tmpl_listFamilies" type="x-dot-template">
+    <table>
+        <tr>
+            <th>Family ID</th>
+            <th>SurName</th>
+            <th></th>
+        </tr>
+        {{`{{~it :value:index}}`}}
+        <tr>
+            <td>{{`{{=value.familyId}}`}}</td>
+            <td>{{`{{=value.familyName}}`}}</td>
+            <td><button id="edit_{{`{{=value.familyId}}`}}" type="button">Edit Family</button></td>
         </tr>
     {{`{{~}}`}}
     </table>
@@ -27,8 +50,8 @@
         <a onClick="userList()">Edit User</a>
         <a onClick="newList()">Add User</a>
 </div>
-<div id="displayArea">
-</div>
+
+<div id="displayData" class="displayArea">Select an option to continue</div>
 
 {{template "footer"}}
 

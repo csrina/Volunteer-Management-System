@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
 )
@@ -14,6 +15,14 @@ type userFull struct {
 	LastName  string `json:"lastName" db:"last_name"`
 	Email     string `json:"email" db:"email"`
 	Phone     string `json:"phoneNumber" db:"phone_number"`
+}
+
+type familyFull struct {
+	FamilyID   int           `json:"familyId" db:"family_id"`
+	FamilyName string        `json:"familyName" db:"family_name"`
+	ParentOne  sql.NullInt64 `json:"parentOne" db:"parent_one"`
+	ParentTwo  sql.NullInt64 `json:"parentTwo" db:"parent_two"`
+	Children   sql.NullInt64 `json:"children" db:"children"`
 }
 
 func getUserList(w http.ResponseWriter, r *http.Request) {
@@ -31,6 +40,23 @@ func getUserList(w http.ResponseWriter, r *http.Request) {
 
 	encoder := json.NewEncoder(w)
 	encoder.Encode(userList)
+}
+
+func getFamilyList(w http.ResponseWriter, r *http.Request) {
+	q := `SELECT family_id, family_name, parent_one, parent_two, children
+				FROM family`
+
+	familyList := []familyFull{}
+	err := db.Select(&familyList, q)
+
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	encoder := json.NewEncoder(w)
+	encoder.Encode(familyList)
 }
 
 func loadAdminDash(w http.ResponseWriter, r *http.Request) {
