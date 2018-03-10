@@ -70,6 +70,7 @@ func createRouter() (*mux.Router, error) {
 	// api routes+calls set up
 	apiRoutes(r)
 
+	r.HandleFunc("/", baseRoute)
 	// load login pages html tmplts
 	r.HandleFunc("/login", loadMainLogin)
 	r.HandleFunc("/logout", handleLogout)
@@ -104,7 +105,8 @@ func apiRoutes(r *mux.Router) {
 
 //noinspection ALL
 func baseRoute(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Base route to Caraway API")
+	fmt.Fprintln(w, "Base route to Caraway API, redirecting to main page")
+	http.Redirect(w, r, "/login", http.StatusPermanentRedirect)
 }
 
 func loadDashboard(w http.ResponseWriter, r *http.Request) {
