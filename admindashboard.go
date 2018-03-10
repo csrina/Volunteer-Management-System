@@ -5,13 +5,27 @@ import (
 )
 
 func loadAdminDash(w http.ResponseWriter, r *http.Request) {
-	pg, err := loadPage("admindashboard", r)
+	q := `SELECT family_id, family_name
+			FROM family`
+
+	families := []familyShort{}
+
+	err := db.Select(&families, q)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusForbidden)
+		logger.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	for i, fam := range families {
+		hours := familyHoursBooked(fam.FamilyID)
+		families[i].WeekHours = hours
+	}
 	s := tmpls.Lookup("admindashboard.tmpl")
-	s.ExecuteTemplate(w, "admindashboard", pg)
+	err = s.ExecuteTemplate(w, "admindashboard", families)
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+	}
 }
 
 func loadAdminUsers(w http.ResponseWriter, r *http.Request) {
