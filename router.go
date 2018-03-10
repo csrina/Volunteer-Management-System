@@ -71,6 +71,8 @@ func createRouter() (*mux.Router, error) {
 	apiRoutes(r)
 
 	r.HandleFunc("/", baseRoute)
+	// setup admin routes
+	adminRoutes(r)
 	// load login pages html tmplts
 	r.HandleFunc("/login", loadMainLogin)
 	r.HandleFunc("/logout", handleLogout)
@@ -86,6 +88,15 @@ func createRouter() (*mux.Router, error) {
 	r.HandleFunc("/calendar", loadCalendar)
 
 	return r, nil
+}
+
+func adminRoutes(r *mux.Router) {
+	a := r.PathPrefix("/admin").Subrouter()
+	a.HandleFunc("/dashboard", loadAdminDash)
+	a.HandleFunc("/users", loadAdminUsers)
+	a.HandleFunc("/reports", loadAdminReports)
+	a.HandleFunc("/calendar", loadAdminCalendar)
+	a.HandleFunc("/classes", loadAdminClasses)
 }
 
 func apiRoutes(r *mux.Router) {

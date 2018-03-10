@@ -72,7 +72,11 @@ function login(){
             console.log("Login attempt pass");
             // var theDiv = document.querySelector("#errorbox");
             // theDiv.innerHTML= `<div class="alert alert-success" role="alert">Login attempt was a success</div>`
-            window.location="/dashboard";
+            if (window.location.pathname.split("/").pop() == "admin") {
+                window.location.href="/admin/dashboard";
+            } else {
+                window.location="/dashboard";
+            }
         }
     };
     xmlhttp.open("POST", u, true);
