@@ -9,103 +9,160 @@ import (
 	"github.com/jinzhu/now"
 )
 
-
 /*
- * dashboard.js expects the following struct in json format/
+ * dashboard.js expects the following struct in json format
  */
  type DashData struct {
- 	 HoursGoal   	float64  	`json:"hoursGoal"`
-	 HoursBooked 	float64  	`json:"hoursBooked"`
-	 HoursDone   	float64  	`json:"hoursDone"`
-	 History     	[]float64 	`json:"history"` // historical hours completed/week for interval
- }
+ 	 HoursGoal   		float64  			`json:"hoursGoal"`
+	 HoursBooked 		float64  			`json:"hoursBooked"`
+	 HoursDone   		float64  			`json:"hoursDone"`
+	 History1     		ChartDataSet 		`json:"history1"` // historical hours completed/week for interval
+	 History2			ChartDataSet		`json:"history2"` // same for parent two of family
+	 StartOfPeriod   	time.Time       	`json:"startOfPeriod"` // start date for chart
+	 EndOfPeriod    	time.Time       `json:"endOfPeriod`  // end date for chart
+}
+
+func (dd *DashData) setHoursGoal(numKids int) {
+	if numKids == 1 {
+		dd.HoursGoal = ONE_CHILD_HOURS_GOAL
+	} else {
+		dd.HoursGoal = DEFAULT_HOURS_GOAL
+	}
+}
+/* START OF SCHOOL YEAR FOR HISTORY TRACKING */
+const (
+	PERIOD_LENGTH = 3 // months
+	ONE_CHILD_HOURS_GOAL = 5.00
+	DEFAULT_HOURS_GOAL = 7.50
+)
+
+ /*
+  * Corresponding to a single object, in the datasets array, of a chart.js chart.
+  * We use it for the historical hourly attendance for a family.
+  */
+ type ChartDataSet struct {
+	Label 		string         `json:"label"`       // Dataseries name
+	Data  		[]DurationPoint `json:"data"`        // array of data points
+	Fill    	bool            `json:"fill"`        // do we fill area under line (or within the bars)?
+	BorderColor string          `json:"borderColor"` // really the colour colour
+	Tension		float64      	`json:"lineTension"` // 0 = no curvyness (no interp.) 1.00 max curvyness
+	Stepped     string          `json:"steppedLine"`
+	SpanGaps    bool            `json:"spanGaps"`
+}
+
+// For charting
+type DurationPoint struct {
+	X 	time.Time		`json:"t"`
+	Y 	float64     	`json:"y"`
+}
+
+func (c ChartDataSet) configureAsHistoricalHours(label, colour string, fill bool, tension float64) ChartDataSet {
+	c.Label = label
+	c.Fill = fill
+	c.BorderColor = colour
+	c.Tension = tension
+	c.Stepped = "after"
+	c.SpanGaps = false
+	return c // for chaining
+}
+
+/*
+ *  Parents may have multiple facillitations in a day, which when charting -- leads to weirdness
+ *  this function will scan to see if the x-value (date) exists before appending the new point.
+ *
+ *   If the x-value exits, the y-value (duration) is simply added to.
+ */
+func (c *ChartDataSet) addDurationPoint(p DurationPoint) *ChartDataSet {
+	for i, point := range c.Data {
+		// Add duration to existing point's duration (Y) value
+		if p.X.YearDay() == point.X.YearDay() {
+			point.Y += p.Y
+			c.Data[i] = point;
+			p.Y = 0  // Flag to prevent adding another point for this date
+			break
+		}
+	}
+	// If p.Y has been set to 0, dont add the point
+	if p.Y > 0 {
+		c.Data = append(c.Data, p)
+	}
+	return c
+}
 
  /* Replacement for dashboardData
   * which delegates most responsibility to functions
   */
 func getDashData(w http.ResponseWriter, r *http.Request) {
-	UID 	:= getUID(r)
-	goal 	:= getHoursGoal(UID)
-	booked 	:= getHoursBooked(UID)
-	done 	:= getHoursDone(UID)
-	history := getHoursHistory(UID, time.Now())
-
-	dd := &DashData{
-		HoursGoal: goal,
-		HoursBooked: booked,
-		HoursDone: done,
-		History: history,
+	family, err := getFamilyViaRequest(r)
+	if err != nil {
+		logger.Println("Failed to retrieve family")
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
+	dd := new(DashData)
+	dd, err = dd.updateHoursData(*family, time.Now()) // Get the relevant data
+	if err != nil {
+		logger.Println("Failed to update hours using family")
+		logger.Println("Family: ", family)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	dd.History1 = dd.History1.configureAsHistoricalHours("P1", "#FAD201", false, 0.0)
+	dd.History2 = dd.History2.configureAsHistoricalHours("P2", "#201FAD", false, 0.0)
 	logger.Println("DASHDATA: ", dd)
+	logger.Println("P1 CDS: ", dd.History1)
+	logger.Println("P2 CDS: ", dd.History2)
+
+
 	encoder := json.NewEncoder(w)
 	encoder.SetEscapeHTML(true)
 	encoder.Encode(dd)
 }
 
-/* Get the weekly goal hours for a user */
-func getHoursGoal(UID int) float64 {
-	numKids := 0
-	q := `SELECT children FROM family
-			WHERE (parent_one = $1 OR parent_two = $1)`
-	err := db.QueryRow(q, UID).Scan(&numKids)
-	if err != nil {
-		logger.Println(err)
-		return -1
+/*
+ * Creates a DashData struct and fills it with data given a family, and the reference date: today
+ * Get the hours data relative to the day passed as today.
+ * The history will be tracked from the FIRST_MONTH and FIRST_DAY
+ * of today's year.
+ */
+func (dd *DashData) updateHoursData(fam Family, today time.Time) (*DashData, error) {
+	dd.setHoursGoal(fam.Children)
+	if today.Weekday() == time.Sunday {
+		today = today.AddDate(0, 0, 1) // move to monday so we reference next week
+	} else if today.Weekday() == time.Saturday {
+		today = today.AddDate(0, 0, 2)
 	}
-	if numKids > 1 {
-		return 7.50 // or however much multikid families must pay to educate their kids
-	}
-	return 5.00
-}
+	now.FirstDayMonday = true
+	nowToday := now.New(today)
+	startOfWeek := nowToday.BeginningOfWeek()
+	dd.EndOfPeriod = nowToday.EndOfWeek()
+	logger.Println("T: ", today, "SOW: ", startOfWeek, " EOW: ", dd.EndOfPeriod)
 
-/* Get the booked hours for a user */
-func getHoursBooked(UID int) float64 {
-	bookBlocks, err := getUserBookings(now.BeginningOfWeek(), now.EndOfWeek(), UID)
-	if err != nil {
-		return -1
+	dd.StartOfPeriod = today.AddDate(0, -PERIOD_LENGTH, 0) // Go back 4 months
+	/* Get all bookings relevant */
+	bookings, err := fam.getFamilyBookings(dd.StartOfPeriod, dd.EndOfPeriod)
+	if (err != nil) {
+		return nil, err
 	}
-	return getHoursBookingSlice(bookBlocks)
-}
-
-/* Gets hours completed this week */
-func getHoursDone(UID int) float64 {
-	bookBlocks, err := getUserBookings(now.BeginningOfWeek(), time.Now(), UID)
-	if err != nil {
-		return -1
-	}
-	return getHoursBookingSlice(bookBlocks)
-}
-
-func getHoursBookingSlice(bookBlocks []Booking) float64 {
-	logger.Println("getHoursFromBookingSlice\nBLOCKSGIVEN: ", bookBlocks)
-	var duration float64
-	duration = 0.00
-	for _, bb := range bookBlocks {
-		duration += (bb.End.Sub(bb.Start).Hours() * float64(bb.Modifier))
-	}
-	return duration
-}
-
-/* Returns historical hours/week for past 3 months */
-/* Does not work yet. Do not expect good results yet */
-func getHoursHistory(UID int, curr time.Time) []float64 {
-	start := now.New(curr).BeginningOfWeek().AddDate(0,-3, 0) // 3 months prior to beginning of week
-	bookBlocks, err := getUserBookings(start, time.Now(), UID)
-	if err != nil {
-		logger.Println(err)
-		return nil
-	}
-	var history []float64
-	var duration float64
-	duration = 0.00
-	for i, bb := range bookBlocks {
-		duration = (bb.End.Sub(bb.Start).Hours() * float64(bb.Modifier))
-		if i % 5 == 0 { // Need to give this correct logic for deducing weeks
-			history = append(history, duration)
-			duration = 0.00 // reset to 0, week end
+	for _, b := range bookings {
+		duration := (b.End.Sub(b.Start).Hours() * float64(b.Modifier))
+		// historical bookings must be separated by parent
+		if b.Start.Before(startOfWeek) {
+			if (b.UserID == fam.ParentOneID) {
+				dd.History1.addDurationPoint(DurationPoint{Y: duration, X: now.New(b.Start).BeginningOfDay()})
+			} else {
+				dd.History2.addDurationPoint(DurationPoint{Y: duration, X: now.New(b.Start).BeginningOfDay()})
+			}
+		// Family hours are conglomerated in the totals
+		} else if b.Start.Before(nowToday.Time) && b.End.After(startOfWeek) {
+			dd.HoursDone += duration
+			dd.HoursBooked += duration // Even though they're done, theyre still booked 4 this week
+		} else {
+			dd.HoursBooked += duration // Time is after today, but before week end --> booked hours
 		}
 	}
-	return history
+
+	return dd, nil
 }
 
 /*
