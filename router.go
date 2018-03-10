@@ -47,9 +47,19 @@ func checkSession(f http.Handler) http.Handler {
 
 		// Retrieve our struct and type-assert it
 		val := session.Values["username"]
+		role := session.Values["role"]
 		if val != nil {
-			logger.Println(val)
-			f.ServeHTTP(w, r)
+			if strings.Contains(r.URL.Path, "/api/v1/admin") {
+				if role == 3 {
+					f.ServeHTTP(w, r)
+				} else {
+					logger.Println("Not authorized as admin")
+					return
+				}
+			} else {
+				logger.Println(val)
+				f.ServeHTTP(w, r)
+			}
 		} else {
 			if strings.Contains(r.URL.Path, "login") {
 				f.ServeHTTP(w, r)
@@ -60,7 +70,6 @@ func checkSession(f http.Handler) http.Handler {
 		return
 	})
 }
-
 func createRouter() (*mux.Router, error) {
 	r := mux.NewRouter()
 	r.Use(logging)
@@ -106,6 +115,7 @@ func apiRoutes(r *mux.Router) {
 	s := r.PathPrefix("/api/v1").Subrouter()
 	s.HandleFunc("/admin/calendar/setup/", calSetup).Methods("POST")
 	s.HandleFunc("/admin/calendar/setup/", undoSetup).Methods("DELETE")
+	s.HandleFunc("/admin/users", getUserList).Methods("GET")
 	s.HandleFunc("/dashboard", getDashData).Methods("GET")
 
 	/* Events JSON routes for scheduler system */
