@@ -1,0 +1,14 @@
+{{define "adminclasses"}}
+
+{{template "adminheader" .}}
+
+<div id="usersSidenav" class="sidenav">
+        <a onClick="listClasses()">Edit Classroom</a>
+        <a onClick="addClassRoom()">Add Classroom</a>
+</div>
+
+<div id="displayData" class="displayArea">Select an option to continue</div>
+
+{{template "footer" .}}
+
+{{end}}

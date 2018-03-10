@@ -26,9 +26,9 @@ type User struct {
 //noinspection GoUnusedParameter
 func loadMainLogin(w http.ResponseWriter, r *http.Request) {
 	s := tmpls.Lookup("mainLogin.tmpl")
-	p:= &Page{
+	p := &Page{
 		PageName: "mainLogin",
-		Role: "",
+		Role:     "",
 		Username: "",
 		Calendar: false,
 	}
@@ -44,9 +44,9 @@ func loadLogin(w http.ResponseWriter, r *http.Request) {
 	} else if strings.Contains(cur, "admin") {
 		title = "Admin "
 	}
-	p:= &Page{
+	p := &Page{
 		PageName: "login",
-		Role: title,
+		Role:     title,
 		Username: "",
 		Calendar: false,
 	}
@@ -69,18 +69,22 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	session.Values["username"] = u.Username
-	session.Save(r, w)
+
 	cur := r.URL.Path
 	var role int
 	if strings.Contains(cur, "facilitator") {
 		role = 1
+		session.Values["role"] = 1
 	} else if strings.Contains(cur, "teacher") {
 		role = 2
+		session.Values["role"] = 2
 	} else if strings.Contains(cur, "admin") {
 		role = 3
+		session.Values["role"] = 3
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+	session.Save(r, w)
 	auth(w, u.Username, u.Password, role)
 
 }

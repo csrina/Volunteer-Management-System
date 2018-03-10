@@ -10,7 +10,8 @@ type Page struct {
 	Username string
 	/* Dependency flags for templates */
 	Calendar bool // page has calendar --> set flag to true
-	Chart bool // page requires chart.js
+	Chart    bool // page requires chart.js
+	Dashboard bool //is it the dahsboard?
 }
 
 /*
@@ -67,7 +68,6 @@ func getRoleNum(r *http.Request) (int, error) {
 	}
 	return role, nil
 }
-
 
 /* CompareName returns true when PageName == comparator */
 func (p Page) CompareName(comparator string) bool {
