@@ -11,6 +11,7 @@ type Page struct {
 	/* Dependency flags for templates */
 	Calendar bool // page has calendar --> set flag to true
 	Chart    bool // page requires chart.js
+	Dashboard bool //is it the dahsboard?
 }
 
 /*

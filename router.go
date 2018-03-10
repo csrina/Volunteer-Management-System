@@ -38,15 +38,28 @@ func checkSession(f http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session, err := store.Get(r, "loginSession")
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			//http.Error(w, err.Error(), http.StatusInternalServerError)
+			session.Values["username"] = nil
+			session.Save(r, w)
+			http.Redirect(w, r, "/login", http.StatusFound)
 			return
 		}
 
 		// Retrieve our struct and type-assert it
 		val := session.Values["username"]
+		role := session.Values["role"]
 		if val != nil {
-			logger.Println(val)
-			f.ServeHTTP(w, r)
+			if strings.Contains(r.URL.Path, "/api/v1/admin") {
+				if role == 3 {
+					f.ServeHTTP(w, r)
+				} else {
+					logger.Println("Not authorized as admin")
+					return
+				}
+			} else {
+				logger.Println(val)
+				f.ServeHTTP(w, r)
+			}
 		} else {
 			if strings.Contains(r.URL.Path, "login") {
 				f.ServeHTTP(w, r)
@@ -57,7 +70,6 @@ func checkSession(f http.Handler) http.Handler {
 		return
 	})
 }
-
 func createRouter() (*mux.Router, error) {
 	r := mux.NewRouter()
 	r.Use(logging)
@@ -70,9 +82,9 @@ func createRouter() (*mux.Router, error) {
 	// api routes+calls set up
 	apiRoutes(r)
 
+	r.HandleFunc("/", baseRoute)
 	// setup admin routes
 	adminRoutes(r)
-
 	// load login pages html tmplts
 	r.HandleFunc("/login", loadMainLogin)
 	r.HandleFunc("/logout", handleLogout)
@@ -103,6 +115,7 @@ func apiRoutes(r *mux.Router) {
 	s := r.PathPrefix("/api/v1").Subrouter()
 	s.HandleFunc("/admin/calendar/setup/", calSetup).Methods("POST")
 	s.HandleFunc("/admin/calendar/setup/", undoSetup).Methods("DELETE")
+	s.HandleFunc("/admin/users", getUserList).Methods("GET")
 	s.HandleFunc("/dashboard", getDashData).Methods("GET")
 
 	/* Events JSON routes for scheduler system */
@@ -116,7 +129,8 @@ func apiRoutes(r *mux.Router) {
 
 //noinspection ALL
 func baseRoute(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Base route to Caraway API")
+	fmt.Fprintln(w, "Base route to Caraway API, redirecting to main page")
+	http.Redirect(w, r, "/login", http.StatusPermanentRedirect)
 }
 
 func loadDashboard(w http.ResponseWriter, r *http.Request) {
@@ -129,6 +143,7 @@ func loadDashboard(w http.ResponseWriter, r *http.Request) {
 	// dependency flags for dashboard
 	pg.Calendar = true
 	pg.Chart = true
+	pg.Dashboard = true
 	s.ExecuteTemplate(w, "dashboard", pg) // include page struct
 }
 

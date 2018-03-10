@@ -2,15 +2,33 @@
 
 {{template "adminheader"}}
 
-<main>
-    <div>
-        <button type="button">Edit Family</button>
-        <button type="button">Add Family</button>
-    </div>
-    <div>
-        <button type="button">Edit User</button>
-        <button type="button">Add User</button>
-    </div>
+<script id="tmpl_listUsers" type="x-dot-template">
+    <table>
+        <tr>
+            <th>User ID</th>
+            <th>Last Name</th>
+            <th>First Name</th>
+            <th></th>
+        </tr>
+        {{`{{~it :value:index}}`}}
+        <tr>
+            <td>{{`{{=value.userId}}`}}</td>
+            <td>{{`{{=value.lastName}}`}}</td>
+            <td>{{`{{=value.firstName}}`}}</td>
+            
+        </tr>
+    {{`{{~}}`}}
+    </table>
+</script>
+
+<div id="usersSidenav" class="sidenav">
+        <a onClick="familyList()">Edit Family</a>
+        <a onClick="newFamily()">Add Family</a>
+        <a onClick="userList()">Edit User</a>
+        <a onClick="newList()">Add User</a>
+</div>
+<div id="displayArea">
+</div>
 
 {{template "footer"}}
 
