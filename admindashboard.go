@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
+	"strconv"
 )
 
 type userFull struct {
@@ -26,20 +27,39 @@ type familyFull struct {
 }
 
 func getUserList(w http.ResponseWriter, r *http.Request) {
-	q := `SELECT user_id, user_role, last_name, first_name, username, email, phone_number
-				FROM users`
-
-	userList := []userFull{}
-	err := db.Select(&userList, q)
-
+	options := r.URL.Query()
+	userID, err := strconv.Atoi(options.Get("u"))
+	//indicates we didnt have the flag or bad value
 	if err != nil {
-		logger.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
+		q := `SELECT user_id, user_role, last_name, first_name, username, email, phone_number
+				FROM users`
+		userList := []userFull{}
+		err := db.Select(&userList, q)
 
-	encoder := json.NewEncoder(w)
-	encoder.Encode(userList)
+		if err != nil {
+			logger.Println(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		encoder := json.NewEncoder(w)
+		encoder.Encode(userList)
+	} else {
+		q := `SELECT user_id, user_role, last_name, first_name, username, email, phone_number
+				FROM users
+				WHERE user_id = ($1)`
+		user := userFull{}
+		err := db.QueryRowx(q, userID).StructScan(&user)
+
+		if err != nil {
+			logger.Println(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		encoder := json.NewEncoder(w)
+		encoder.Encode(user)
+	}
 }
 
 func getFamilyList(w http.ResponseWriter, r *http.Request) {
