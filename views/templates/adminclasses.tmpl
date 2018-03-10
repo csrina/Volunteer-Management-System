@@ -2,12 +2,12 @@
 
 {{template "adminheader" .}}
 
-<main>
-    <div>
-        <button type="button">Edit Classroom</button>
-        <button type="button">Add Classroom</button>
-    </div>
-</main>
+<div id="usersSidenav" class="sidenav">
+        <a onClick="listClasses()">Edit Classroom</a>
+        <a onClick="addClassRoom()">Add Classroom</a>
+</div>
+
+<div id="displayData" class="displayArea">Select an option to continue</div>
 
 {{template "footer" .}}
 
