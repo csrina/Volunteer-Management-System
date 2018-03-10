@@ -153,7 +153,7 @@ func dashboardData(w http.ResponseWriter, r *http.Request) {
 	if role == 1 {
 		q = `SELECT username, s.user_id, block_start, block_end, children 
 FROM (
-SELECT username, user_id, children
+SELECT distinct username, user_id, children
 FROM family INNER JOIN users
 ON user_id = parent_one or user_id = parent_two) r
 INNER JOIN
@@ -183,7 +183,6 @@ WHERE r.user_id = $1 AND block_start > $2 AND block_start < $3`
 		return
 	}
 	for each := range bookings {
-
 		if bookings[each].BlockEnd.Before(time.Now()) {
 			hoursDone += bookings[each].BlockEnd.Sub(bookings[each].BlockStart).Hours()
 		}
