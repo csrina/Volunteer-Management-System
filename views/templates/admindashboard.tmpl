@@ -5,19 +5,22 @@
 <main>
     <div id="familyList">
         <table>
-            <tr>
-                <th>ID</th>
-                <th>Family</th>
-                <th>Scheduled this Week</th>
-            </tr>
-                {{range .}}
+            <div>
+                <tr>
+                    <th>ID</th>
+                    <th>Family</th>
+                    <th>Scheduled this Week</th>
+                </tr>
+            </div>
+            {{range .}}
+            <div>
                 <tr>
                     <td>{{.FamilyID}}</td>
                     <td>{{.FamilyName}}</td>
                     <td>{{.WeekHours}}</td>
                 </tr>
-                {{end}}
-            </tr>
+            </div>
+            {{end}}
         </table>
     </div>
 </main>
