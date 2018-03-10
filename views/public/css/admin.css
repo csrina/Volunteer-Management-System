@@ -61,7 +61,7 @@ main {
     color: #f1f1f1;
 }
 
-#main {
+#displayArea {
     position: relative;
     transition: margin-left .5s;
     padding: 200px;
