@@ -26,9 +26,9 @@ type User struct {
 //noinspection GoUnusedParameter
 func loadMainLogin(w http.ResponseWriter, r *http.Request) {
 	s := tmpls.Lookup("mainLogin.tmpl")
-	p:= &Page{
+	p := &Page{
 		PageName: "mainLogin",
-		Role: "",
+		Role:     "",
 		Username: "",
 		Calendar: false,
 	}
@@ -44,9 +44,9 @@ func loadLogin(w http.ResponseWriter, r *http.Request) {
 	} else if strings.Contains(cur, "admin") {
 		title = "Admin "
 	}
-	p:= &Page{
+	p := &Page{
 		PageName: "login",
-		Role: title,
+		Role:     title,
 		Username: "",
 		Calendar: false,
 	}
