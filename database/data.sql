@@ -197,3 +197,18 @@ INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
 VALUES('2018-03-08 12:00:00', '2018-03-08 14:00:00', 1, 1, 'noon block!');
 INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
 VALUES('2018-03-09 15:00:00', '2018-03-09 17:00:00', 1, 1, 'afternoon block!');
+
+
+INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
+VALUES('2018-03-12 08:00:00', '2018-03-12 11:00:00', 2, 1, 'morning block!');
+INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
+VALUES('2018-03-12 12:00:00', '2018-03-12 14:00:00', 2, 1, 'noon block!');
+INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
+VALUES('2018-03-12 15:00:00', '2018-03-12 17:00:00', 2, 1, 'afternoon block!');
+
+INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
+VALUES('2018-03-13 08:00:00', '2018-03-13 11:00:00', 1, 1, 'morning block!');
+INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
+VALUES('2018-03-13 12:00:00', '2018-03-13 14:00:00', 1, 1, 'noon block!');
+INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
+VALUES('2018-03-13 15:00:00', '2018-03-13 17:00:00', 1, 1, 'afternoon block!');
