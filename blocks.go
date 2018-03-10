@@ -54,7 +54,23 @@ func getBlocks(start time.Time, end time.Time) ([]TimeBlock, error) {
 	// Retrieve blocks w/in date range
 	q := `SELECT * FROM time_block
 			   WHERE block_start >= $1 AND block_end <= $2`
-	blocks := []TimeBlock{}
+	var blocks []TimeBlock
+	err := db.Select(&blocks, q, start, end)
+
+	if err != nil {
+		return nil, err
+	} else if len(blocks) > 0 {
+		return blocks, nil
+	} else {
+		return nil, nil
+	}
+}
+
+func getBlocksWithMoments(start string, end string) ([]TimeBlock, error) {
+	// Retrieve blocks w/in date range
+	q := `SELECT * FROM time_block
+			   WHERE block_start >= $1 AND block_end <= $2`
+	var blocks []TimeBlock
 	err := db.Select(&blocks, q, start, end)
 
 	if err != nil {

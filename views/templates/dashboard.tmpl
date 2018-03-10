@@ -1,41 +1,45 @@
 {{define "dashboard"}}
 
-{{template "nav"}}
-						<li class="col-sm-5 text-right active" style="color: black"><a href="/dashboard">Dashboard</a></li>
-						<li class="col-sm-5 text-left" style="color: black" ><a href="/calendar">Calendar</a></li>
-					</ul>
-			</div>
-            
-    <main>
-    <link rel="stylesheet" type="text/css" href="/views/public/css/dashboard.css">
+{{template "header" .}}
 
-    <div class="left-column">
-      <div class="left-division">
-	<div>
-	    	 Hours completed
-	</div>
-	<div id="hoursDone" class="top hours">	   
-	</div>
-      </div>
-      <div class="left-division">
-        <div>	
-	  <div>
-	    Hours booked
-	  </div>
-	  <div id="hoursBooked" class="hours">	   
-	  </div>	
+<main>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-6 pull-left">
+                <h2 style="text-align: center">Activity Tracker</h2>
+            </div>
+            <div class="col-sm-6 pull-right">
+                <h2 style="text-align: center">Upcoming Events</h2>
+            </div>
         </div>
-      </div>
-    </div>  
-    <div class="right-column top">
-      <h4 class="top">Upcoming events</h4>
-      <ul id="events">
-      </ul>
+        <div class="row">
+            <div class="col-sm-3">
+                <div id="wdgt-container">
+                    <h2>Complete</h2>
+                    <canvas width="200" height="200" id="hoursDone"></canvas>
+                    <div id="hoursDone-text"></div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div id="wdgt-container">
+                    <h2>Booked</h2>
+                    <canvas width="200" height="200" id="hoursBooked"></canvas>
+                    <div id="hoursBooked-text"></div>
+                </div>
+            </div>
+            <div class="col-sm-6 pull-right">
+                <div id="calendar"></div>
+            </div>
+            <div class="col-sm-6 pull-left">
+                <div id="wdgt-container">
+                    <h2>Facilitation History</h2>
+                    <canvas width="300" height="150" id="hoursChart"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
+</main>
     
-    <script src="/views/public/js/dashboard.js"> </script>    
-    </main>
+{{template "footer"}}
     
-    {{template "footer"}}
-    
-    {{end}}
+{{end}}

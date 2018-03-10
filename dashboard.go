@@ -5,7 +5,108 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/jinzhu/now"
 )
+
+
+/*
+ * dashboard.js expects the following struct in json format/
+ */
+ type DashData struct {
+ 	 HoursGoal   	float64  	`json:"hoursGoal"`
+	 HoursBooked 	float64  	`json:"hoursBooked"`
+	 HoursDone   	float64  	`json:"hoursDone"`
+	 History     	[]float64 	`json:"history"` // historical hours completed/week for interval
+ }
+
+ /* Replacement for dashboardData
+  * which delegates most responsibility to functions
+  */
+func getDashData(w http.ResponseWriter, r *http.Request) {
+	UID 	:= getUID(r)
+	goal 	:= getHoursGoal(UID)
+	booked 	:= getHoursBooked(UID)
+	done 	:= getHoursDone(UID)
+	history := getHoursHistory(UID, time.Now())
+
+	dd := &DashData{
+		HoursGoal: goal,
+		HoursBooked: booked,
+		HoursDone: done,
+		History: history,
+	}
+	logger.Println("DASHDATA: ", dd)
+	encoder := json.NewEncoder(w)
+	encoder.SetEscapeHTML(true)
+	encoder.Encode(dd)
+}
+
+/* Get the weekly goal hours for a user */
+func getHoursGoal(UID int) float64 {
+	numKids := 0
+	q := `SELECT children FROM family
+			WHERE (parent_one = $1 OR parent_two = $1)`
+	err := db.QueryRow(q, UID).Scan(&numKids)
+	if err != nil {
+		logger.Println(err)
+		return -1
+	}
+	if numKids > 1 {
+		return 7.50 // or however much multikid families must pay to educate their kids
+	}
+	return 5.00
+}
+
+/* Get the booked hours for a user */
+func getHoursBooked(UID int) float64 {
+	bookBlocks, err := getUserBookings(now.BeginningOfWeek(), now.EndOfWeek(), UID)
+	if err != nil {
+		return -1
+	}
+	return getHoursBookingSlice(bookBlocks)
+}
+
+/* Gets hours completed this week */
+func getHoursDone(UID int) float64 {
+	bookBlocks, err := getUserBookings(now.BeginningOfWeek(), time.Now(), UID)
+	if err != nil {
+		return -1
+	}
+	return getHoursBookingSlice(bookBlocks)
+}
+
+func getHoursBookingSlice(bookBlocks []Booking) float64 {
+	logger.Println("getHoursFromBookingSlice\nBLOCKSGIVEN: ", bookBlocks)
+	var duration float64
+	duration = 0.00
+	for _, bb := range bookBlocks {
+		duration += (bb.End.Sub(bb.Start).Hours() * float64(bb.Modifier))
+	}
+	return duration
+}
+
+/* Returns historical hours/week for past 3 months */
+/* Does not work yet. Do not expect good results yet */
+func getHoursHistory(UID int, curr time.Time) []float64 {
+	start := now.New(curr).BeginningOfWeek().AddDate(0,-3, 0) // 3 months prior to beginning of week
+	bookBlocks, err := getUserBookings(start, time.Now(), UID)
+	if err != nil {
+		logger.Println(err)
+		return nil
+	}
+	var history []float64
+	var duration float64
+	duration = 0.00
+	for i, bb := range bookBlocks {
+		duration = (bb.End.Sub(bb.Start).Hours() * float64(bb.Modifier))
+		if i % 5 == 0 { // Need to give this correct logic for deducing weeks
+			history = append(history, duration)
+			duration = 0.00 // reset to 0, week end
+		}
+	}
+	return history
+}
 
 /*
 join family and users
@@ -46,7 +147,7 @@ func dashboardData(w http.ResponseWriter, r *http.Request) {
 	// make session stuff
 	user := getUID(r)
 	role, err := getRoleNum(r)
-	fmt.Printf("User ID found %d\n\n\n", user)
+	logger.Printf("User ID found %d\n\n\n", user)
 	start := startOfWeek(time.Now())
 	var q string
 	if role == 1 {
@@ -62,7 +163,7 @@ ON b.block_id = t.block_id) s
 ON r.user_id = s.user_id
 WHERE r.user_id = $1 AND block_start > $2 AND block_start < $3`
 	} else {
-		fmt.Fprintf(w, "non facilitator doesnt have dashboard right now")
+		fmt.Fprintln(w, "non facilitator doesnt have dashboard right now")
 		return
 	}
 
@@ -78,7 +179,7 @@ WHERE r.user_id = $1 AND block_start > $2 AND block_start < $3`
 	hoursBooked := 0.0
 	layout := "Mon Jan 2 15:04"
 	if len(bookings) == 0 {
-		fmt.Fprintf(w, "no results")
+		fmt.Fprintln(w, "no results")
 		return
 	}
 	for each := range bookings {
@@ -97,6 +198,7 @@ WHERE r.user_id = $1 AND block_start > $2 AND block_start < $3`
 	friendly.Children = bookings[0].Children
 
 	encoder := json.NewEncoder(w)
+	logger.Println("FRIENDLY:  ", friendly)
 	err = encoder.Encode(friendly)
 	if err != nil {
 		fmt.Printf("%v", err)
