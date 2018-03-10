@@ -13,14 +13,19 @@
                     <label style="margin-bottom: 0; height: 34px; margin-top: 6px;color: #000000;">{{.Username}}</label>
                 </div>
                 <div class="col-sm-4">
-                    <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-log-out"></span></button>
+                    <button type="button" class="btn btn-default" onclick="location.href='/logout';"><span class="glyphicon glyphicon-log-out"></span></button>
                 </div>
              </div>
         </div>
         <div class="col-sm-12" style="background-color:	skyblue;">
             <ul class="nav nav-tabs nav-justified">
+            {{if .Dashboard}}
                 <li class="col-sm-5 text-right active" style="color: black"><a href="/dashboard">Dashboard</a></li>
                 <li class="col-sm-5 text-left" style="color: black" ><a href="/calendar">Calendar</a></li>
+            {{else}}
+                <li class="col-sm-5 text-right" style="color: black"><a href="/dashboard">Dashboard</a></li>
+                <li class="col-sm-5 text-left active" style="color: black" ><a href="/calendar">Calendar</a></li>
+            {{end}}                
             </ul>
         </div>
         {{end}}

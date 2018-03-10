@@ -38,7 +38,10 @@ func checkSession(f http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session, err := store.Get(r, "loginSession")
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			//http.Error(w, err.Error(), http.StatusInternalServerError)
+			session.Values["username"] = nil
+			session.Save(r, w)
+			http.Redirect(w, r, "/login", http.StatusFound)
 			return
 		}
 
@@ -79,9 +82,9 @@ func createRouter() (*mux.Router, error) {
 	// api routes+calls set up
 	apiRoutes(r)
 
+	r.HandleFunc("/", baseRoute)
 	// setup admin routes
 	adminRoutes(r)
-
 	// load login pages html tmplts
 	r.HandleFunc("/login", loadMainLogin)
 	r.HandleFunc("/logout", handleLogout)
@@ -126,7 +129,8 @@ func apiRoutes(r *mux.Router) {
 
 //noinspection ALL
 func baseRoute(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Base route to Caraway API")
+	fmt.Fprintln(w, "Base route to Caraway API, redirecting to main page")
+	http.Redirect(w, r, "/login", http.StatusPermanentRedirect)
 }
 
 func loadDashboard(w http.ResponseWriter, r *http.Request) {
@@ -139,6 +143,7 @@ func loadDashboard(w http.ResponseWriter, r *http.Request) {
 	// dependency flags for dashboard
 	pg.Calendar = true
 	pg.Chart = true
+	pg.Dashboard = true
 	s.ExecuteTemplate(w, "dashboard", pg) // include page struct
 }
 
