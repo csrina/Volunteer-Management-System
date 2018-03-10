@@ -130,6 +130,7 @@ func loadDashboard(w http.ResponseWriter, r *http.Request) {
 	// dependency flags for dashboard
 	pg.Calendar = true
 	pg.Chart = true
+	pg.Dashboard = true
 	s.ExecuteTemplate(w, "dashboard", pg) // include page struct
 }
 
