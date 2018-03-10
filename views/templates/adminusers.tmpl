@@ -21,10 +21,31 @@
             <td>{{`{{=value.userName}}`}}</td>
             <td>{{`{{=value.email}}`}}</td>
             <td>{{`{{=value.phoneNumber}}`}}</td>
-            <td><button id="edit_{{`{{=value.userId}}`}}" type="button">Edit User</button></td>
+            <td><button id="edit_{{`{{=value.userId}}`}}" type="button">Edit User</button>
+                <button id="pass_{{`{{=value.userId}}`}}" type="button">Change Password</button></td>
         </tr>
     {{`{{~}}`}}
     </table>
+</script>
+
+<script id="tmpl_password" type="x-dot-template">
+    <header>
+        <h1>Edit password for user: </h1><h2>{{`{{=it.userName}}`}}</h2>
+    </header>
+    <table>
+        <tr>
+            <td> Password </td>
+            <td><input id="pass1" type="password"></td>
+        </tr>
+        <tr>
+            <td> Confirm Password </td>
+            <td><input id="pass2" type="password"></td>
+        </tr>
+        <tr>
+        <td><button id="Submit" type="button">Submit</button></td>
+        <td><button id="Cancel" type="button">Cancel</button></td>
+        </tr>
+    </div>
 </script>
 
 <script id="tmpl_listFamilies" type="x-dot-template">
@@ -41,6 +62,35 @@
             <td><button id="edit_{{`{{=value.familyId}}`}}" type="button">Edit Family</button></td>
         </tr>
     {{`{{~}}`}}
+    </table>
+</script>
+
+<script id="tmpl_editUser" type="x-dot-template">
+    <table>
+        <tr><td>
+            First Name 
+        </td><td>
+            <input id="fName" type="text" value="{{`{{=it.firstName}}`}}">
+        </td></tr>
+        <tr><td>
+            Last Name 
+        </td><td>
+            <input id="lName" type="text" value="{{`{{=it.lastName}}`}}">
+        </td></tr>
+        <tr><td>
+            Email
+        </td><td>
+            <input id="email" type="email" value="{{`{{=it.email}}`}}">
+        </td></tr>
+        <tr><td>
+            Phone #
+        </td><td>
+            <input id="phoneNum" type="tel" value="{{`{{=it.phoneNumber}}`}}">
+        </td></tr>
+        <tr><td>
+            <button id="submitEdit" type="button">Submit</button>
+            <button id="Cancel" type="button">Cancel</button>
+        </td></tr>
     </table>
 </script>
 
