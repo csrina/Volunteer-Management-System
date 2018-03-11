@@ -6,6 +6,12 @@ const colorRange = [
     [1.0, "#00AA00"]
 ];
 
+var elems = {
+    gDone: "",
+    gBooked: "",
+    chart: "",
+};
+
 // This function will send a booking removal request to the server
 function requestRemoval(event) {
     let promptStr = "Are you sure you want to remove yourself from:\n";
@@ -41,30 +47,34 @@ function requestRemoval(event) {
  * Spawns our chart (hours vs. time)
  */
 function chartInit(elementId, data) {
+    console.log(elementId, data);
     let ctx = document.getElementById(elementId).getContext("2d");
     // noinspection ES6ConvertVarToLetConst
     var hoursChart = new Chart(ctx, {
         type: "line",
         data:
             {
-                labels:
-                    [
-                        "Dec", "Jan", "Feb", "Mar"
-                    ],
-            datasets:
-                [
-                    {
-                        label:"Hours/Week",
-                        data: data,
-                        fill:false,
-                        borderColor:"rgb(75, 192, 192)",
-                        lineTension:0.15
-                    }
+                datasets: [
+                    data.history1,
+                    data.history2,
                 ]
             },
-        options:{
-            spanGaps: true,
+        options: {
             scales: {
+                xAxes: [{
+                    type: 'time',
+                    distribution: 'linear',
+                    time: {
+                        stepSize: 1,
+                        unit: 'week',
+                        isoWeekday: true,
+                        minUnit: "week",
+                        parser: "YYYY-MM-DD",
+                        max: data.endOfPeriod,
+                        min: data.startOfPeriod,
+                    },
+                    source: "auto",
+                }],
                 yAxes: [{
                     min: 0,
                     max: 12.5,
@@ -73,6 +83,7 @@ function chartInit(elementId, data) {
             }
         }
     });
+    return hoursChart;
 }
 
 // Where elementID is the div to use and value is the number of hours in our case
@@ -129,14 +140,17 @@ $(document).ready(function() {
         themeSystem: "bootstrap3",
         editable: false,                 // Need to use templating engine to change bool based on user's rolego ,
         eventRender: function(event, element, view) {
-            element.find('.fc-list-item-title').append("  " + event.bookingCount + "/3    "
-                + "<span class='glyphicon glyphicon-pushpin' " +
-                        "aria-valuetext='You are booked in this block!'></span><br/>");
+            element.find('.fc-list-item-title').append("  " + event.bookingCount + "/3")
+            element.find('.fc-list-item-title').append("<span class='glyphicon glyphicon-pushpin' "
+                             +  "aria-valuetext='You are booked in this block!'></span><br/>");
+
         },
         // DOM-Event handling for Calendar Eventblocks (why do js people suck at naming)
         eventOverlap: false,
         eventClick: function(event, jsEvent, view) {
             requestRemoval(event);
+            $("#calendar").fullCalendar("removeEvents", event.id)
+            refreshWidgets()
         },
         businessHours: {
             // days of week. an array of zero-based day of week integers (0=Sunday)
@@ -147,22 +161,48 @@ $(document).ready(function() {
     });
 });
 
+function refreshGauge(gauge, parentID, newValue) {
+    gauge.set(newValue);
+    // setup the text
+    element = document.getElementById(parentID + "-text");
+    element.style.color = gauge.getColorForValue(newValue);
+    element.innerHTML = "<h3>" + newValue + "h</h3>";
+}
+
+
+// Perform ajax get-request to fiddle with our non-calendar bits
+function refreshWidgets() {
+    var data = {};
+    $.ajax({
+        url: "/api/v1/dashboard",
+        type: 'GET',
+        contentType:'json',
+        data: data,
+        success: function(data) {
+            refreshGauge(elems.gDone, "hoursDone", data.hoursDone)
+            refreshGauge(elems.gBooked, "hoursBooked", data.hoursBooked);
+            elems.chart   = chartInit("hoursChart", data);
+        },
+        dataType: 'json'
+    });
+}
+
 /* Wait for DOM to load, then get the gauges */
 document.addEventListener("DOMContentLoaded", () => {
-        // get values from server
-        // noinspection ES6ConvertVarToLetConst
+    // get values from server
+    // noinspection ES6ConvertVarToLetConst
     var data = {};
-        $.ajax({
-            url: "/api/v1/dashboard",
-            type: 'GET',
-            contentType:'json',
-            data: data,
-            success: function(data) {
-                gaugeInit("hoursDone", data.hoursDone, data.hoursGoal);
-                gaugeInit("hoursBooked", data.hoursBooked, data.hoursGoal);
-                chartInit("hoursChart", data.history);
-            },
-            dataType: 'json'
-        });
-    });
 
+    $.ajax({
+        url: "/api/v1/dashboard",
+        type: 'GET',
+        contentType:'json',
+        data: data,
+        success: function(data) {
+            elems.gDone   = gaugeInit("hoursDone", data.hoursDone, data.hoursGoal);
+            elems.gBooked = gaugeInit("hoursBooked", data.hoursBooked, data.hoursGoal);
+            elems.chart   = chartInit("hoursChart", data);
+        },
+        dataType: 'json'
+    });
+});

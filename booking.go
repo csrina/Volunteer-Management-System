@@ -81,7 +81,7 @@ type Booking struct {
 	Modifier    int         `db:"modifier" json:"modifier"`
 }
 
-/* WHY */
+/* Ayyy */
 func getUserBookings(start time.Time, end time.Time, UID int) ([]Booking, error) {
 	/* format dates for psql */
 	logger.Println("Preformat --> Start ", start, "\tEnd ", end)
@@ -97,6 +97,30 @@ func getUserBookings(start time.Time, end time.Time, UID int) ([]Booking, error)
 
 	var bookBlocks []Booking
 	err := db.Select(&bookBlocks, q, UID, start, end)
+	logger.Println("Selected blocks: ", bookBlocks)
+	if err != nil {
+		logger.Println(err)
+		return nil, err
+	}
+	return bookBlocks, nil
+}
+
+/* Like get bookings for a family*/
+func (f *Family) getFamilyBookings(start time.Time, end time.Time) ([]Booking, error) {
+	/* format dates for psql */
+	logger.Println("Preformat --> Start ", start, "\tEnd ", end)
+
+	/* Get all bookings in range start-now  (start > block_start & end > blocK_end) */
+	q := `SELECT booking_id, block_id, family_id, user_id, block_start, block_end, room_id, modifier
+			FROM booking NATURAL JOIN time_block WHERE (
+					time_block.block_id = booking.block_id
+					AND booking.family_id = $1
+					AND time_block.block_start >= $2 AND time_block.block_start < $3
+					AND time_block.block_end > $2 AND  time_block.block_end <= $3
+			) ORDER BY block_start`
+
+	var bookBlocks []Booking
+	err := db.Select(&bookBlocks, q, f.ID, start, end)
 	logger.Println("Selected blocks: ", bookBlocks)
 	if err != nil {
 		logger.Println(err)

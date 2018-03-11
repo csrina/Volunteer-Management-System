@@ -44,6 +44,15 @@ func familyHoursBooked(FID int) float64 {
 	return getHoursBookingSlice(bookBlocks)
 }
 
+func getHoursBookingSlice(bks []Booking) float64 {
+	duration := 0.00
+	for _, b := range bks {
+		duration += (b.End.Sub(b.Start).Hours() * float64(b.Modifier))
+	}
+	return duration
+}
+
+
 func getFamilyBookings(start time.Time, end time.Time, FID int) ([]Booking, error) {
 	/* format dates for psql */
 	logger.Println("Preformat --> Start ", start, "\tEnd ", end)

@@ -104,6 +104,7 @@ func bookBooking(w http.ResponseWriter, r *http.Request) {
 
 	uID := getUID(r)
 	bID, _ := getBookingID(int(eID), uID)
+	/* Booking Exists, remove it */
 	if bID >= 0 {
 		unbookBookingByBID(w, bID)
 		return
@@ -120,12 +121,19 @@ func bookBooking(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	q := `INSERT INTO booking (block_id, user_id, 
-			booking_start, booking_end) 
-			VALUES ($1, $2, $3, $4)
-			RETURNING booking_id`
+	var fID int
+	fidQ := `SELECT family_id FROM family WHERE (parent_one = $1 OR parent_two = $1)`
+	err = db.QueryRow(fidQ, uID).Scan(&fID)
+	if err != nil {
+		logger.Println("error retrieving fid")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
-	err = db.QueryRow(q, eID, uID, ev["start"], ev["end"]).Scan(&bID)
+	q := `INSERT INTO booking (block_id, user_id, family_id, booking_start, booking_end) 
+			VALUES ($1, $2, $3, $4, $5)
+			RETURNING booking_id`
+	err = db.QueryRow(q, eID, uID, fID, ev["start"], ev["end"]).Scan(&bID)
 	if err != nil {
 		logger.Println("Error creating booking: ", err, "\nevent data: ", ev)
 		w.WriteHeader(http.StatusBadRequest)
@@ -268,24 +276,6 @@ func getEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	serveEventJSON(w, evs)
-}
-
-func getUID(r *http.Request) int {
-	// get session
-	sesh, _ := store.Get(r, "loginSession")
-	username, ok := sesh.Values["username"].(string)
-	if !ok {
-		logger.Println("Invalid user token: ", username)
-		return -1
-	}
-
-	q := `SELECT user_id FROM users WHERE username = $1`
-	var uid int
-	err := db.QueryRow(q, username).Scan(&uid)
-	if err != nil {
-		return -1
-	}
-	return uid
 }
 
 /*
