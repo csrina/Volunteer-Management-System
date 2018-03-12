@@ -1,16 +1,17 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 	"time"
 
-	"github.com/gorilla/mux"
 	"strings"
+
+	"github.com/gorilla/mux"
 )
 
 // An Event is a time block + a booking array + other details needed by calendar
@@ -29,10 +30,24 @@ type Event struct {
 	Note string `json:"note"`
 }
 
-type RetData struct {
-	Msg    string `json:"msg"`
-	BID    int    `json:"bookId"`
-	Booked bool   `json:"booked"`
+type Response struct {
+	Msg string `json:"msg"`
+	BID int    `json:"bookId"`
+}
+
+func (r *Response) setMsg(msg string) *Response {
+	r.Msg = msg
+	return r
+}
+
+func (r *Response) setBID(bid int) *Response {
+	r.BID = bid
+	return r
+}
+
+func (r *Response) send(w http.ResponseWriter) {
+	enc := json.NewEncoder(w) // encoder for sending response
+	enc.Encode(r)
 }
 
 // Expected time formats from calendar
@@ -48,170 +63,93 @@ func eventPostHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		return
 	}
-	logger.Println("The cookie: ")
-	logger.Println(r.Cookies())
-
-	// Determine POST destination from URL
-	dest := mux.Vars(r)["target"]
-
-	// Need to implement auth checking!!
-	// For now just route based on specified operation
-	if dest == "book" {
-		bookBooking(w, r)
-	} else if dest == "update" {
-		updateEvent(w, r)
-	} else {
-		// Invalid target
-		w.WriteHeader(http.StatusBadRequest)
-	}
-}
-
-/* Returns the booking id for the event/user if it exists */
-func getBookingID(eID int, uID int) (int, error) {
-	bid := -1
-	q := `SELECT booking_id FROM booking WHERE (block_id = $1 AND user_id = $2)`
-	err := db.QueryRow(q, eID, uID).Scan(&bid)
-	if err != nil {
-		return -1, err
-	}
-	logger.Println("Booking ID returned: ", bid)
-	return bid, nil
-}
-
-func getBookingCount(eID int) int {
-	cnt := 0
-	q := `SELECT count(*) FROM booking WHERE block_id = $1`
-	db.QueryRow(q, eID).Scan(&cnt)
-	return cnt
-}
-
-/*
- * Makes a booking for the event block
- */
-func bookBooking(w http.ResponseWriter, r *http.Request) {
-	ev, err := mapJSONRequest(r)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	eID, ok := ev["id"].(float64)
-	if ok != true {
-		logger.Println("Invalid id given")
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	uID := getUID(r)
-	bID, _ := getBookingID(int(eID), uID)
-	if bID >= 0 {
-		unbookBookingByBID(w, bID)
-		return
-	}
 	role, err := getRoleNum(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	bookingCount := getBookingCount(int(eID))
-	if role == FACILITATOR && bookingCount > 2 {
-		logger.Println("Error creating booking, only administrators may over-book time blocks.")
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	q := `INSERT INTO booking (block_id, user_id, 
-			booking_start, booking_end) 
-			VALUES ($1, $2, $3, $4)
-			RETURNING booking_id`
-
-	err = db.QueryRow(q, eID, uID, ev["start"], ev["end"]).Scan(&bID)
-	if err != nil {
-		logger.Println("Error creating booking: ", err, "\nevent data: ", ev)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	logger.Println("New Booking created!\nBooking id: ", bID)
-	/* Create and serve JSON request response */
-	enc := json.NewEncoder(w)
-	enc.Encode(RetData{Msg: "Booking created!\nBooking ID: " + strconv.Itoa(bID),
-		BID: bID})
-}
-
-/*
- * Removes a booking
- */
-func unbookBookingByBID(w http.ResponseWriter, bid int) {
-	q := `DELETE FROM booking WHERE booking_id = $1`
-	_, err := db.Exec(q, bid)
-	if err != nil {
-		logger.Println("Error deleting booking (id = ", bid, "): ", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	enc := json.NewEncoder(w)
-	ret := RetData{Msg: "Sucessfully deleted booking " + strconv.Itoa(bid)}
-	enc.Encode(ret)
-}
-
-/*
- * Update the time block of an event upon a POST request from calendar
- * --> NEW DURATION AND/OR START/END TIMES WILL BE UPDATED
- * TODO: Add modifier and Note to be updated if changed as well
- */
-func updateEvent(w http.ResponseWriter, r *http.Request) {
-	ev, err := mapJSONRequest(r)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	id, ok := ev["id"].(float64)
-	if ok != true {
-		logger.Println("Invalid id given")
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	/* Update DB reference */
-	q := `UPDATE time_block 
-			SET (block_start, block_end) = ($2, $3)
-			WHERE (block_id = $1)`
-	_, err = db.Exec(q, int(id), ev["start"], ev["end"])
+	booking, err := bookingFromJSON(r)
 	if err != nil {
 		logger.Println(err)
+		http.Error(w, "could not resolve booking data, contact your administrator if the problem persists", http.StatusBadRequest)
+		return
+	}
+	response := new(Response)     // Response data
+	dest := mux.Vars(r)["target"] // Determine POST destination from URL
+	if dest == "book" {
+		// book/unbook based on BookingID (if 0 value, then booking doesn't exist yet and must be created)
+		if booking.BookingID > 0 {
+			err = booking.unbook(role)
+			response.Msg = "Successfully cancelled booking"
+		} else {
+			err = booking.book(role)
+			response.Msg = "Successfully created booking"
+		}
+	} else if dest == "update" {
+		err = booking.updateTimeBlock(role)
+		response.Msg = "Successfully updated time block"
+	} else {
+		// Invalid target
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	/* Create and serve JSON*/
-	enc := json.NewEncoder(w)
-	enc.SetEscapeHTML(true)
-	enc.Encode(RetData{Msg: "Updated event successfully"})
+	// We may have an error condition after book/unbook
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	response.setBID(booking.BookingID).send(w)
 }
 
-/*
- * Converts json to string:string map.
- */
-func mapJSONRequest(r *http.Request) (map[string]interface{}, error) {
-	/* Read the json posted from calendar */
+func mapEventJSON(r *http.Request) (map[string]interface{}, error) {
+	/* Read the json */
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return nil, err
 	}
-
-	/*
-	 * Unmarshal json into string:string map intermediate.
-	 * 		We require the intermediate, because go doesn't
-	 *      parse the timestamps correctly. However, psql
-	 *      parses the date string just fine, we don't even
-	 *      need to use parseDate to insert!
-	 */
+	// need to unmarshall -> map prior to selectively adding fields to an empty booking
 	var evInterface interface{}
 	json.Unmarshal(body, &evInterface)
-
-	ev := evInterface.(map[string]interface{})
-	logger.Println(ev)
-
+	ev, ok := evInterface.(map[string]interface{})
+	if !ok {
+		return nil, errors.New("couldn't map request")
+	}
+	logger.Println("Ev Map: ", ev)
 	return ev, nil
+}
+
+/*
+ * Reads json request, and creates a partially filled booking struct
+ */
+func bookingFromJSON(r *http.Request) (*Booking, error) {
+	booking := new(Booking)
+	uid := getUID(r)
+	if uid < 1 {
+		return nil, errors.New("uid unresolved")
+	}
+	booking.UserID = uid
+	// Now extract data from json request body
+	ev, err := mapEventJSON(r)
+	if err != nil {
+		return nil, err
+	}
+	eid, ok := ev["id"].(float64)
+	if !ok {
+		return nil, errors.New("event id NaN")
+	}
+	booking.BlockID = int(eid)
+	booking.FamilyID, err = getUsersFID(booking.UserID)
+	if err != nil {
+		return nil, errors.New("couldn't resolve FID from UID")
+	}
+	booking.getTimesMap() // Will set our Start/End for the event with DB values
+	// get the bookingID (if this booking doesn't exist, the ID will remain as 0
+	booking.BookingID, err = booking.getBookingID()
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+	// We dont need roomID nor modifer to make a bookingBlock entry
+	return booking, nil
 }
 
 /* Lists the events requested */
@@ -225,7 +163,7 @@ func listEvents(r *http.Request) ([]*Event, error) {
 		return nil, errors.New("date(s) couldn't be resolved")
 	}
 	logger.Println("Start Date: " + start + "\tEnd Date: " + end)
-	if strings.ContainsAny(start, ";") || strings.ContainsAny(end, ";"){
+	if strings.ContainsAny(start, ";") || strings.ContainsAny(end, ";") {
 		return nil, errors.New("';' in date, scary")
 	}
 	/* Get time blocks in range */
@@ -268,24 +206,6 @@ func getEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	serveEventJSON(w, evs)
-}
-
-func getUID(r *http.Request) int {
-	// get session
-	sesh, _ := store.Get(r, "loginSession")
-	username, ok := sesh.Values["username"].(string)
-	if !ok {
-		logger.Println("Invalid user token: ", username)
-		return -1
-	}
-
-	q := `SELECT user_id FROM users WHERE username = $1`
-	var uid int
-	err := db.QueryRow(q, username).Scan(&uid)
-	if err != nil {
-		return -1
-	}
-	return uid
 }
 
 /*
