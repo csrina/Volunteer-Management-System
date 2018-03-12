@@ -75,3 +75,27 @@ function familyList() {
     xhttp.open("GET", `http://localhost:8080/api/v1/admin/families`);
     xhttp.send();
 }
+
+function newUser() {
+    let tmpl = document.querySelector("#tmpl_addUser").innerHTML;
+    document.querySelector("#displayData").innerHTML = tmpl;
+    document.querySelector("#cancel").addEventListener('click', userList);
+    document.querySelector("#submit").addEventListener('click', () => {
+        
+        let fields = document.querySelectorAll("input");
+        for(let i = 0; i < fields.length; i++) {
+            if (fields[i].value == "") {
+                alert('Please fill out all sections');
+                return;
+            } 
+        }
+        if (document.querySelector("#pass1").value.length < 8) {
+            alert('Password must be longer than 8 characters');
+            return;
+        }
+        if (document.querySelector("#pass1").value != document.querySelector("#pass2").value) {
+            alert('Passwords do not match')
+            return;
+        }
+    });
+}

@@ -94,11 +94,52 @@
     </table>
 </script>
 
+<script id="tmpl_addUser" type="x-dot-template">
+    <table>
+        <tr>
+            <td>User Role</td>
+            <td><select>
+                    <option value="1">Facilitator</option>
+                    <option value="2">Teacher</option>
+            </select></td>
+        </tr>
+        <tr>
+            <td>First Name</td>
+            <td><input id="fName" type="text"></td>
+        </tr>
+        <tr>
+            <td>Last Name</td>
+            <td><input id="lName" type="text"></td>
+        </tr>
+        <tr>
+            <td>Email</td>
+            <td><input id="email" type="email"></td>
+        </tr>
+        <tr>
+            <td>Phone #</td>
+            <td><input id="phoneNum" type="tel"></td>
+        </tr>
+        <tr>
+            <td>Password</td>
+            <td><input id="pass1" type="password"></td>
+        </tr>
+        <tr>
+            <td>Confirm Password</td>
+            <td><input id="pass2" type="password"></td>
+        </tr>
+        <tr><td>
+            <button id="submit" type="button">Submit</button>
+            <button id="Cancel" type="button">Cancel</button>
+        </td></tr>
+    </table>
+</script>
+
+
 <div id="usersSidenav" class="sidenav">
         <a onClick="familyList()">Edit Family</a>
         <a onClick="newFamily()">Add Family</a>
         <a onClick="userList()">Edit User</a>
-        <a onClick="newList()">Add User</a>
+        <a onClick="newUser()">Add User</a>
 </div>
 
 <div id="displayData" class="displayArea">Select an option to continue</div>
