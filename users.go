@@ -16,6 +16,18 @@ type Family struct {
 	Children    	int		`db:"children" json:"numKids"`
 }
 
+/* Given a UID, get the FID which the user belongs to */
+func getUsersFID(userID int) (int, error) {
+	var fid int
+	q := `SELECT family_id FROM family WHERE (parent_one = $1 OR parent_two = $1)`
+	err := db.QueryRow(q, userID).Scan(&fid)
+	if err != nil {
+		logger.Println("error retrieving fid")
+		return -1, err
+	}
+	return fid, nil
+}
+
 /*
  *  Retrieve family via userID contained in the request.
  */
