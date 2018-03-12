@@ -106,12 +106,9 @@ func getDashData(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
 	dd.History1 = dd.History1.configureAsHistoricalHours("P1", "#FAD201", false, 0.0)
 	dd.History2 = dd.History2.configureAsHistoricalHours("P2", "#201FAD", false, 0.0)
-	logger.Println("DASHDATA: ", dd)
-	logger.Println("P1 CDS: ", dd.History1)
-	logger.Println("P2 CDS: ", dd.History2)
-
 
 	encoder := json.NewEncoder(w)
 	encoder.SetEscapeHTML(true)
@@ -126,14 +123,15 @@ func getDashData(w http.ResponseWriter, r *http.Request) {
  */
 func (dd *DashData) updateHoursData(fam Family, today time.Time) (*DashData, error) {
 	dd.setHoursGoal(fam.Children)
-	if today.Weekday() == time.Sunday {
+	todaySaved := now.New(today) // If its a weekend, we need this saved value for later
+	if today.Weekday() == time.Sunday { // weekend days must be shifted to monday
 		today = today.AddDate(0, 0, 1) // move to monday so we reference next week
 	} else if today.Weekday() == time.Saturday {
 		today = today.AddDate(0, 0, 2)
 	}
 	now.FirstDayMonday = true
-	nowToday := now.New(today)
-	startOfWeek := nowToday.BeginningOfWeek()
+	nowToday := now.New(today) // We use this to determine start of week, so it should be the adjusted today
+	startOfWeek := nowToday.BeginningOfWeek() // if weekend, this is next week's monday
 	dd.EndOfPeriod = nowToday.EndOfWeek()
 
 	dd.StartOfPeriod = today.AddDate(0, -PERIOD_LENGTH, 0) // Go back 4 months
@@ -152,7 +150,7 @@ func (dd *DashData) updateHoursData(fam Family, today time.Time) (*DashData, err
 				dd.History2.addDurationPoint(DurationPoint{Y: duration, X: now.New(b.Start).BeginningOfDay()})
 			}
 		// Family hours are conglomerated in the totals
-		} else if b.Start.Before(nowToday.Time) && b.End.After(startOfWeek) {
+		} else if b.Start.Before(todaySaved.Time) && b.End.After(startOfWeek) {
 			dd.HoursDone += duration
 			dd.HoursBooked += duration // Even though they're done, theyre still booked 4 this week
 		} else {

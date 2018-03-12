@@ -14,9 +14,12 @@ function requestBooking(event, jsEvent, view) {
     if (!confirm(promptStr + event.start.toString() + ", in the " + event.room + " room)")) {
         return;
     }
+
     // Block info for booking
     let booking_json = JSON.stringify({
-        id:         event.id
+        id:         event.id,
+        start:      event.start.toString(),
+        end:        event.end.toString(),
     });
 
     // Make ajax POST request with booking request or request bookign delete if already booked
@@ -40,7 +43,7 @@ function requestBooking(event, jsEvent, view) {
             $('#calendar').fullCalendar('updateEvent', event);
         },
         error: function(xhr, ajaxOptions, thrownError) {
-            alert("Request failed: " + thrownError);
+            alert("Booking request failed: " + xhr.responseText)
         }
     });
 }

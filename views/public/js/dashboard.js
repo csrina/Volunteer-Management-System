@@ -15,13 +15,14 @@ var elems = {
 // This function will send a booking removal request to the server
 function requestRemoval(event) {
     let promptStr = "Are you sure you want to remove yourself from:\n";
-
     if (!confirm(promptStr + event.start.toString() + ", in the " + event.room + " room")) {
         return;
     }
     // Block info for booking
     let booking_json = JSON.stringify({
-        id:         event.id
+        id:         event.id,
+        start:      event.start.toString(),
+        end:        event.end.toString(),
     });
 
     // Make ajax POST request with booking request or request bookign delete if already booked
@@ -33,9 +34,7 @@ function requestRemoval(event) {
         dataType:'json',
         success: function(data) {  // We expect the server to return json data with a msg field
             alert(data.msg);
-            event.booked = !event.booked;
-            event.bookingCount--;
-            $('#calendar').fullCalendar('updateEvent', event);
+            $("#calendar").fullCalendar("removeEvents", event.id)
         },
         error: function(xhr, ajaxOptions, thrownError) {
             alert("Request failed: " + thrownError);
@@ -149,7 +148,6 @@ $(document).ready(function() {
         eventOverlap: false,
         eventClick: function(event, jsEvent, view) {
             requestRemoval(event);
-            $("#calendar").fullCalendar("removeEvents", event.id)
             refreshWidgets()
         },
         businessHours: {
@@ -181,7 +179,9 @@ function refreshWidgets() {
         success: function(data) {
             refreshGauge(elems.gDone, "hoursDone", data.hoursDone)
             refreshGauge(elems.gBooked, "hoursBooked", data.hoursBooked);
-            elems.chart   = chartInit("hoursChart", data);
+            elems.chart.data.datasets[0] = data.history1;
+            elems.chart.data.datasets[1] = data.history2;
+            elems.chart.update()
         },
         dataType: 'json'
     });
