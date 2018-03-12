@@ -68,7 +68,17 @@
 <script id="tmpl_editUser" type="x-dot-template">
     <table>
         <tr><td>
-            First Name 
+            ID
+        </td><td>
+            <p id="IDNum">{{`{{=it.userId}}`}}</p>
+        </td></tr>
+        <tr><td>
+            Username
+        </td><td>
+            {{`{{=it.userName}}`}}
+        </td></tr>
+        <tr><td>
+            First Name
         </td><td>
             <input id="fName" type="text" value="{{`{{=it.firstName}}`}}">
         </td></tr>
@@ -88,7 +98,7 @@
             <input id="phoneNum" type="tel" value="{{`{{=it.phoneNumber}}`}}">
         </td></tr>
         <tr><td>
-            <button id="submitEdit" type="button">Submit</button>
+            <button id="submit" type="button">Submit</button>
             <button id="Cancel" type="button">Cancel</button>
         </td></tr>
     </table>

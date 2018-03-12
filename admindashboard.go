@@ -3,15 +3,18 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type userFull struct {
 	UserID    int    `json:"userId" db:"user_id"`
 	UserRole  int    `json:"userRole" db:"user_role"`
 	UserName  string `json:"userName" db:"username"`
-	Password  string `json:"password" db:"password"`
+	Password  []byte `json:"password" db:"password"`
 	FirstName string `json:"firstName" db:"first_name"`
 	LastName  string `json:"lastName" db:"last_name"`
 	Email     string `json:"email" db:"email"`
@@ -66,11 +69,19 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 	newUser := userFull{}
 	decoder := json.NewDecoder(r.Body)
 	decoder.Decode(&newUser)
+	fmt.Printf("%#v", newUser)
+
+	newPass, err := bcrypt.GenerateFromPassword(newUser.Password, bcrypt.DefaultCost)
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	q := `INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number)
 			VALUES ($1, $2, $3, $4, $5, $6, $7)`
 
-	_, err := db.Exec(q, newUser.UserRole, newUser.UserName, newUser.Password,
+	_, err = db.Exec(q, newUser.UserRole, newUser.UserName, newPass,
 		newUser.FirstName, newUser.LastName, newUser.Email, newUser.Phone)
 	if err != nil {
 		logger.Println(err)
@@ -81,21 +92,21 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateUser(w http.ResponseWriter, r *http.Request) {
-	newUser := userFull{}
+	user := userFull{}
 	decoder := json.NewDecoder(r.Body)
-	decoder.Decode(&newUser)
+	decoder.Decode(&user)
 
-	q := `INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number)
-			VALUES ($1, $2, $3, $4, $5, $6, $7)`
+	q := `UPDATE users 
+			SET username = $2, first_name = $3, last_name = $4, email = $5, phone_number = $6
+			WHERE user_id = $1`
 
-	_, err := db.Exec(q, newUser.UserRole, newUser.UserName, newUser.Password,
-		newUser.FirstName, newUser.LastName, newUser.Email, newUser.Phone)
+	_, err := db.Exec(q, user.UserID, user.UserName, user.FirstName, user.LastName, user.Email, user.Phone)
 	if err != nil {
 		logger.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(http.StatusOK)
 }
 
 func getFamilyList(w http.ResponseWriter, r *http.Request) {

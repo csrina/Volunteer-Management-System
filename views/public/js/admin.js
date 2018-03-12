@@ -76,6 +76,37 @@ function familyList() {
     xhttp.send();
 }
 
+function submitUserEdit() {  
+        let fields = document.querySelectorAll("input");
+        for(let i = 0; i < fields.length; i++) {
+            if (fields[i].value == "") {
+                alert('Please fill out all sections');
+                return;
+            } 
+        }
+        let uId = parseInt(document.querySelector("#IDNum").innerHTML);
+        let newFName = document.querySelector("#fname").value;
+        let newLName = document.querySelector("#lName").value;
+        let newEmail = document.querySelector("#email").value;
+        let newPhone = document.querySelector("#phoneNum").value; 
+        let newUName = `${newLName}${newFName}`.toLowerCase();
+        let xhttp = new XMLHttpRequest();
+        xhttp.addEventListener("loadend", () => {
+            if (xhttp.status > 300) {
+                alert('ERROR: Could not update user.');
+                return;
+            }
+            if (xhttp.status == 200) {
+                alert('SUCCESS: User updated.');
+                userList();
+            }
+        });
+        xhttp.open("PUT", "http://localhost:8080/api/v1/admin/users");
+        xhttp.send(JSON.stringify({userid:uId, username:newUName,
+                    firstname: newFName, lastname:newLName,
+                    email:newEmail, phoneNumber:newPhone}));
+}
+
 function newUser() {
     let tmpl = document.querySelector("#tmpl_addUser").innerHTML;
     document.querySelector("#displayData").innerHTML = tmpl;
@@ -97,29 +128,33 @@ function newUser() {
             alert('Passwords do not match')
             return;
         }
-        let newRole = document.querySelector("#role").value;
+        let newRole = parseInt(document.querySelector("#role").value);
         let newFName = document.querySelector("#fname").value;
         let newLName = document.querySelector("#lName").value;
         let newEmail = document.querySelector("#email").value;
         let newPhone = document.querySelector("#phoneNum").value;
-        let newUName = `${newLName}${newFName}`
+        let newUName = `${newLName}${newFName}`.toLowerCase();
         let newPass = document.querySelector("#pass1").value;
         let newPassData = [];
         for (let i = 0; i < newPass.length; i++) {
             newPassData.push(newPass.charCodeAt(i));
         }
-        
+
         let xhttp = new XMLHttpRequest();
         xhttp.addEventListener("loadend", () => {
-            if (this.status > 300) {
+            if (xhttp.status > 300) {
                 alert('ERROR: Could not create user.');
                 return;
             }
-            if (this.status == 201) {
+            if (xhttp.status == 201) {
+                alert('SUCCESS: User added to system');
                 userList();
             }
         });
         xhttp.open("POST", "http://localhost:8080/api/v1/admin/users");
+        console.log(JSON.stringify({userrole:newRole, username:newUName,
+            password:newPassData, firstname: newFName, lastname:newLName,
+            email:newEmail, phoneNumber:newPhone}));
         xhttp.send(JSON.stringify({userrole:newRole, username:newUName,
                     password:newPassData, firstname: newFName, lastname:newLName,
                     email:newEmail, phoneNumber:newPhone}));
