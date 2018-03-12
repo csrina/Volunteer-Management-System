@@ -101,10 +101,10 @@ func (b *Booking) getBookingID() (int, error) {
 /*
  * The returned map has the keys: "start" and "end"
  *
- * Side-Effect: Like getBookingID, getTimes will actively update b.Start and b.End,
+ * Side-Effect: Like getBookingID, getTimesMap will actively update b.Start and b.End,
  * if they are zeroed (default new() state).
  */
-func (b *Booking) getTimes() (map[string]time.Time, error) {
+func (b *Booking) getTimesMap() (map[string]time.Time, error) {
 	// Test if dates are set (note events which are infinite, will always go thru DB)
 	if (b.Start.IsZero() && b.End.IsZero()) {
 		q := `SELECT block_start, block_end FROM time_block 
@@ -114,6 +114,10 @@ func (b *Booking) getTimes() (map[string]time.Time, error) {
 			return nil, err
 		}
 	}
+	b.Start = time.Date(b.Start.Year(), b.Start.Month(), b.Start.Day(),
+							b.Start.Hour(), b.Start.Minute(), 0, 0, time.Local);
+	b.End = time.Date(b.End.Year(), b.End.Month(), b.End.Day(),
+		b.End.Hour(), b.End.Minute(), 0, 0, time.Local);
 	times := make(map[string]time.Time)
 	times["start"] = b.Start
 	times["end"] = b.End
@@ -173,10 +177,16 @@ func (b *Booking) book(role int) error {
 	return nil
 }
 
-func (b *Booking) unbook() error {
-	if b.Start.Before(time.Now()) || b.End.Before(time.Now()) {
+func (b *Booking) unbook(role int) error {
+	if b.Start.Before(time.Now()) && b.End.Before(time.Now()) {
+		logger.Println("Now: ", time.Now(), "Start: ", b.Start, "  local: ", b.Start.Local())
 		return errors.New("cannot unbook from completed event")
 	}
+
+	if b.Start.Before(time.Now()) || b.End.Before(time.Now()) && role == FACILITATOR {
+		return errors.New("only administration may remove bookings in progress")
+	}
+
 	q := `DELETE FROM booking WHERE booking_id = $1`
 	_, err := db.Exec(q, b.BookingID)
 	if err != nil {

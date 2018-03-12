@@ -79,7 +79,7 @@ func eventPostHandler(w http.ResponseWriter, r *http.Request) {
 	if dest == "book" {
 		// book/unbook based on BookingID (if 0 value, then booking doesn't exist yet and must be created)
 		if booking.BookingID > 0 {
-			err = booking.unbook()
+			err = booking.unbook(role)
 			response.Msg = "Successfully cancelled booking"
 		} else {
 			err = booking.book(role)
@@ -142,7 +142,7 @@ func bookingFromJSON(r *http.Request) (*Booking, error) {
 	if err != nil {
 		return nil, errors.New("couldn't resolve FID from UID")
 	}
-	booking.getTimes() // Will set our Start/End for the event with DB values
+	booking.getTimesMap() // Will set our Start/End for the event with DB values
 	// get the bookingID (if this booking doesn't exist, the ID will remain as 0
 	booking.BookingID, err = booking.getBookingID()
 	if err != nil && err != sql.ErrNoRows {
