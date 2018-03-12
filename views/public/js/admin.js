@@ -71,8 +71,23 @@ function familyList() {
         let tmpl = document.querySelector("#tmpl_listFamilies").innerHTML;
         let func = doT.template(tmpl);
         document.querySelector("#displayData").innerHTML = func(userInfo);
+        docuent.querySelector("#newFamily")
     });
     xhttp.open("GET", `http://localhost:8080/api/v1/admin/families`);
+    xhttp.send();
+}
+
+function newFamily() {
+    let xhttp = new XMLHttpRequest();
+    xhttp.addEventListener("loadend", () => {
+        let facilitators = JSON.parse(xhttp.response);
+        let tmpl = document.querySelector("#tmpl_newFamily").innerHTML;
+        let func = doT.template(tmpl);
+        document.querySelector("#displayData").innerHTML = func(facilitators);
+        document.querySelector("#cancel").addEventListener('click', familyList);
+        document.querySelector("#submit").addEventListener('click', submitNewFamily);
+    });
+    xhttp.open("GET", `http://localhost:8080/api/v1/admin/facilitators`);
     xhttp.send();
 }
 
