@@ -10,6 +10,19 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type roomFull struct {
+	RoomID     int    `json:"roomId" db:"room_id"`
+	RoomName   string `json:"roomName" db:"room_name"`
+	TeacherID  int    `json:"teacherId" db:"teacher_id"`
+	Children   int    `json:"children" db:"children"`
+	RoomNumber string `json:"roomNum" db:"room_num"`
+}
+
+type roomShort struct {
+	RoomID   int    `json:"roomId" db:"room_id"`
+	RoomName string `json:"roomName" db:"room_name"`
+}
+
 type userFull struct {
 	UserID    int    `json:"userId" db:"user_id"`
 	UserRole  int    `json:"userRole" db:"user_role"`
@@ -32,6 +45,22 @@ type familyFull struct {
 	ParentOne  sql.NullInt64 `json:"parentOne" db:"parent_one"`
 	ParentTwo  sql.NullInt64 `json:"parentTwo" db:"parent_two"`
 	Children   sql.NullInt64 `json:"children" db:"children"`
+}
+
+func basicRoomList(w http.ResponseWriter, r *http.Request) {
+	rooms := []roomShort{}
+	q := `SELECT room_id, room_name
+			FROM room;`
+
+	err := db.Select(&rooms, q)
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	encoder := json.NewEncoder(w)
+	w.WriteHeader(http.StatusOK)
+	encoder.Encode(rooms)
 }
 
 //gets all users not currently linked to a family

@@ -167,9 +167,6 @@ function newUser() {
             }
         });
         xhttp.open("POST", "http://localhost:8080/api/v1/admin/users");
-        console.log(JSON.stringify({userrole:newRole, username:newUName,
-            password:newPassData, firstname: newFName, lastname:newLName,
-            email:newEmail, phoneNumber:newPhone}));
         xhttp.send(JSON.stringify({userrole:newRole, username:newUName,
                     password:newPassData, firstname: newFName, lastname:newLName,
                     email:newEmail, phoneNumber:newPhone}));
