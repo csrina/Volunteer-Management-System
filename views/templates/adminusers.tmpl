@@ -43,7 +43,7 @@
         </tr>
         <tr>
         <td><button id="Submit" type="button">Submit</button></td>
-        <td><button id="Cancel" type="button">Cancel</button></td>
+        <td><button id="cancel" type="button">Cancel</button></td>
         </tr>
     </div>
 </script>
@@ -65,10 +65,56 @@
     </table>
 </script>
 
+<script id="tmpl_newFamily" type="x-dot-template">
+    <table>
+        <tr> 
+            <td>Family Name</td>
+            <td><input id="famName" type="text"></td>
+        </tr>
+        <tr>
+        <td>Parent One</td>
+        <td>
+            <select id="parent1">
+                {{`{{~it :value:index}}`}}
+                    <option value="par_{{`{{=value.userId}}`}}">{{`{{=value.userName}}`}}</option>
+                {{`{{~}}`}}    
+            </select>
+        </td>
+        </tr>
+        <tr>
+        <td>Parent Two</td>
+        <td>
+            <select id="parent2">
+                {{`{{~it :value:index}}`}}
+                    <option value="par_{{`{{=value.userId}}`}}">{{`{{=value.userName}}`}}</option>
+                {{`{{~}}`}}    
+            </select>
+        </td>
+        </tr>
+            <td>Children</td>
+            <td><input id="children" type="number"></td>
+        </tr>
+        <tr><td>
+            <button id="submit" type="button">Submit</button>
+            <button id="cancel" type="button">Cancel</button>
+        </td></tr>
+    </table>
+</script>
+
 <script id="tmpl_editUser" type="x-dot-template">
     <table>
         <tr><td>
-            First Name 
+            ID
+        </td><td>
+            <p id="IDNum">{{`{{=it.userId}}`}}</p>
+        </td></tr>
+        <tr><td>
+            Username
+        </td><td>
+            {{`{{=it.userName}}`}}
+        </td></tr>
+        <tr><td>
+            First Name
         </td><td>
             <input id="fName" type="text" value="{{`{{=it.firstName}}`}}">
         </td></tr>
@@ -88,17 +134,58 @@
             <input id="phoneNum" type="tel" value="{{`{{=it.phoneNumber}}`}}">
         </td></tr>
         <tr><td>
-            <button id="submitEdit" type="button">Submit</button>
-            <button id="Cancel" type="button">Cancel</button>
+            <button id="submit" type="button">Submit</button>
+            <button id="cancel" type="button">Cancel</button>
         </td></tr>
     </table>
 </script>
+
+<script id="tmpl_addUser" type="x-dot-template">
+    <table>
+        <tr>
+            <td>User Role</td>
+            <td><select id="role">
+                    <option value="1">Facilitator</option>
+                    <option value="2">Teacher</option>
+            </select></td>
+        </tr>
+        <tr>
+            <td>First Name</td>
+            <td><input id="fName" type="text"></td>
+        </tr>
+        <tr>
+            <td>Last Name</td>
+            <td><input id="lName" type="text"></td>
+        </tr>
+        <tr>
+            <td>Email</td>
+            <td><input id="email" type="email"></td>
+        </tr>
+        <tr>
+            <td>Phone #</td>
+            <td><input id="phoneNum" type="tel"></td>
+        </tr>
+        <tr>
+            <td>Password</td>
+            <td><input id="pass1" type="password"></td>
+        </tr>
+        <tr>
+            <td>Confirm Password</td>
+            <td><input id="pass2" type="password"></td>
+        </tr>
+        <tr><td>
+            <button id="submit" type="button">Submit</button>
+            <button id="cancel" type="button">Cancel</button>
+        </td></tr>
+    </table>
+</script>
+
 
 <div id="usersSidenav" class="sidenav">
         <a onClick="familyList()">Edit Family</a>
         <a onClick="newFamily()">Add Family</a>
         <a onClick="userList()">Edit User</a>
-        <a onClick="newList()">Add User</a>
+        <a onClick="newUser()">Add User</a>
 </div>
 
 <div id="displayData" class="displayArea">Select an option to continue</div>
