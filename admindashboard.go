@@ -47,6 +47,45 @@ type familyFull struct {
 	Children   sql.NullInt64 `json:"children" db:"children"`
 }
 
+func createFamily(w http.ResponseWriter, r *http.Request) {
+	family := familyFull{}
+	decoder := json.NewDecoder(r.Body)
+	decoder.Decode(&family)
+
+	q := `INSERT INTO family (family_name, parent_one, parent_two, children)
+			VALUES ($1, $2, $3, $4)`
+
+	_, err := db.Exec(q, family.FamilyName, family.ParentOne, family.ParentTwo,
+		family.Children)
+
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
+}
+
+func updateFamily(w http.ResponseWriter, r *http.Request) {
+	family := familyFull{}
+	decoder := json.NewDecoder(r.Body)
+	decoder.Decode(&family)
+
+	q := `UPDATE family
+			SET family_name = $2, parent_one = $3, parent_two = $4, children = $5
+			WHERE family_id = $1`
+
+	_, err := db.Exec(q, family.FamilyID, family.FamilyName, family.ParentOne, family.ParentTwo,
+		family.Children)
+
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
+}
+
 func basicRoomList(w http.ResponseWriter, r *http.Request) {
 	rooms := []roomShort{}
 	q := `SELECT room_id, room_name

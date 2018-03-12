@@ -91,6 +91,33 @@ function newFamily() {
     xhttp.send();
 }
 
+function submitNewFamily() {
+    let par1 = document.querySelector("#parent1").value;
+    let par2 = document.querySelector("#parent2").value;
+    let surname = document.querySelector("#famName").value;
+    let numChild = parseInt(document.querySelector("#children").value);
+    if (par1 === par2) {
+        alert('Parents cannot match.');
+        return;
+    }
+    if (surname === "" || numChild === "") {
+        alert('Please fill out all fields');
+        return;
+    }
+
+    let newFamily = {"familyName":surname, "parentOne":par1,
+                    "parentTwo":par2, "children":numChild};
+    let xhttp = new XMLHttpRequest();
+    xhttp.addEventListener("loadend", () => {
+        if (xhttp.status > 300) {
+            alert('ERROR: Could not create family');
+            return;
+        }
+        familyList();
+    });
+    xhttp.open()
+}
+
 function submitUserEdit() {  
         let fields = document.querySelectorAll("input");
         for(let i = 0; i < fields.length; i++) {

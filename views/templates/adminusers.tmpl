@@ -75,8 +75,9 @@
         <td>Parent One</td>
         <td>
             <select id="parent1">
+                    <option value="">Select a Parent/Facilitator</option>
                 {{`{{~it :value:index}}`}}
-                    <option value="par_{{`{{=value.userId}}`}}">{{`{{=value.userName}}`}}</option>
+                    <option value="{{`{{=value.userId}}`}}">{{`{{=value.userName}}`}}</option>
                 {{`{{~}}`}}    
             </select>
         </td>
@@ -85,8 +86,9 @@
         <td>Parent Two</td>
         <td>
             <select id="parent2">
+                    <option value="">Select a Parent/Facilitator</option>
                 {{`{{~it :value:index}}`}}
-                    <option value="par_{{`{{=value.userId}}`}}">{{`{{=value.userName}}`}}</option>
+                    <option value="{{`{{=value.userId}}`}}">{{`{{=value.userName}}`}}</option>
                 {{`{{~}}`}}    
             </select>
         </td>
@@ -100,6 +102,34 @@
         </td></tr>
     </table>
 </script>
+
+<script id="tmpl_editFamily" type="x-dot-template">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-3">
+                <p> Family ID </p>
+                <p> Family Name </p>
+                <p> Parent One </p>
+                <p> Parent Two </p>
+                <p> Children </p>
+            </div>
+            <div class="col-xs-3">
+                <p> {{=it.familyId}} </p>
+                <input id="famName" type="text" value="{{`{{=it.familyName}}`}}">
+                <select id="parent1">
+                    <option value="{{`{{=it.parentOne}}`}}
+                    {{`{{~it :value:index}}`}}
+                    <option value="{{`{{=value.userId}}`}}">{{`{{=value.userName}}`}}</option>
+                {{`{{~}}`}}
+                    <option value="">Remove Parent</option>
+                </select>
+                <select id="parent1">
+                {{`{{~it :value:index}}`}}
+                    <option value="{{`{{=value.userId}}`}}">{{`{{=value.userName}}`}}</option>
+                {{`{{~}}`}}
+                    <option value="">Remove Parent</option>
+                </select>
+
 
 <script id="tmpl_editUser" type="x-dot-template">
     <table>
