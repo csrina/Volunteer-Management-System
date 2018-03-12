@@ -116,6 +116,10 @@ func apiRoutes(r *mux.Router) {
 	s.HandleFunc("/admin/calendar/setup/", calSetup).Methods("POST")
 	s.HandleFunc("/admin/calendar/setup/", undoSetup).Methods("DELETE")
 	s.HandleFunc("/admin/users", getUserList).Methods("GET")
+	s.HandleFunc("/admin/users", createUser).Methods("POST")
+	s.HandleFunc("/admin/users", updateUser).Methods("PUT")
+	s.HandleFunc("/admin/classes", basicRoomList).Methods("GET")
+	s.HandleFunc("/admin/facilitators", lonelyFacilitators).Methods("GET")
 	s.HandleFunc("/admin/families", getFamilyList).Methods("GET")
 	s.HandleFunc("/dashboard", getDashData).Methods("GET")
 
