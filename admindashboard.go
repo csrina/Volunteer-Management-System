@@ -62,6 +62,42 @@ func getUserList(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func createUser(w http.ResponseWriter, r *http.Request) {
+	newUser := userFull{}
+	decoder := json.NewDecoder(r.Body)
+	decoder.Decode(&newUser)
+
+	q := `INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number)
+			VALUES ($1, $2, $3, $4, $5, $6, $7)`
+
+	_, err := db.Exec(q, newUser.UserRole, newUser.UserName, newUser.Password,
+		newUser.FirstName, newUser.LastName, newUser.Email, newUser.Phone)
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
+}
+
+func updateUser(w http.ResponseWriter, r *http.Request) {
+	newUser := userFull{}
+	decoder := json.NewDecoder(r.Body)
+	decoder.Decode(&newUser)
+
+	q := `INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number)
+			VALUES ($1, $2, $3, $4, $5, $6, $7)`
+
+	_, err := db.Exec(q, newUser.UserRole, newUser.UserName, newUser.Password,
+		newUser.FirstName, newUser.LastName, newUser.Email, newUser.Phone)
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
+}
+
 func getFamilyList(w http.ResponseWriter, r *http.Request) {
 	q := `SELECT family_id, family_name, parent_one, parent_two, children
 				FROM family`
