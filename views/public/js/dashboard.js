@@ -37,7 +37,7 @@ function requestRemoval(event) {
             $("#calendar").fullCalendar("removeEvents", event.id)
         },
         error: function(xhr, ajaxOptions, thrownError) {
-            alert("Request failed: " + thrownError);
+            alert("Request failed: " + xhr.responseText);
         }
     });
 }

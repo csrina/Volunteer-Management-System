@@ -80,12 +80,12 @@ $(document).ready(function() {
             return stillEvent.color === movingEvent.color;
         },
         eventClick: function(event, jsEvent, view) {
-                // noinspection Annotator
+            requestBooking(event, jsEvent, view)
+            // noinspection Annotator
             if (event.bookingCount > 3) {
                     alert("Sorry, only administrators can over-book time blocks.");
                     return;
-                }
-                requestBooking(event, jsEvent, view);
+            }
         },
         businessHours: {
             // days of week. an array of zero-based day of week integers (0=Sunday)
