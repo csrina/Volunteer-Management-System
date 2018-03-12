@@ -21,12 +21,41 @@ type userFull struct {
 	Phone     string `json:"phoneNumber" db:"phone_number"`
 }
 
+type userShort struct {
+	UserID   int    `json:"userId" db:"user_id"`
+	UserName string `json:"userName" db:"username"`
+}
+
 type familyFull struct {
 	FamilyID   int           `json:"familyId" db:"family_id"`
 	FamilyName string        `json:"familyName" db:"family_name"`
 	ParentOne  sql.NullInt64 `json:"parentOne" db:"parent_one"`
 	ParentTwo  sql.NullInt64 `json:"parentTwo" db:"parent_two"`
 	Children   sql.NullInt64 `json:"children" db:"children"`
+}
+
+//gets all users not currently linked to a family
+func lonelyFacilitators(w http.ResponseWriter, r *http.Request) {
+	users := []userShort{}
+	q := `SELECT user_id, username 
+			FROM users 
+			WHERE user_role = 1 
+			AND user_id NOT IN 
+				(
+				SELECT user_id 
+					FROM users, family 
+					WHERE users.user_id = family.parent_one 
+					OR family.parent_two = users.user_id
+				)`
+	err := db.Select(&users, q)
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	encoder := json.NewEncoder(w)
+	w.WriteHeader(http.StatusOK)
+	encoder.Encode(users)
 }
 
 func getUserList(w http.ResponseWriter, r *http.Request) {
