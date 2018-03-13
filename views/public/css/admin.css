@@ -66,12 +66,6 @@ table, th, td {
   .sidenav a {font-size: 18px;}
 }
 
-table {
-    text-align: left;
-}
-th, td {
-    padding: 2px 12px;
-}
 
 .eventLabels {
     text-align: right;
