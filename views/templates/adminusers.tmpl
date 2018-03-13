@@ -1,9 +1,9 @@
 {{define "adminusers"}}
 
-{{template "adminheader"}}
+{{template "adminheader" .}}
 
 <script id="tmpl_listUsers" type="x-dot-template">
-    <table>
+    <table class="table table-hover">
         <tr>
             <th>User ID</th>
             <th>Last Name</th>
@@ -21,29 +21,30 @@
             <td>{{`{{=value.userName}}`}}</td>
             <td>{{`{{=value.email}}`}}</td>
             <td>{{`{{=value.phoneNumber}}`}}</td>
-            <td><button id="edit_{{`{{=value.userId}}`}}" type="button">Edit User</button>
-                <button id="pass_{{`{{=value.userId}}`}}" type="button">Change Password</button></td>
+            <td><button id="edit_{{`{{=value.userId}}`}}" type="button" class="btn btn-info">Edit User</button>
+                <button id="pass_{{`{{=value.userId}}`}}" type="button" class="btn btn-info">Change Password</button></td>
         </tr>
     {{`{{~}}`}}
     </table>
 </script>
 
 <script id="tmpl_password" type="x-dot-template">
-    <header>
-        <h1>Edit password for user: </h1><h2>{{`{{=it.userName}}`}}</h2>
-    </header>
-    <table>
-        <tr>
-            <td> Password </td>
-            <td><input id="pass1" type="password"></td>
+    <div class="row">
+        <header>
+            <h1>Edit password for user: </h1><h2>{{`{{=it.userName}}`}}</h2>
+        </header>
+    </div>
+    <div class="row">
+        Password </td>
+            <td><input id="pass1" type="password" class="form-control form-control-sm"></td>
         </tr>
         <tr>
             <td> Confirm Password </td>
-            <td><input id="pass2" type="password"></td>
+            <td><input id="pass2" type="password" class="form-control form-control-sm"></td>
         </tr>
         <tr>
-        <td><button id="Submit" type="button">Submit</button></td>
-        <td><button id="cancel" type="button">Cancel</button></td>
+        <td><button id="Submit" type="button" class="btn btn-info">Submit</button></td>
+        <td><button id="cancel" type="button" class="btn btn-info">Cancel</button></td>
         </tr>
     </div>
 </script>
@@ -59,7 +60,7 @@
         <tr>
             <td>{{`{{=value.familyId}}`}}</td>
             <td>{{`{{=value.familyName}}`}}</td>
-            <td><button id="edit_{{`{{=value.familyId}}`}}" type="button">Edit Family</button></td>
+            <td><button id="edit_{{`{{=value.familyId}}`}}" type="button" class="btn btn-info">Edit Family</button></td>
         </tr>
     {{`{{~}}`}}
     </table>
@@ -69,7 +70,7 @@
     <table>
         <tr> 
             <td>Family Name</td>
-            <td><input id="famName" type="text"></td>
+            <td><input id="famName" type="text" class="form-control form-control-sm"></td>
         </tr>
         <tr>
         <td>Parent One</td>
@@ -94,41 +95,16 @@
         </td>
         </tr>
             <td>Children</td>
-            <td><input id="children" type="number"></td>
+            <td><input id="children" type="number" class="form-control form-control-sm"></td>
         </tr>
         <tr><td>
-            <button id="submit" type="button">Submit</button>
-            <button id="cancel" type="button">Cancel</button>
+            <button id="submit" type="button" class="btn btn-info">Submit</button>
+            <button id="cancel" type="button" class="btn btn-info">Cancel</button>
         </td></tr>
     </table>
 </script>
 
-<script id="tmpl_editFamily" type="x-dot-template">
-    <div class="container">
-        <div class="row">
-            <div class="col-xs-3">
-                <p> Family ID </p>
-                <p> Family Name </p>
-                <p> Parent One </p>
-                <p> Parent Two </p>
-                <p> Children </p>
-            </div>
-            <div class="col-xs-3">
-                <p> {{=it.familyId}} </p>
-                <input id="famName" type="text" value="{{`{{=it.familyName}}`}}">
-                <select id="parent1">
-                    <option value="{{`{{=it.parentOne}}`}}
-                    {{`{{~it :value:index}}`}}
-                    <option value="{{`{{=value.userId}}`}}">{{`{{=value.userName}}`}}</option>
-                {{`{{~}}`}}
-                    <option value="">Remove Parent</option>
-                </select>
-                <select id="parent1">
-                {{`{{~it :value:index}}`}}
-                    <option value="{{`{{=value.userId}}`}}">{{`{{=value.userName}}`}}</option>
-                {{`{{~}}`}}
-                    <option value="">Remove Parent</option>
-                </select>
+
 
 
 <script id="tmpl_editUser" type="x-dot-template">
@@ -164,8 +140,8 @@
             <input id="phoneNum" type="tel" value="{{`{{=it.phoneNumber}}`}}">
         </td></tr>
         <tr><td>
-            <button id="submit" type="button">Submit</button>
-            <button id="cancel" type="button">Cancel</button>
+            <button id="submit" type="button" class="btn btn-info">Submit</button>
+            <button id="cancel" type="button" class="btn btn-info">Cancel</button>
         </td></tr>
     </table>
 </script>
@@ -210,15 +186,21 @@
     </table>
 </script>
 
-
-<div id="usersSidenav" class="sidenav">
-        <a onClick="familyList()">Edit Family</a>
-        <a onClick="newFamily()">Add Family</a>
-        <a onClick="userList()">Edit User</a>
-        <a onClick="newUser()">Add User</a>
-</div>
-
-<div id="displayData" class="displayArea">Select an option to continue</div>
+<main>
+</br>
+    <div class="container">
+        <div class ="row">
+            <div class="col-sm-3">
+                <ul>
+                    <li><a onClick="familyList()">Edit Family</a></li>
+                    <li><a onClick="newFamily()">Add Family</a></li>
+                    <li><a onClick="userList()">Edit User</a></li>
+                    <li><a onClick="newUser()">Add User</a></li>
+                </ul>
+            </div>
+        <div id="displayData" class="col-sm-9">Select an option to continue</div>
+    </div>
+</main>
 
 {{template "footer"}}
 

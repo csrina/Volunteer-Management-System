@@ -1,6 +1,10 @@
 document.addEventListener("DOMContentLoaded", function() {
+    if (window.location.href.split("/").pop() == "dashboard") {
+        loadDash();
+    }
     setActiveCategory();
 })
+
 
 //sets active category in top bars
 function setActiveCategory() {
@@ -8,10 +12,22 @@ function setActiveCategory() {
     document.querySelector(`#${cat}Btn`).setAttribute('class','active');
 }
 
+function loadDash() {
+    let xhttp = new XMLHttpRequest();
+    xhttp.addEventListener("loadend", () => {
+        let familyInfo = JSON.parse(xhttp.response);
+        let tmpl = document.querySelector("#tmpl_familyList").innerHTML;
+        let func = doT.template(tmpl);
+        document.querySelector("#displayData").innerHTML = func(familyInfo);
+
+    });
+    xhttp.open("GET", `http://localhost:8080/api/v1/admin/dashboard`);
+    xhttp.send();
+}
+
 function userList() {
     let xhttp = new XMLHttpRequest();
     xhttp.addEventListener("loadend", () => {
-        console.log(xhttp.response);
         let userInfo = JSON.parse(xhttp.response);
         let tmpl = document.querySelector("#tmpl_listUsers").innerHTML;
         let func = doT.template(tmpl);
@@ -34,7 +50,6 @@ function loadEditUser(e) {
     let userID = e.srcElement.id.split("_")[1];
     let xhttp = new XMLHttpRequest();
     xhttp.addEventListener("loadend", () => {
-        console.log(xhttp.response);
         let userInfo = JSON.parse(xhttp.response);
         let tmpl = document.querySelector("#tmpl_editUser").innerHTML;
         let func = doT.template(tmpl);
@@ -50,7 +65,6 @@ function loadEditPassword(e) {
     let userID = e.srcElement.id.split("_")[1];
     let xhttp = new XMLHttpRequest();
     xhttp.addEventListener("loadend", () => {
-        console.log(xhttp.response);
         let userInfo = JSON.parse(xhttp.response);
         let tmpl = document.querySelector("#tmpl_password").innerHTML;
         let func = doT.template(tmpl);
@@ -66,15 +80,21 @@ function loadEditPassword(e) {
 function familyList() {
     let xhttp = new XMLHttpRequest();
     xhttp.addEventListener("loadend", () => {
-        console.log(xhttp.response);
         let userInfo = JSON.parse(xhttp.response);
         let tmpl = document.querySelector("#tmpl_listFamilies").innerHTML;
         let func = doT.template(tmpl);
         document.querySelector("#displayData").innerHTML = func(userInfo);
-        docuent.querySelector("#newFamily")
+        let btns = document.querySelectorAll("[id*='edit_']");
+        for(let i = 0; i < btns.length; i++) {
+            btns[i].addEventListener("click", loadEditFamily);
+        }
     });
     xhttp.open("GET", `http://localhost:8080/api/v1/admin/families`);
     xhttp.send();
+}
+
+function loadEditFamily() {
+    // TODO
 }
 
 function newFamily() {
@@ -96,7 +116,7 @@ function submitNewFamily() {
     let par2 = document.querySelector("#parent2").value;
     let surname = document.querySelector("#famName").value;
     let numChild = parseInt(document.querySelector("#children").value);
-    if (par1 === par2) {
+    if (par1 === par2 && par1 != "") {
         alert('Parents cannot match.');
         return;
     }
@@ -115,7 +135,8 @@ function submitNewFamily() {
         }
         familyList();
     });
-    xhttp.open()
+    xhttp.open("POST", "http://localhost:8080/api/v1/admin/families");
+    xhttp.send(JSON.stringify(newFamily));
 }
 
 function submitUserEdit() {  
@@ -198,4 +219,39 @@ function newUser() {
                     password:newPassData, firstname: newFName, lastname:newLName,
                     email:newEmail, phoneNumber:newPhone}));
     });
+}
+
+function listClasses() {
+    let xhttp = new XMLHttpRequest();
+    xhttp.addEventListener("loadend", () => {
+        let classes = JSON.parse(xhttp.response);
+        let tmpl = document.querySelector("#tmpl_listClasses").innerHTML;
+        let func = doT.template(tmpl);
+        document.querySelector("#displayData").innerHTML = func(classes);
+        
+        let btns = document.querySelectorAll("[id*='edit_']");
+        for(let i = 0; i < btns.length; i++) {
+            btns[i].addEventListener("click", loadEditClass);
+        }
+     });
+    xhttp.open("GET", "http://localhost:8080/api/v1/admin/classes");
+    xhttp.send();
+}
+
+function loadEditClass() {
+
+}
+
+function addClassRoom() {
+    let xhttp = new XMLHttpRequest();
+    xhttp.addEventListener("loadend", () => {
+        let facilitators = JSON.parse(xhttp.response);
+        let tmpl = document.querySelector("#tmpl_createClass").innerHTML;
+        let func = doT.template(tmpl);
+        document.querySelector("#displayData").innerHTML = func(facilitators);
+        document.querySelector("#cancel").addEventListener('click', familyList);
+        document.querySelector("#submit").addEventListener('click', submitNewClass);
+    });
+    xhttp.open("GET", `http://localhost:8080/api/v1/admin/teachers`);
+    xhttp.send();
 }
