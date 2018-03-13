@@ -1,8 +1,40 @@
 {{define "admincalendar"}}
 
 {{template "adminheader" .}}
+<script type="text/javascript" src='/views/public/js/calendarAdmin.js'></script>
+<script id="tmpl_eventForm" type="x-dot-template">
+        <div class="row">
+            <div class="col-xs-3">
+                <p>TimeStart</p>
+                <p>TimeEnd</p>
+                <p>ClassRoom</p>
+                <p>Modifier</p>
+                <p>Note</p>
+                <button id="Submit" type="button">Submit</button>
+            </div>
+            <div class="col-xs-3">
+                <input id="start" type="datetime-local">
+                <input id="end" type="datetime-local">
+                <select id="room">
+                    <option value="" disabled selected hidden>Select a Classroom</option>
+                    {{`{{~it :value:index}}`}}
+                        <option value="{{`{{=value.roomId}}`}}">{{`{{=value.roomName}}`}}</option>
+                    {{`{{~}}`}}
+                </select>
+                <input id="modifier" type="number" value="1">
+                <input id="note" type="text" placeholder="Insert a message for any facilitators viewing this block...">
+            </div>
+        </div>
+</script>
 
-    <p>placeholder</p>
+<main>
+    <div class="main-container">
+        <div class="col-sm-3" id="eventForm"></div>
+        <div class="col-sm-9">
+            <div id="calendar"></div>
+        </div>
+    </div>
+</main>
 
 {{template "footer" .}}
 

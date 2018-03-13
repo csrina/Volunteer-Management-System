@@ -3,18 +3,40 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strconv"
+
+	"golang.org/x/crypto/bcrypt"
 )
+
+type roomFull struct {
+	RoomID     int    `json:"roomId" db:"room_id"`
+	RoomName   string `json:"roomName" db:"room_name"`
+	TeacherID  int    `json:"teacherId" db:"teacher_id"`
+	Children   int    `json:"children" db:"children"`
+	RoomNumber string `json:"roomNum" db:"room_num"`
+}
+
+type roomShort struct {
+	RoomID   int    `json:"roomId" db:"room_id"`
+	RoomName string `json:"roomName" db:"room_name"`
+}
 
 type userFull struct {
 	UserID    int    `json:"userId" db:"user_id"`
 	UserRole  int    `json:"userRole" db:"user_role"`
 	UserName  string `json:"userName" db:"username"`
-	Password  string `json:"password" db:"password"`
+	Password  []byte `json:"password" db:"password"`
 	FirstName string `json:"firstName" db:"first_name"`
 	LastName  string `json:"lastName" db:"last_name"`
 	Email     string `json:"email" db:"email"`
 	Phone     string `json:"phoneNumber" db:"phone_number"`
+}
+
+type userShort struct {
+	UserID   int    `json:"userId" db:"user_id"`
+	UserName string `json:"userName" db:"username"`
 }
 
 type familyFull struct {
@@ -25,21 +47,124 @@ type familyFull struct {
 	Children   sql.NullInt64 `json:"children" db:"children"`
 }
 
-func getUserList(w http.ResponseWriter, r *http.Request) {
-	q := `SELECT user_id, user_role, last_name, first_name, username, email, phone_number
-				FROM users`
+func basicRoomList(w http.ResponseWriter, r *http.Request) {
+	rooms := []roomShort{}
+	q := `SELECT room_id, room_name
+			FROM room;`
 
-	userList := []userFull{}
-	err := db.Select(&userList, q)
-
+	err := db.Select(&rooms, q)
 	if err != nil {
 		logger.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
 	encoder := json.NewEncoder(w)
-	encoder.Encode(userList)
+	w.WriteHeader(http.StatusOK)
+	encoder.Encode(rooms)
+}
+
+//gets all users not currently linked to a family
+func lonelyFacilitators(w http.ResponseWriter, r *http.Request) {
+	users := []userShort{}
+	q := `SELECT user_id, username 
+			FROM users 
+			WHERE user_role = 1 
+			AND user_id NOT IN 
+				(
+				SELECT user_id 
+					FROM users, family 
+					WHERE users.user_id = family.parent_one 
+					OR family.parent_two = users.user_id
+				)`
+	err := db.Select(&users, q)
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	encoder := json.NewEncoder(w)
+	w.WriteHeader(http.StatusOK)
+	encoder.Encode(users)
+}
+
+func getUserList(w http.ResponseWriter, r *http.Request) {
+	options := r.URL.Query()
+	userID, err := strconv.Atoi(options.Get("u"))
+	//indicates we didnt have the flag or bad value
+	if err != nil {
+		q := `SELECT user_id, user_role, last_name, first_name, username, email, phone_number
+				FROM users`
+		userList := []userFull{}
+		err := db.Select(&userList, q)
+
+		if err != nil {
+			logger.Println(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		encoder := json.NewEncoder(w)
+		encoder.Encode(userList)
+	} else {
+		q := `SELECT user_id, user_role, last_name, first_name, username, email, phone_number
+				FROM users
+				WHERE user_id = ($1)`
+		user := userFull{}
+		err := db.QueryRowx(q, userID).StructScan(&user)
+
+		if err != nil {
+			logger.Println(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		encoder := json.NewEncoder(w)
+		encoder.Encode(user)
+	}
+}
+
+func createUser(w http.ResponseWriter, r *http.Request) {
+	newUser := userFull{}
+	decoder := json.NewDecoder(r.Body)
+	decoder.Decode(&newUser)
+	fmt.Printf("%#v", newUser)
+
+	newPass, err := bcrypt.GenerateFromPassword(newUser.Password, bcrypt.DefaultCost)
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	q := `INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number)
+			VALUES ($1, $2, $3, $4, $5, $6, $7)`
+
+	_, err = db.Exec(q, newUser.UserRole, newUser.UserName, newPass,
+		newUser.FirstName, newUser.LastName, newUser.Email, newUser.Phone)
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
+}
+
+func updateUser(w http.ResponseWriter, r *http.Request) {
+	user := userFull{}
+	decoder := json.NewDecoder(r.Body)
+	decoder.Decode(&user)
+
+	q := `UPDATE users 
+			SET username = $2, first_name = $3, last_name = $4, email = $5, phone_number = $6
+			WHERE user_id = $1`
+
+	_, err := db.Exec(q, user.UserID, user.UserName, user.FirstName, user.LastName, user.Email, user.Phone)
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }
 
 func getFamilyList(w http.ResponseWriter, r *http.Request) {

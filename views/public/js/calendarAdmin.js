@@ -70,6 +70,7 @@ function requestBooking(event, jsEvent, view) {
 }
 
 $(document).ready(function() {
+    loadAddEvent();
     // page is now ready, initialize the calendar...
     $('#calendar').fullCalendar({
         // Education use (both now and if deployed!)
@@ -124,3 +125,50 @@ $(document).ready(function() {
         slotDuration: '00:30:00' // hourly divisions
     })
 });
+
+
+function loadAddEvent() {
+    let xhttp = new XMLHttpRequest();
+    xhttp.addEventListener("loadend", () => {
+        if (xhttp.response > 300) {
+            alert("ERROR: Could not load class list");
+        }
+        let classes = JSON.parse(xhttp.response);
+        let tmpl = document.querySelector("#tmpl_EventForm").innerHTML;
+        let func = doT.template(tmpl);
+        document.querySelector("#eventForm").innerHTML = func(classes);
+        document.querySelector("#submit").addEventListener("click", submitEvent);
+    });
+    xhttp.open("GET", "http://localhost:8080/api/v1/admin/classes")
+    xhttp.send();
+}
+
+function submitEvent() {
+    if (document.querySelector("#start").value == "" 
+        || document.querySelector("#end").value == ""
+        || document.querySelector("#room").value == ""
+        || document.querySelector("#modifier").value == "" ) {
+        alert('Please fill out all options');
+        return;
+    }
+
+    let xhttp = new XMLHttpRequest();
+    xhttp.addEventListener("loadend", () => {
+        if (xhttp.status > 300) {
+            alert('ERROR: Could not create event.')
+            return;
+        }
+        //loadAddEvent();
+    });
+    let event = {}
+    event.start = document.querySelector("#start").value;
+    event.end = document.querySelector("#end").value;
+    event.room = parseInt(document.querySelector("#room").value);
+    event.mod = parseInt(document.querySelector("#modifier").value);
+    event.note = document.querySelector("#note").value;
+    xhttp.open("POST", "http://localhost:8080/api/v1/events/add");
+    xhttp.send(JSON.stringify(event));
+    // retrieve response ??
+    // get id from response and add to event
+    $('#calendar').fullCalendar('renderEvent', event); // render event on calendar
+}
