@@ -199,7 +199,7 @@ function submitUserEdit() {
         let newLName = document.querySelector("#lName").value;
         let newEmail = document.querySelector("#email").value;
         let newPhone = document.querySelector("#phoneNum").value; 
-        let newUName = `${newLName}_${newFName}`.toLowerCase();
+        let newUName = `${newLName.toLowerCase()}_${newFName.toLowerCase()}`;
         let xhttp = new XMLHttpRequest();
         xhttp.addEventListener("loadend", () => {
             if (xhttp.status > 300) {
@@ -296,9 +296,38 @@ function addClassRoom() {
         let tmpl = document.querySelector("#tmpl_createClass").innerHTML;
         let func = doT.template(tmpl);
         document.querySelector("#displayData").innerHTML = func(facilitators);
-        document.querySelector("#cancel").addEventListener('click', familyList);
+        document.querySelector("#cancel").addEventListener('click', listClasses);
         document.querySelector("#submit").addEventListener('click', submitNewClass);
     });
     xhttp.open("GET", `http://localhost:8080/api/v1/admin/teachers`);
     xhttp.send();
+}
+
+function submitNewClass() {
+    let newName = document.querySelector("#cName").value;
+    let newTeacher = parseInt(document.querySelector("#cTeacher").value);
+    let newRoomNum = document.querySelector("#cNum").value;
+
+    if (newName == "") {
+        alert('Class name cannot be empty');
+        return;
+    }
+    if (newRoomNum == "") {
+        alert('Room number cannot be empty');
+        return;
+    }
+
+    let newClass = {"roomNAme":newName, "teacherId":newTeacher, "roomNum":newRoomNum};
+    console.log(newClass);
+    let xhttp = new XMLHttpRequest();
+    xhttp.addEventListener("loadend", () => {
+        if(xhttp.status > 300) {
+            alert('ERROR: Could not create class');
+            return;
+        }
+        alert('SUCCESS: Class created.');
+        listClasses();
+    });
+    xhttp.open("POST", "http://localhost:8080/api/v1/admin/classes");
+    xhttp.send(JSON.stringify(newClass));
 }

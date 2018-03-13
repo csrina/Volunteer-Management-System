@@ -120,6 +120,8 @@ func apiRoutes(r *mux.Router) {
 	s.HandleFunc("/admin/users", updateUser).Methods("PUT")
 	s.HandleFunc("/admin/teachers", getTeachers).Methods("GET")
 	s.HandleFunc("/admin/classes", getClassInfo).Methods("GET")
+	s.HandleFunc("/admin/classes", createClass).Methods("POST")
+	s.HandleFunc("/admin/classes", updateClass).Methods("PUT")
 	s.HandleFunc("/admin/facilitators", lonelyFacilitators).Methods("GET")
 	s.HandleFunc("/admin/families", getFamilyList).Methods("GET")
 	s.HandleFunc("/admin/reports", monthlyReport).Methods("GET")

@@ -11,19 +11,19 @@ import (
 )
 
 type roomFull struct {
-	RoomID     int    `json:"roomId" db:"room_id"`
-	RoomName   string `json:"roomName" db:"room_name"`
-	TeacherID  int    `json:"teacherId" db:"teacher_id"`
-	Children   int    `json:"children" db:"children"`
-	RoomNumber string `json:"roomNum" db:"room_num"`
+	RoomID     int           `json:"roomId" db:"room_id"`
+	RoomName   string        `json:"roomName" db:"room_name"`
+	TeacherID  int           `json:"teacherId" db:"teacher_id"`
+	Children   sql.NullInt64 `json:"children" db:"children"`
+	RoomNumber string        `json:"roomNum" db:"room_num"`
 }
 
 type roomDetailed struct {
-	RoomID     int    `json:"roomId" db:"room_id"`
-	RoomName   string `json:"roomName" db:"room_name"`
-	Teacher    string `json:"teacher" db:"teacher"`
-	Children   int    `json:"children" db:"children"`
-	RoomNumber string `json:"roomNum" db:"room_num"`
+	RoomID     int           `json:"roomId" db:"room_id"`
+	RoomName   string        `json:"roomName" db:"room_name"`
+	Teacher    string        `json:"teacher" db:"teacher"`
+	Children   sql.NullInt64 `json:"children" db:"children"`
+	RoomNumber string        `json:"roomNum" db:"room_num"`
 }
 
 type roomShort struct {
@@ -278,6 +278,27 @@ func getClassInfo(w http.ResponseWriter, r *http.Request) {
 
 	encoder := json.NewEncoder(w)
 	encoder.Encode(classes)
+}
+
+func createClass(w http.ResponseWriter, r *http.Request) {
+	class := roomFull{}
+	decoder := json.NewDecoder(r.Body)
+	decoder.Decode(&class)
+
+	q := `INSERT INTO room (room_name, teacher_id, room_num)
+			VALUES ($1, $2, $3)`
+
+	_, err := db.Exec(q, class.RoomName, class.TeacherID, class.RoomNumber)
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
+}
+
+func updateClass(w http.ResponseWriter, r *http.Request) {
+	//TODO
 }
 
 func loadAdminDash(w http.ResponseWriter, r *http.Request) {
