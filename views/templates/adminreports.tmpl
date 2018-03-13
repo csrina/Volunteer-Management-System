@@ -2,7 +2,39 @@
 
 {{template "adminheader" .}}
 
-    <p> placeholder </p>
+<div id="family" onpageshow="familyData()">
+  <button onclick="familyData()">Make charts</button>
+</div>
+<canvas id="skills"></canvas>
+
+<script id="tmpl_reportFamily" type="x-dot-template">
+  <table>
+    <tr>
+      <th>Family</th>
+      <th>Family-Hours</th>
+    </tr>
+    {{`{{~it :value:index}}`}}
+    <tr>
+      <td>{{`{{=value.familyId}}`}}</td>
+      <td>{{`{{=value.weekHours}}`}}</td>
+    </tr>
+    {{`{{~}}`}}
+  </table>
+</script>
+
+<script id="tmpl_reportRoom" type="x-dot-template">
+  <table>
+    <tr>
+      <th>Room</th>
+      <th>Room-Hours</th>
+    </tr>
+    {{`{{~it :value:index}}`}}
+    <tr>
+      <td></td>
+    </tr>
+    {{`{{~}}`}}
+  </table>
+</script>
 
 {{template "footer" .}}
 
