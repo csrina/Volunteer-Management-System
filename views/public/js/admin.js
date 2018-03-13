@@ -4,6 +4,60 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 })
 
+//sets active category in top bars
+function setActiveCategory() {
+    let cat = window.location.href.split("/").pop();
+    document.querySelector(`#${cat}Btn`).setAttribute('class','active');
+}
+
+function familyData() {
+    let xhttp = new XMLHttpRequest();
+    xhttp.addEventListener("loadend", () => {
+	console.log(xhttp.response);
+	let httpData = JSON.parse(xhttp.response);
+	
+	var ctx = document.getElementById('skills').getContext('2d');
+	var barData = {
+	    //labels: ['FirstWeek', 'SecondWeek', 'ThirdWeek', 'FourthWeek'],
+	    labels: ['Week'],
+	    datasets: []
+	};
+	
+	window.myBar = new Chart(ctx, {
+	    type: 'bar',
+	    data: barData,
+	    options: {
+		responsive: true,
+		legend: {
+		    position: 'right',
+		},
+		title: {
+		    display: true,
+		    text: 'Chart.js Horizontal Bar Chart'
+		}
+	    }
+	});
+
+
+	var colourList = ["#00FFFF", "#A52A2A", "#7FFF00", "#FF7F50",
+			  "#006400", "#8B008B", "#FFD700", "#808080"]
+	var total = 0;
+	for (let i=0; i<httpData.length;i++) {
+	    let name = httpData[i].familyName;
+	    let hours = httpData[i].weekHours;
+	    barData.datasets.push({
+		label: name,
+		backgroundColor: colourList[total%8],
+		borderWidth: 1,
+		data: hours});
+	    total ++;
+	}
+	window.myBar.update();
+    });
+    xhttp.open("GET", "http://localhost:8080/api/v1/admin/reports");
+    xhttp.send();
+}
+    
 function loadDash() {
     let xhttp = new XMLHttpRequest();
     xhttp.addEventListener("loadend", () => {
@@ -14,6 +68,7 @@ function loadDash() {
 
     });
     xhttp.open("GET", `http://localhost:8080/api/v1/admin/dashboard`);
+
     xhttp.send();
 }
 
