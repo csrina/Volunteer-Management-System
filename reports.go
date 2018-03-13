@@ -24,20 +24,41 @@ func defaultReport(w http.ResponseWriter, r *http.Request) {
 	families := []familyShort{}
 
 	err := db.Select(&families, q)
-	if err == nil {
+	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	for i, fam := range families {
-		hours := familyHoursBooked(fam.FamilyID)
+		hours := familyHoursBooked(fam.FamilyID,
+			now.BeginningOfWeek(), now.EndOfWeek())
 		families[i].WeekHours = hours
 	}
 	encoder := json.NewEncoder(w)
 	encoder.Encode(families)
 }
 
-func familyHoursBooked(FID int) float64 {
-	bookBlocks, err := getFamilyBookings(now.BeginningOfWeek(), now.EndOfWeek(), FID)
+func monthlyReport(w http.ResponseWriter, r *http.Request) {
+	q := `SELECT family_id, family_name
+			FROM family`
+
+	families := []familyShort{}
+
+	err := db.Select(&families, q)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	for i, fam := range families {
+		hours := familyHoursBooked(fam.FamilyID,
+			now.BeginningOfMonth(), now.EndOfMonth())
+		families[i].WeekHours = hours
+	}
+	encoder := json.NewEncoder(w)
+	encoder.Encode(families)
+}
+
+func familyHoursBooked(FID int, start time.Time, end time.Time) float64 {
+	bookBlocks, err := getFamilyBookings(start, end, FID)
 	if err != nil {
 		return -1
 	}
@@ -51,7 +72,6 @@ func getHoursBookingSlice(bks []Booking) float64 {
 	}
 	return duration
 }
-
 
 func getFamilyBookings(start time.Time, end time.Time, FID int) ([]Booking, error) {
 	/* format dates for psql */
