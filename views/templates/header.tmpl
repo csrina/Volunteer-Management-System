@@ -39,6 +39,8 @@
             <link rel="stylesheet" type="text/css" href="/views/public/css/dashboard.css">
             <script type="text/javascript" src="http://bernii.github.io/gauge.js/dist/gauge.min.js"></script>
             <script type="text/javascript" src="/views/public/js/dashboard.js"></script>
+        {{else if eq .PageName "password"}}
+            <script type="text/javascript" src="/views/public/js/change_pwd.js"></script>
         {{end}}
 
         <script src="/views/public/js/login.js" type="text/javascript"></script>

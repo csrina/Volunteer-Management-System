@@ -98,6 +98,8 @@ func createRouter() (*mux.Router, error) {
 	//load dashboard and calendar pages
 	r.HandleFunc("/dashboard", loadDashboard)
 	r.HandleFunc("/calendar", loadCalendar)
+	r.HandleFunc("/donate", loadDonate)
+	r.HandleFunc("/change_password", loadPassword)
 
 	return r, nil
 }
@@ -157,6 +159,26 @@ func loadDashboard(w http.ResponseWriter, r *http.Request) {
 	pg.Chart = true
 	pg.Dashboard = true
 	s.ExecuteTemplate(w, "dashboard", pg) // include page struct
+}
+
+func loadPassword(w http.ResponseWriter, r *http.Request) {
+	pg, err := loadPage("password", r) // load page
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusForbidden)
+		return
+	}
+	s := tmpls.Lookup("password.tmpl")
+	s.ExecuteTemplate(w, "password", pg) // include page struct
+}
+
+func loadDonate(w http.ResponseWriter, r *http.Request) {
+	pg, err := loadPage("donate", r) // load page
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusForbidden)
+		return
+	}
+	s := tmpls.Lookup("donate.tmpl")
+	s.ExecuteTemplate(w, "donate", pg) // include page struct
 }
 
 func loadCalendar(w http.ResponseWriter, r *http.Request) {
