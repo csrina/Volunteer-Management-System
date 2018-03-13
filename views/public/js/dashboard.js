@@ -34,7 +34,8 @@ function requestRemoval(event) {
         dataType:'json',
         success: function(data) {  // We expect the server to return json data with a msg field
             alert(data.msg);
-            $("#calendar").fullCalendar("removeEvents", event.id)
+            $("#calendar").fullCalendar("removeEvents", event.id);
+            refreshWidgets();
         },
         error: function(xhr, ajaxOptions, thrownError) {
             alert("Request failed: " + xhr.responseText);
@@ -117,7 +118,16 @@ function gaugeInit(elementId, value, goal) {
     // setup the text
     element = document.getElementById(elementId + "-text");
     element.style.color = gauge.getColorForValue(value);
-    element.innerHTML = "<h3>" + value + "h</h3>";
+    if (value < goal) {
+        if ((value / goal) < 0.5) {
+            element.innerHTML = "<h3 class='text-danger'>" + value + "h</h3>";
+        } else {
+            element.innerHTML = "<h3 class='text-warning'>" + value + "h</h3>";
+        }
+
+    } else {
+        element.innerHTML = "<h3 class='text-success'>" + value + "h</h3>";
+    }
     return gauge; // return for use
 }
 
@@ -130,25 +140,23 @@ $(document).ready(function() {
             left: 'title',
             right: 'prev, today, next'
         },
-        theme: "bootstrap",
-        aspectRatio: 0.33,
+        contentHeight: 400,
         defaultView: "list",
         duration: {days: 14},        // two week intervals shown for upcoming events
         events: "/api/v1/events/dash",    // EventsFeed with dash as its target
         allDayDefault: false,        // blocks are not all-day unless specified
-        themeSystem: "bootstrap3",
+        themeSystem: "bootstrap4",
         editable: false,                 // Need to use templating engine to change bool based on user's rolego ,
         eventRender: function(event, element, view) {
             element.find('.fc-list-item-title').append("  " + event.bookingCount + "/3")
-            element.find('.fc-list-item-title').append("<span class='glyphicon glyphicon-pushpin' "
-                             +  "aria-valuetext='You are booked in this block!'></span><br/>");
+            element.find('.fc-list-item-title').append('<i class="fas fa-thumbtack"></i><br/>');
 
         },
         // DOM-Event handling for Calendar Eventblocks (why do js people suck at naming)
         eventOverlap: false,
         eventClick: function(event, jsEvent, view) {
             requestRemoval(event);
-            refreshWidgets()
+            refreshWidgets();
         },
         businessHours: {
             // days of week. an array of zero-based day of week integers (0=Sunday)
@@ -177,11 +185,14 @@ function refreshWidgets() {
         contentType:'json',
         data: data,
         success: function(data) {
-            refreshGauge(elems.gDone, "hoursDone", data.hoursDone)
+            refreshGauge(elems.gDone, "hoursDone", data.hoursDone);
             refreshGauge(elems.gBooked, "hoursBooked", data.hoursBooked);
             elems.chart.data.datasets[0] = data.history1;
             elems.chart.data.datasets[1] = data.history2;
-            elems.chart.update()
+            elems.chart.update();
+        },
+        error: function(xhr, ajaxOptions, thrownError) {
+            alert("Request failed: " + xhr.responseText);
         },
         dataType: 'json'
     });

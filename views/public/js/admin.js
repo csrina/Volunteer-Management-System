@@ -2,9 +2,7 @@ document.addEventListener("DOMContentLoaded", function() {
     if (window.location.href.split("/").pop() == "dashboard") {
         loadDash();
     }
-    setActiveCategory();
 })
-
 
 //sets active category in top bars
 function setActiveCategory() {

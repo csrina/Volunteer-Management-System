@@ -1,38 +1,42 @@
 {{define "admincalendar"}}
 
-{{template "adminheader" .}}
-<script type="text/javascript" src='/views/public/js/calendarAdmin.js'></script>
+{{template "header" .}}
 <script id="tmpl_eventForm" type="x-dot-template">
-        <div class="row">
+        <div class="form-group">
+            <fieldset>
                 <p>TimeStart</p>
                 <input id="start" type="datetime-local" class="form-control form-control-sm">
-                </br>
+                <br>
                 <p>TimeEnd</p>
                 <input id="end" type="datetime-local" class="form-control form-control-sm">
-                </br>
+                <br>
                 <p>ClassRoom</p>
-                <select id="room">
+                <select class="form-control" id="room">
                     <option value="" disabled selected hidden>Select a Classroom</option>
                     {{`{{~it :value:index}}`}}
-                        <option value="{{`{{=value.roomId}}`}}">{{`{{=value.roomName}}`}}</option>
+                        <option value="{{`{{=value.roomName}}`}}">{{`{{=value.roomName}}`}}</option>
                     {{`{{~}}`}}
                 </select>
-                </br>
+                <br>
                 <p>Modifier</p>
                 <input id="modifier" type="number" value="1" class="form-control form-control-sm">
-                </br>
+                <br>
                 <p>Note</p>
                 <input id="note" type="text" placeholder="Insert a note for facilitators..." class="form-control form-control-sm">
-                </br>
-                <button id="submit" type="button" class="btn btn-info">Submit</button>
+                <br>
+                <button id="submit" type="button" class="btn btn-primary">Submit</button>
+            </fieldset>
         </div>
 </script>
 
 <main>
-</br>
     <div class="container">
-        <div class="col-sm-4" id="eventForm"></div>
-        <div id="calendar" class="col-sm-8"></div>
+        <div class="row"><div class="col-lg-12"><br></div></div>
+        <div class="row">
+            <div class="col-lg-3" id="eventForm"></div>
+            <div class="col-lg-9 pull-right">
+                <div id="calendar"></div>
+            </div>
         </div>
     </div>
 </main>

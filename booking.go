@@ -1,7 +1,9 @@
 package main
 
 import (
+	"database/sql"
 	"errors"
+	"net/http"
 	"time"
 )
 
@@ -69,6 +71,32 @@ func (b *bookingBlock) deleteBooking() error {
 	return nil
 }
 
+// -------------------------------------------------
+// -------------------------------------------------
+func bookingHandler(w http.ResponseWriter, r *http.Request, role int) {
+	booking, err := bookingFromJSON(r)
+	if err != nil {
+		logger.Println(err)
+		http.Error(w, "could not resolve booking data, contact your administrator if the problem persists", http.StatusBadRequest)
+		return
+	}
+	response := new(Response) // Response data
+	// book/unbook based on BookingID (if 0 value, then booking doesn't exist yet and must be created)
+	if booking.BookingID > 0 {
+		err = booking.unbook(role)
+		response.Msg = "Successfully cancelled booking"
+	} else {
+		err = booking.book(role)
+		response.Msg = "Successfully created booking"
+	}
+	// We may have an error condition after book/unbook
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	response.setBID(booking.BookingID).send(w)
+}
+
 /* Joined relation of time_block and booking_block */
 type Booking struct {
 	BookingID int       `db:"booking_id" json:"bookingId"`
@@ -77,8 +105,67 @@ type Booking struct {
 	UserID    int       `db:"user_id" json:"userID"`
 	Start     time.Time `db:"block_start" json:"endBlock"`
 	End       time.Time `db:"block_end" json:"endBlock"`
+	Room      string    `json:"color"`
 	RoomID    int       `db:"room_id" json:"room_id"`
 	Modifier  int       `db:"modifier" json:"modifier"`
+	Note      string    `db:"note" json:"note"`
+}
+
+/*
+ * Reads json request, and creates a partially filled booking struct
+ */
+func bookingFromJSON(r *http.Request) (*Booking, error) {
+	booking := new(Booking)
+	// Now extract data from json request body
+	ev, err := mapEventJSON(r)
+	if err != nil {
+		return nil, err
+	}
+	eid, ok := ev["id"].(float64)
+	if !ok {
+		eid = -1
+	}
+	uid := getUID(r)
+	if uid < 1 {
+		return nil, errors.New("uid unresolved")
+	}
+	if uidTest, ok := ev["userId"].(float64); ok {
+		uid = int(uidTest)
+	}
+	booking.UserID = uid
+	booking.BlockID = int(eid)
+	booking.FamilyID, err = getUsersFID(booking.UserID)
+	if err != nil {
+		return nil, errors.New("couldn't resolve FID from UID")
+	}
+	booking.getTimesMap() // Will set our Start/End for the event with DB values
+	// get the bookingID (if this booking doesn't exist, the ID will remain as 0
+	booking.BookingID, err = booking.getBookingID()
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+	// We dont need roomID nor modifer to make a bookingBlock entry
+	return booking, nil
+}
+
+func (b *Booking) getTimeBlock(role int) (*TimeBlock, error) {
+	if role != ADMIN {
+		return nil, errors.New("Insufficient priviledge")
+	}
+	tb := new(TimeBlock)
+	tb.ID = b.BlockID
+	tb.Start = b.Start
+	tb.End = b.End
+	tb.Note = b.Note
+	tb.Modifier = b.Modifier
+	if b.RoomID < 1 {
+		q := `SELECT room_id FROM room WHERE room_name = $1`
+		err := db.QueryRow(q, b.Room).Scan(&tb.Room)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return tb, nil
 }
 
 /*
@@ -271,6 +358,14 @@ func (f *Family) getFamilyBookings(start time.Time, end time.Time) ([]Booking, e
 	if err != nil {
 		logger.Println(err)
 		return nil, err
+	}
+	// Ensure locale is set
+	for i, b := range bookBlocks {
+		bookBlocks[i].Start = time.Date(b.Start.Year(), b.Start.Month(), b.Start.Day(),
+			b.Start.Hour(), b.Start.Minute(), 0, 0, time.Local)
+		bookBlocks[i].End = time.Date(b.End.Year(), b.End.Month(), b.End.Day(),
+			b.End.Hour(), b.End.Minute(), 0, 0, time.Local)
+
 	}
 	return bookBlocks, nil
 }

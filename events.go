@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"io"
@@ -14,25 +13,12 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// An Event is a time block + a booking array + other details needed by calendar
-type Event struct {
-	// Block info + a title (required field for calendar)
-	ID     int       `db:"block_id" json:"id"`
-	Title  string    `db:"note" json:"title"`
-	Start  time.Time `db:"block_start" json:"start"`
-	End    time.Time `db:"block_end" json:"end"`
-	Room   string    `db:"room_name" json:"room"` // fullCalendar will make blocks colour of room
-	Colour string    `json:"color"`               // color code for event rendering (corresponds to the room name)
-	// booking ids for lookup
-	BookingCount int  `json:"bookingCount"`
-	Booked       bool `json:"booked"`
-	// description
-	Note string `json:"note"`
-}
 
 type Response struct {
-	Msg string `json:"msg"`
-	BID int    `json:"bookId"`
+	Msg string `json:"msg"` // message
+	Colour string `json:"color"` // color of room
+	BID int    `json:"bookId"` // booking id
+	ID 	int 	`json:"id"` // block/event id
 }
 
 func (r *Response) setMsg(msg string) *Response {
@@ -42,6 +28,11 @@ func (r *Response) setMsg(msg string) *Response {
 
 func (r *Response) setBID(bid int) *Response {
 	r.BID = bid
+	return r
+}
+
+func (r *Response) setID(bid int) *Response {
+	r.ID = bid
 	return r
 }
 
@@ -68,37 +59,54 @@ func eventPostHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	booking, err := bookingFromJSON(r)
-	if err != nil {
-		logger.Println(err)
-		http.Error(w, "could not resolve booking data, contact your administrator if the problem persists", http.StatusBadRequest)
-		return
-	}
-	response := new(Response)     // Response data
 	dest := mux.Vars(r)["target"] // Determine POST destination from URL
-	if dest == "book" {
-		// book/unbook based on BookingID (if 0 value, then booking doesn't exist yet and must be created)
-		if booking.BookingID > 0 {
-			err = booking.unbook(role)
-			response.Msg = "Successfully cancelled booking"
-		} else {
-			err = booking.book(role)
-			response.Msg = "Successfully created booking"
-		}
-	} else if dest == "update" {
-		err = booking.updateTimeBlock(role)
-		response.Msg = "Successfully updated time block"
-	} else {
-		// Invalid target
-		w.WriteHeader(http.StatusBadRequest)
+	if dest == "book" { // add/remove booking corresponding to event data
+		bookingHandler(w, r, role)
 		return
 	}
-	// We may have an error condition after book/unbook
+	if role != ADMIN {
+		http.Error(w, "Insufficient priveledge", http.StatusBadRequest)
+		return
+	}
+
+	// We want to modify the time_block
+	response := new(Response)     // Response data
+	e, err := EventFromJSON(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	response.setBID(booking.BookingID).send(w)
+	var tb *TimeBlock
+	if dest == "update" {
+		tb, err = getTimeBlockByID(e.ID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		tb.Start = e.Start
+		tb.End = e.End
+		logger.Println("Updating block: ", tb)
+		err = tb.update()
+		response.Msg = "Successfully updated time block"
+	} else if dest == "add" {
+		tb, err = e.getTimeBlock(role)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		tb.ID, err = tb.insert()
+		e.updateColourCode()
+		response.Msg = "Successfully added time block"
+		response.Colour = e.Colour
+		response.setID(tb.ID)
+	} else {
+		err = errors.New("invalid target")
+	}
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	response.send(w)
 }
 
 func mapEventJSON(r *http.Request) (map[string]interface{}, error) {
@@ -118,38 +126,48 @@ func mapEventJSON(r *http.Request) (map[string]interface{}, error) {
 	return ev, nil
 }
 
-/*
- * Reads json request, and creates a partially filled booking struct
- */
-func bookingFromJSON(r *http.Request) (*Booking, error) {
-	booking := new(Booking)
-	uid := getUID(r)
-	if uid < 1 {
-		return nil, errors.New("uid unresolved")
+// An Event is a time block + a booking array + other details needed by calendar
+type Event struct {
+	// Block info + a title (required field for calendar)
+	ID     int       `db:"block_id" json:"id"`
+	Title  string    `db:"note" json:"title"`
+	Start  time.Time `db:"block_start" json:"start"`
+	End    time.Time `db:"block_end" json:"end"`
+	Room   string    `db:"room_name" json:"room"` // fullCalendar will make blocks colour of room
+	Colour string    `json:"color"`               // color code for event rendering (corresponds to the room name)
+	// booking ids for lookup
+	BookingCount int  `json:"bookingCount"`
+	Booked       bool `json:"booked"`
+	// description
+	Modifier int	`db:"modifier" json:"modifier"`
+	Note string `json:"note"`
+}
+
+func EventFromJSON(r *http.Request) (*Event, error) {
+	e := new(Event)
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(e)
+	return e, err
+}
+
+func (e *Event) getTimeBlock(role int) (*TimeBlock, error) {
+	if (role != ADMIN) {
+		return nil, errors.New("Insufficient priviledge")
 	}
-	booking.UserID = uid
-	// Now extract data from json request body
-	ev, err := mapEventJSON(r)
+	tb := new(TimeBlock)
+	tb.ID = e.ID
+	tb.Start = e.Start
+	tb.End = e.End
+	tb.Note = e.Note
+	tb.Modifier = e.Modifier
+
+	q := `SELECT room_id FROM room WHERE room_name = $1`
+	err := db.QueryRow(q, e.Room).Scan(&tb.Room)
+
 	if err != nil {
 		return nil, err
 	}
-	eid, ok := ev["id"].(float64)
-	if !ok {
-		return nil, errors.New("event id NaN")
-	}
-	booking.BlockID = int(eid)
-	booking.FamilyID, err = getUsersFID(booking.UserID)
-	if err != nil {
-		return nil, errors.New("couldn't resolve FID from UID")
-	}
-	booking.getTimesMap() // Will set our Start/End for the event with DB values
-	// get the bookingID (if this booking doesn't exist, the ID will remain as 0
-	booking.BookingID, err = booking.getBookingID()
-	if err != nil && err != sql.ErrNoRows {
-		return nil, err
-	}
-	// We dont need roomID nor modifer to make a bookingBlock entry
-	return booking, nil
+	return tb, nil
 }
 
 /* Lists the events requested */

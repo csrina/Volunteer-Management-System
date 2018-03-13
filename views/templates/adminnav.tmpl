@@ -1,28 +1,36 @@
 {{define "adminnav"}}
-    <header>
-        <div class="col-sm-12" style="background-color:skyblue">
-            <div class="col-sm-6 col-sm-offset-1">
-                <h2 style="color: black">Caraway Volunteer Management System</h2>
-            </div>
-        <!-- We are logged in -->
-             <div class="col-sm-4">
-                <br>
-                <div class="col-sm-8 text-right" style="height: 34px;padding-right: 0;">
-                    <label style="margin-bottom: 0; height: 34px; margin-top: 6px;color: #000000;">Administrator</label>
-                </div>
-                <div class="col-sm-4">
-                    <button type="button" class="btn btn-default" onclick="location.href='/logout';"><span class="glyphicon glyphicon-log-out"></span></button>
-                </div>
-             </div>
-        </div>
-        <div class="col-sm-12" style="background-color:	lightslategrey;">
-            <ul class="nav nav-tabs nav-justified" style="background-color: lightslategrey;">
-                <li id="dashboardBtn" class="col-sm-5 text-left"><a href="dashboard">Dashboard</a></li>
-                <li id="reportsBtn" class="col-sm-5 text-left"><a href="reports">Reports</a></li>
-                <li id="calendarBtn" class="col-sm-5 text-left"><a href="calendar">Calendar</a></li>
-                <li id="usersBtn" class="col-sm-5 text-left"><a href="users">Users</a></li>
-                <li id="classesBtn" class="col-sm-5 text-left"><a href="classes">Classes</a></li>
+<header>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" >Caraway Volunteering</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor02" aria-controls="navbarColor02" aria-expanded="false" aria-label="Toggle navigation" style="">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <br>
+    {{if and (ne .PageName "login") (ne .PageName "mainLogin")}}
+        <div class="collapse navbar-collapse" id="navbarColor02">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item {{if eq .PageName "admindashboard"}}active{{end}}">
+                    <a class="nav-link" href="dashboard">Dashboard</a>
+                </li>
+                <li id="usersBtn" class="nav-item {{if eq .PageName "adminusers"}}active{{end}}">
+                    <a class="nav-link" href="users">Users</a>
+                </li>
+                <li class="nav-item {{if eq .PageName "calendar"}}active{{end}}">
+                    <a class="nav-link" href="calendar">Calendar</a>
+                </li>
+                <li id="reportsBtn" class="nav-item {{if eq .PageName "adminreports"}}active{{end}}">
+                    <a href="reports">Reports</a>
+                </li>
+                <li id="classesBtn" class="nav-item {{if eq .PageName "adminclasses"}}active{{end}}">
+                    <a class="nav-link" href="classes">Classes</a>
+                </li>
             </ul>
+            <div>
+                <span class="badge badge-pill badge-primary">{{.Username}}</span>
+                <button type="button" class="btn btn-primary" onclick="location.href='/logout';"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
         </div>
-    </header>
+    </nav>
+    {{end}}
+</header>
 {{end}}

@@ -8,22 +8,30 @@
         <br><br><br><br>
         <main>
             <br><br><br><br>
-            <div class="container" style="width: 40%" >
-                <div class ="well"> 
-                    <h4 class="text-center">{{.Role}} Login</h4>
+            <div class="container">
+                <div class="card mx-auto" style="max-width: 30rem;">
+                    <h4 class="card-title mx-auto">{{.Role}} Login</h4>
                     <div class="form-group" id="usrgroup">
-                        <label class="control-label" for="usr">Name:</label>
-                        <input type="text" class="form-control text-left" id="usr" placeholder="Username">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <label class="input-group-text" for="usr" style="font-size: 1rem;"><span class="fas fa-user"></span></label>
+                            </div>
+                            <input type="text" class="form-control text-left" id="usr" placeholder="Username">
+                        </div>
                     </div>
                     <div class="form-group" id="pwdgroup">
-                        <label class="control-label" for="pwd">Password:</label>
-                        <input type="password" class="form-control text-left" id="pwd" placeholder="Password">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <label class="input-group-text" for="pwd" style="font-size: 1rem;"><span class="fas fa-key"></span></label>
+                            </div>
+                            <input type="password" class="form-control text-left" id="pwd" placeholder="Password">
+                        </div>
                     </div>           
                     <div id="errorbox">
                         
                     </div>
-                    <div class="form-group text-right">
-                        <button type="button" class="btn btn-primary" id="loginbtn" onclick="login()">Login</button>
+                    <div class="form-group text-center">
+                        <button type="button" class="btn btn-default btn-block" id="loginbtn" onclick="login()">Login</button>
                     </div>          
                 </div>
             </div>

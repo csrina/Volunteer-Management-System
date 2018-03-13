@@ -5,9 +5,8 @@ function storeChangesToEvent(event, delta, revertFunc, jsEvent, ui, view) {
     // Extract block data required for updating on server
     let event_json = JSON.stringify({
         id: event.id,
-        start: event.start,
-        end:   event.end,
-        modifier: event.value
+        start: event.start.format() + "Z",
+        end:   event.end.format()+ "Z",
     });
     // Make ajax post request with updated event data
     $.ajax({
@@ -21,56 +20,21 @@ function storeChangesToEvent(event, delta, revertFunc, jsEvent, ui, view) {
         },
         error: function(xhr, ajaxOptions, thrownError) {
             revertFunc();
-            alert("Request failed: " + xhr + "\n" + thrownError);
+            alert("Request failed: " + xhr.responseText);
         }
     });
 }
 
-// This function will send a booking request to the server
-// Like the updateEvent function, post-demo I will refactor this out
-// and have the templates populate based on role. Additional auth checks
-// server side to ensure correct user/role and such should still take place
-function requestBooking(event, jsEvent, view) {
-    let promptStr = "Confirm booking ";
-    console.log(event.booked);
-    if (event.booked === true) {
-        promptStr += "Cancellation (";
-    } else {
-        promptStr += "Booking (";
+// REmoves an event from the calendar and the associated TB/Bookings from the database
+function removeEvent(event, jsEvent, view) {
+    yn = confirm("Are you sure you want to delete this event?")
+    if (!yn) {
+        return false; // event should not be deleted
     }
-    if (!confirm(promptStr + event.start.toString() + ", in the " + event.color + " room)")) {
-        return;
-    }
-    // Block info for booking
-    let booking_json = JSON.stringify({
-        id:         event.id
-    });
-
-    // Make ajax POST request with booking request or request bookign delete if already booked
-    $.ajax({
-        url: '/api/v1/events/book',
-        type: 'POST',
-        contentType:'json',
-        data: booking_json,
-        dataType:'json',
-        success: function(data) {  // We expect the server to return json data with a msg field
-            alert(data.msg);
-            event.booked = !event.booked;
-            if (event.booked === true) {
-                event.bookingCount++;
-            } else {
-                event.bookingCount--;
-            }
-            $('#calendar').fullCalendar('updateEvent', event);
-        },
-        error: function(xhr, ajaxOptions, thrownError) {
-            alert("Request failed: " + thrownError);
-        }
-    });
+    return true; // event was deleted
 }
 
 $(document).ready(function() {
-    setActiveCategory();
     loadAddEvent();
     // page is now ready, initialize the calendar...
     $('#calendar').fullCalendar({
@@ -81,16 +45,18 @@ $(document).ready(function() {
             center: 'prev, title, next',
             right: 'agendaWeek, month'
         },
+        agendaEventMinHeight: 100,
         defaultView: "agendaWeek",
-        events: "/api/v1/events",    // link to events (bookings + blocks feed)
+        contentHeight: 'auto',
+        events: "/api/v1/events/scheduler",    // link to events (bookings + blocks feed)
         allDayDefault: false,        // blocks are not all-day unless specified
-        themeSystem: "bootstrap3",
+        themeSystem: "bootstrap4",
         editable: true,                 // Need to use templating engine to change bool based on user's rolego ,
         eventRender: function(event, element, view) {
-            element.find('.fc-time').css("font-size", "1.5em");
-            element.find('.fc-title').css("font-size", "1.5em");
+            element.find('.fc-time').css("font-size", "1.2em");
+            element.find('.fc-title').css("font-size", "1.2em");
             if (event.booked) {
-                element.find('.fc-title').prepend("<span class='glyphicon glyphicon-pushpin' aria-valuetext='You are booked in this block!'></span><br/>");
+                element.find('.fc-list-item-title').append('<i class="fas fa-thumbtack"></i><br/>');
             } else {
                 element.find('.fc-title').prepend("<br/>");
             }
@@ -98,7 +64,7 @@ $(document).ready(function() {
         },
         // DOM-Event handling for Calendar Eventblocks (why do js people suck at naming)
         eventOverlap: function(stillEvent, movingEvent) {
-            return stillEvent.color === movingEvent.color;
+            return stillEvent.color !== movingEvent.color;
         },
         // When and event is drag/dropped to new day/time --> updates db & stuff
         // revertFunc is called should our update request fail
@@ -111,7 +77,11 @@ $(document).ready(function() {
             storeChangesToEvent(ev, delta, revertFunc, jsEvent, ui, view);
         },
         eventClick: function(event, jsEvent, view) {
-                requestBooking(event, jsEvent, view);
+                if (!removeEvent(event, jsEvent, view)) {
+                    return;
+                }
+                console.log("NOT IMPLEMENTED ON THE BACKEND YET");
+                $('#calendar').fullCalendar('removeEvents', event.id);
         },
         businessHours: {
             // days of week. an array of zero-based day of week integers (0=Sunday)
@@ -121,17 +91,13 @@ $(document).ready(function() {
         },
         // Controls view of agendaWeek
         minTime: '07:00:00',
-        maxTime: '18:00:00',
+        maxTime: '19:00:00',
         allDaySlot: false,       // shows slot @ top for allday events
         slotDuration: '00:30:00' // hourly divisions
-    })
+    });
+    $('.fc-today').css("background-color", "#FEFEFE");
+    loadAddEvent();
 });
-
-//sets active category in top bars
-function setActiveCategory() {
-    let cat = window.location.href.split("/").pop();
-    document.querySelector(`#${cat}Btn`).setAttribute('class','active');
-}
 
 function loadAddEvent() {
     let xhttp = new XMLHttpRequest();
@@ -150,10 +116,10 @@ function loadAddEvent() {
 }
 
 function submitEvent() {
-    if (document.querySelector("#start").value == "" 
+    if (document.querySelector("#start").value == ""
         || document.querySelector("#end").value == ""
         || document.querySelector("#room").value == ""
-        || document.querySelector("#modifier").value == "" ) {
+        || document.querySelector("#modifier").value == "") {
         alert('Please fill out all options');
         return;
     }
@@ -167,14 +133,28 @@ function submitEvent() {
         //loadAddEvent();
     });
     let event = {}
-    event.start = document.querySelector("#start").value;
-    event.end = document.querySelector("#end").value;
-    event.room = parseInt(document.querySelector("#room").value);
-    event.mod = parseInt(document.querySelector("#modifier").value);
+    event.start = moment(document.querySelector("#start").value).format();
+    event.end = moment(document.querySelector("#end").value).format();
+    event.room = document.querySelector("#room").value;
+    event.color = event.room
+    event.modifier = parseInt(document.querySelector("#modifier").value);
     event.note = document.querySelector("#note").value;
-    xhttp.open("POST", "http://localhost:8080/api/v1/events/add");
-    xhttp.send(JSON.stringify(event));
-    // retrieve response ??
-    // get id from response and add to event
-    $('#calendar').fullCalendar('renderEvent', event); // render event on calendar
+    eventJson = JSON.stringify(event);
+    // Make ajax POST request with booking request or request bookign delete if already booked
+    $.ajax({
+        url: '/api/v1/events/add',
+        type: 'POST',
+        contentType: 'json',
+        data: eventJson,
+        dataType: 'json',
+        success: function (data) {
+            event.id = data.id;
+            event.color = data.color;
+            event.title = "<br>Facilitation 0/3";
+            $('#calendar').fullCalendar('renderEvent', event); // render event on calendar
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            alert("Request failed: " + xhr.responseText);
+        }
+    });
 }

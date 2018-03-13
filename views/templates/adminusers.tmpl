@@ -4,27 +4,33 @@
 
 <script id="tmpl_listUsers" type="x-dot-template">
     <table class="table table-hover">
-        <tr>
-            <th>User ID</th>
-            <th>Last Name</th>
-            <th>First Name</th>
-            <th>Username</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th></th>
-        </tr>
-        {{`{{~it :value:index}}`}}
-        <tr>
-            <td>{{`{{=value.userId}}`}}</td>
-            <td>{{`{{=value.lastName}}`}}</td>
-            <td>{{`{{=value.firstName}}`}}</td>
-            <td>{{`{{=value.userName}}`}}</td>
-            <td>{{`{{=value.email}}`}}</td>
-            <td>{{`{{=value.phoneNumber}}`}}</td>
-            <td><button id="edit_{{`{{=value.userId}}`}}" type="button" class="btn btn-info">Edit User</button>
-                <button id="pass_{{`{{=value.userId}}`}}" type="button" class="btn btn-info">Change Password</button></td>
-        </tr>
-    {{`{{~}}`}}
+        <thead>
+            <tr class="table-default">
+                <th scope="col">User ID</th>
+                <th scope="col">Last Name</th>
+                <th scope="col">First Name</th>
+                <th scope="col">Username</th>
+                <th scope="col">Email</th>
+                <th scope="col">Phone</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{`{{~it :value:index}}`}}
+            <tr class="table-default">
+                <td class="table-default"> {{`{{=value.userId}}`}}</td>
+                <td class="table-default"> {{`{{=value.lastName}}`}}</td>
+                <td class="table-default"> {{`{{=value.firstName}}`}}</td>
+                <td class="table-default"> {{`{{=value.userName}}`}}</td>
+                <td class="table-default"> {{`{{=value.email}}`}}</td>
+                <td class="table-default"> {{`{{=value.phoneNumber}}`}}</td>
+                <td class="table-default">
+                    <button id="edit_{{`{{=value.userId}}`}}" type="button" class="btn btn-primary"><i class="fas fa-edit"></i></button>
+                    <br>
+                    <button id="pass_{{`{{=value.userId}}`}}" type="button" class="btn btn-primary">Change Password</button>
+                </td>
+            </tr>
+            {{`{{~}}`}}
+      </tbody>
     </table>
 </script>
 
@@ -36,46 +42,50 @@
     </div>
     <div class="row">
         Password </td>
-            <td><input id="pass1" type="password" class="form-control form-control-sm"></td>
+            <td class="table-default"> <input id="pass1" type="password" class="form-control form-control-sm"></td>
         </tr>
-        <tr>
-            <td> Confirm Password </td>
-            <td><input id="pass2" type="password" class="form-control form-control-sm"></td>
+        <tr class="table-default">
+            <td class="table-default">  Confirm Password </td>
+            <td class="table-default"> <input id="pass2" type="password" class="form-control form-control-sm"></td>
         </tr>
-        <tr>
-        <td><button id="Submit" type="button" class="btn btn-info">Submit</button></td>
-        <td><button id="cancel" type="button" class="btn btn-info">Cancel</button></td>
+        <tr class="table-default">
+        <td class="table-default"> <button id="Submit" type="button" class="btn btn-primary">Submit</button></td>
+        <td class="table-default"> <button id="cancel" type="button" class="btn btn-primary">Cancel</button></td>
         </tr>
     </div>
 </script>
 
 <script id="tmpl_listFamilies" type="x-dot-template">
     <table>
-        <tr>
-            <th>Family ID</th>
-            <th>SurName</th>
-            <th></th>
-        </tr>
+        <thead>
+            <tr class="table-default">
+                <th scope="col">Family ID</th>
+                <th scope="col">SurName</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
         {{`{{~it :value:index}}`}}
-        <tr>
-            <td>{{`{{=value.familyId}}`}}</td>
-            <td>{{`{{=value.familyName}}`}}</td>
-            <td><button id="edit_{{`{{=value.familyId}}`}}" type="button" class="btn btn-info">Edit Family</button></td>
+        <tr class="table-default">
+            <td class="table-default"> {{`{{=value.familyId}}`}}</td>
+            <td class="table-default"> {{`{{=value.familyName}}`}}</td>
+            <td class="table-default"> <button id="edit_{{`{{=value.familyId}}`}}" type="button" class="btn btn-primary"><i class="fas fa-edit"></i></button></td>
         </tr>
     {{`{{~}}`}}
+      </tbody>
     </table>
 </script>
 
 <script id="tmpl_newFamily" type="x-dot-template">
     <table>
-        <tr> 
-            <td>Family Name</td>
-            <td><input id="famName" type="text" class="form-control form-control-sm"></td>
+        <tr class="table-default">
+            <td class="table-default"> Family Name</td>
+            <td class="table-default"> <input id="famName" type="text" class="form-control form-control-sm"></td>
         </tr>
-        <tr>
-        <td>Parent One</td>
-        <td>
-            <select id="parent1">
+        <tr class="table-default">
+        <td class="table-default"> Parent One</td>
+        <td class="table-default">
+            <select class="form-control" id="parent1">
                     <option value="">Select a Parent/Facilitator</option>
                 {{`{{~it :value:index}}`}}
                     <option value="{{`{{=value.userId}}`}}">{{`{{=value.userName}}`}}</option>
@@ -83,10 +93,10 @@
             </select>
         </td>
         </tr>
-        <tr>
-        <td>Parent Two</td>
-        <td>
-            <select id="parent2">
+        <tr class="table-default">
+        <td class="table-default"> Parent Two</td>
+        <td class="table-default">
+            <select class="form-control" id="parent2">
                     <option value="">Select a Parent/Facilitator</option>
                 {{`{{~it :value:index}}`}}
                     <option value="{{`{{=value.userId}}`}}">{{`{{=value.userName}}`}}</option>
@@ -94,12 +104,12 @@
             </select>
         </td>
         </tr>
-            <td>Children</td>
-            <td><input id="children" type="number" class="form-control form-control-sm"></td>
+            <td class="table-default"> Children</td>
+            <td class="table-default"> <input id="children" type="number" class="form-control form-control-sm"></td>
         </tr>
-        <tr><td>
-            <button id="submit" type="button" class="btn btn-info">Submit</button>
-            <button id="cancel" type="button" class="btn btn-info">Cancel</button>
+        <tr class="table-default"><td class="table-default">
+            <button id="submit" type="button" class="btn btn-primary">Submit</button>
+            <button id="cancel" type="button" class="btn btn-primary">Cancel</button>
         </td></tr>
     </table>
 </script>
@@ -109,96 +119,100 @@
 
 <script id="tmpl_editUser" type="x-dot-template">
     <table>
-        <tr><td>
+        <tr class="table-default"><td class="table-default">
             ID
-        </td><td>
+        </td><td class="table-default">
             <p id="IDNum">{{`{{=it.userId}}`}}</p>
         </td></tr>
-        <tr><td>
+        <tr class="table-default"><td class="table-default">
             Username
-        </td><td>
+        </td><td class="table-default">
             {{`{{=it.userName}}`}}
         </td></tr>
-        <tr><td>
+        <tr class="table-default"><td class="table-default">
             First Name
-        </td><td>
+        </td><td class="table-default">
             <input id="fName" type="text" value="{{`{{=it.firstName}}`}}">
         </td></tr>
-        <tr><td>
+        <tr class="table-default"><td class="table-default">
             Last Name 
-        </td><td>
+        </td><td class="table-default">
             <input id="lName" type="text" value="{{`{{=it.lastName}}`}}">
         </td></tr>
-        <tr><td>
+        <tr class="table-default"><td class="table-default">
             Email
-        </td><td>
+        </td><td class="table-default">
             <input id="email" type="email" value="{{`{{=it.email}}`}}">
         </td></tr>
-        <tr><td>
+        <tr class="table-default"><td class="table-default">
             Phone #
-        </td><td>
+        </td><td class="table-default">
             <input id="phoneNum" type="tel" value="{{`{{=it.phoneNumber}}`}}">
         </td></tr>
-        <tr><td>
-            <button id="submit" type="button" class="btn btn-info">Submit</button>
-            <button id="cancel" type="button" class="btn btn-info">Cancel</button>
+        <tr class="table-default"><td class="table-default">
+            <button id="submit" type="button" class="btn btn-primary">Submit</button>
+            <button id="cancel" type="button" class="btn btn-primary">Cancel</button>
         </td></tr>
     </table>
 </script>
 
 <script id="tmpl_addUser" type="x-dot-template">
     <table>
-        <tr>
-            <td>User Role</td>
-            <td><select id="role">
-                    <option value="1">Facilitator</option>
-                    <option value="2">Teacher</option>
-            </select></td>
+        <thead>
+            <tr>
+                <td scope="col"> User Role</td>
+                <td scope="col">
+                    <select class="form-control" id="role">
+                        <option value="1">Facilitator</option>
+                        <option value="2">Teacher</option>
+                    </select>
+                </td>
+            </tr>
+        </thead>
+        <tr class="table-default">
+            <td class="table-default"> First Name</td>
+            <td class="table-default"> <input id="fName" type="text"></td>
         </tr>
-        <tr>
-            <td>First Name</td>
-            <td><input id="fName" type="text"></td>
+        <tr class="table-default">
+            <td class="table-default"> Last Name</td>
+            <td class="table-default"> <input id="lName" type="text"></td>
         </tr>
-        <tr>
-            <td>Last Name</td>
-            <td><input id="lName" type="text"></td>
+        <tr class="table-default">
+            <td class="table-default"> Email</td>
+            <td class="table-default"> <input id="email" type="email"></td>
         </tr>
-        <tr>
-            <td>Email</td>
-            <td><input id="email" type="email"></td>
+        <tr class="table-default">
+            <td class="table-default"> Phone #</td>
+            <td class="table-default"> <input id="phoneNum" type="tel"></td>
         </tr>
-        <tr>
-            <td>Phone #</td>
-            <td><input id="phoneNum" type="tel"></td>
+        <tr class="table-default">
+            <td class="table-default"> Password</td>
+            <td class="table-default"> <input id="pass1" type="password"></td>
         </tr>
-        <tr>
-            <td>Password</td>
-            <td><input id="pass1" type="password"></td>
+        <tr class="table-default">
+            <td class="table-default"> Confirm Password</td>
+            <td class="table-default"> <input id="pass2" type="password"></td>
         </tr>
-        <tr>
-            <td>Confirm Password</td>
-            <td><input id="pass2" type="password"></td>
-        </tr>
-        <tr><td>
-            <button id="submit" type="button">Submit</button>
-            <button id="cancel" type="button">Cancel</button>
+        <tr class="table-default"><td class="table-default">
+            <button class="btn btn-primary" id="submit" type="button">Submit</button>
+            <button class="btn btn-primary" id="cancel" type="button">Cancel</button>
         </td></tr>
     </table>
 </script>
 
 <main>
-</br>
+<br>
     <div class="container">
+        <ul class="nav nav-tabs flex-column">
+            <li class="nav-item"><a onClick="familyList()">Edit Family</a></li>
+            <li class="nav-item"><a onClick="newFamily()">Add Family</a></li>
+            <li class="nav-item"><a onClick="userList()">Edit User</a></li>
+            <li class="nav-item"><a onClick="newUser()">Add User</a></li>
+        </ul>
         <div class ="row">
-            <div class="col-sm-3">
-                <ul>
-                    <li><a onClick="familyList()">Edit Family</a></li>
-                    <li><a onClick="newFamily()">Add Family</a></li>
-                    <li><a onClick="userList()">Edit User</a></li>
-                    <li><a onClick="newUser()">Add User</a></li>
-                </ul>
-            </div>
-        <div id="displayData" class="col-sm-9">Select an option to continue</div>
+            <div class="col-sm-2 float-left"></div>
+            <div id="displayData" class="col-sm-9 float-left">Select an option to continue</div>
+        </div>
     </div>
 </main>
 
