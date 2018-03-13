@@ -25,52 +25,13 @@ function storeChangesToEvent(event, delta, revertFunc, jsEvent, ui, view) {
     });
 }
 
-// This function will send a booking request to the server
-// Like the updateEvent function, post-demo I will refactor this out
-// and have the templates populate based on role. Additional auth checks
-// server side to ensure correct user/role and such should still take place
-function requestBooking(event, jsEvent, view) {
-    uid = prompt("Please enter the UID to book/unbook from this event")
-    if (!uid) {
-        return
+// REmoves an event from the calendar and the associated TB/Bookings from the database
+function removeEvent(event, jsEvent, view) {
+    yn = confirm("Are you sure you want to delete this event?")
+    if (!yn) {
+        return false; // event should not be deleted
     }
-    let promptStr = "Confirm booking ";
-    console.log(event.booked);
-    if (event.booked === true) {
-        promptStr += "Cancellation (";
-    } else {
-        promptStr += "Booking (";
-    }
-    if (!confirm(promptStr + event.start + ", in the " + event.color + " room)")) {
-        return;
-    }
-    // Block info for booking
-    let booking_json = JSON.stringify({
-        id:         event.id,
-        userId:     uid
-    });
-
-    // Make ajax POST request with booking request or request bookign delete if already booked
-    $.ajax({
-        url: '/api/v1/events/book',
-        type: 'POST',
-        contentType:'json',
-        data: booking_json,
-        dataType:'json',
-        success: function(data) {  // We expect the server to return json data with a msg field
-            alert(data.msg);
-            event.booked = !event.booked;
-            if (event.booked === true) {
-                event.bookingCount++;
-            } else {
-                event.bookingCount--;
-            }
-            $('#calendar').fullCalendar('updateEvent', event);
-        },
-        error: function(xhr, ajaxOptions, thrownError) {
-            alert("Request failed: " + xhr.responseText);
-        }
-    });
+    return true; // event was deleted
 }
 
 $(document).ready(function() {
@@ -117,7 +78,11 @@ $(document).ready(function() {
             storeChangesToEvent(ev, delta, revertFunc, jsEvent, ui, view);
         },
         eventClick: function(event, jsEvent, view) {
-                requestBooking(event, jsEvent, view);
+                if (!removeEvent(event, jsEvent, view)) {
+                    return;
+                }
+                console.log("NOT IMPLEMENTED ON THE BACKEND YET");
+                $('#calendar').fullCalendar('removeEvents', event.id);
         },
         businessHours: {
             // days of week. an array of zero-based day of week integers (0=Sunday)
@@ -191,8 +156,8 @@ function submitEvent() {
         dataType: 'json',
         success: function (data) {
             event.id = data.id;
-            event.color = data.color
-            console.log(data);
+            event.color = data.color;
+            event.title = "<br>Facilitation 0/3";
             $('#calendar').fullCalendar('renderEvent', event); // render event on calendar
         },
         error: function (xhr, ajaxOptions, thrownError) {

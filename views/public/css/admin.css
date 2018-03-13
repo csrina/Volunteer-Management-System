@@ -28,16 +28,10 @@
     border-radius: 3px;
 }
 
-div {
-    color: lightblue;
-}
-
-main {
-    background-color: '#272b30';
-}
-
 table, th, td {
     padding: 2px 5px;
+}
+
 .sidenav {
     height: 100%;
     width: 200px;

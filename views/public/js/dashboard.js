@@ -34,7 +34,8 @@ function requestRemoval(event) {
         dataType:'json',
         success: function(data) {  // We expect the server to return json data with a msg field
             alert(data.msg);
-            $("#calendar").fullCalendar("removeEvents", event.id)
+            $("#calendar").fullCalendar("removeEvents", event.id);
+            refreshWidgets();
         },
         error: function(xhr, ajaxOptions, thrownError) {
             alert("Request failed: " + xhr.responseText);
@@ -130,7 +131,7 @@ $(document).ready(function() {
             left: 'title',
             right: 'prev, today, next'
         },
-        theme: "bootstrap",
+        theme: 'bootstrap',
         aspectRatio: 0.33,
         defaultView: "list",
         duration: {days: 14},        // two week intervals shown for upcoming events
@@ -148,7 +149,7 @@ $(document).ready(function() {
         eventOverlap: false,
         eventClick: function(event, jsEvent, view) {
             requestRemoval(event);
-            refreshWidgets()
+            refreshWidgets();
         },
         businessHours: {
             // days of week. an array of zero-based day of week integers (0=Sunday)
@@ -177,11 +178,14 @@ function refreshWidgets() {
         contentType:'json',
         data: data,
         success: function(data) {
-            refreshGauge(elems.gDone, "hoursDone", data.hoursDone)
+            refreshGauge(elems.gDone, "hoursDone", data.hoursDone);
             refreshGauge(elems.gBooked, "hoursBooked", data.hoursBooked);
             elems.chart.data.datasets[0] = data.history1;
             elems.chart.data.datasets[1] = data.history2;
-            elems.chart.update()
+            elems.chart.update();
+        },
+        error: function(xhr, ajaxOptions, thrownError) {
+            alert("Request failed: " + xhr.responseText);
         },
         dataType: 'json'
     });

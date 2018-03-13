@@ -15,6 +15,7 @@
     margin: 10px;
     border: 1px solid #5a5a5a;
     border-radius: 3px;
+    color: black;
 }
 
 #hoursChart {
@@ -30,4 +31,8 @@
 
 .alert-info {
     background-color: white !important;
+}
+
+div {
+    color: black;
 }

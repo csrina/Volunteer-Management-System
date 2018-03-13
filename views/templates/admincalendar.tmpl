@@ -5,10 +5,10 @@
         <div class="row">
                 <p>TimeStart</p>
                 <input id="start" type="datetime-local" class="form-control form-control-sm">
-                </br>
+                <br>
                 <p>TimeEnd</p>
                 <input id="end" type="datetime-local" class="form-control form-control-sm">
-                </br>
+                <br>
                 <p>ClassRoom</p>
                 <select id="room">
                     <option value="" disabled selected hidden>Select a Classroom</option>
@@ -16,23 +16,23 @@
                         <option value="{{`{{=value.roomName}}`}}">{{`{{=value.roomName}}`}}</option>
                     {{`{{~}}`}}
                 </select>
-                </br>
+                <br>
                 <p>Modifier</p>
                 <input id="modifier" type="number" value="1" class="form-control form-control-sm">
-                </br>
+                <br>
                 <p>Note</p>
                 <input id="note" type="text" placeholder="Insert a note for facilitators..." class="form-control form-control-sm">
-                </br>
+                <br>
                 <button id="submit" type="button" class="btn btn-info">Submit</button>
         </div>
 </script>
 
 <main>
-    <div class="main-container">
-        <div class="row"><div class="col-xs-12"><br></div></div>
+    <div class="container">
+        <div class="row"><div class="col-lg-12"><br></div></div>
         <div class="row">
             <div class="col-lg-4" id="eventForm"></div>
-            <div class="col-lg-8">
+            <div class="col-lg-8 pull-right">
                 <div id="calendar"></div>
             </div>
         </div>
