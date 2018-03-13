@@ -70,6 +70,7 @@ function requestBooking(event, jsEvent, view) {
 }
 
 $(document).ready(function() {
+    setActiveCategory();
     loadAddEvent();
     // page is now ready, initialize the calendar...
     $('#calendar').fullCalendar({
@@ -126,6 +127,11 @@ $(document).ready(function() {
     })
 });
 
+//sets active category in top bars
+function setActiveCategory() {
+    let cat = window.location.href.split("/").pop();
+    document.querySelector(`#${cat}Btn`).setAttribute('class','active');
+}
 
 function loadAddEvent() {
     let xhttp = new XMLHttpRequest();
@@ -160,13 +166,15 @@ function submitEvent() {
         }
         //loadAddEvent();
     });
-
-    let newStart = document.querySelector("#start").value;
-    let newEnd = document.querySelector("#end").value;
-    let newRoom = parseInt(document.querySelector("#room").value);
-    let newMod = parseInt(document.querySelector("#modifier").value);
-    let newNote = document.querySelector("#note").value;
+    let event = {}
+    event.start = document.querySelector("#start").value;
+    event.end = document.querySelector("#end").value;
+    event.room = parseInt(document.querySelector("#room").value);
+    event.mod = parseInt(document.querySelector("#modifier").value);
+    event.note = document.querySelector("#note").value;
     xhttp.open("POST", "http://localhost:8080/api/v1/events/add");
-    xhttp.send(JSON.stringify({start:newStart, end:newEnd,
-            room:newRoom, modifier:newMod, note:newNote}));
+    xhttp.send(JSON.stringify(event));
+    // retrieve response ??
+    // get id from response and add to event
+    $('#calendar').fullCalendar('renderEvent', event); // render event on calendar
 }

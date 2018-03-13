@@ -2,12 +2,64 @@
 
 {{template "adminheader" .}}
 
-<div id="usersSidenav" class="sidenav">
-        <a onClick="listClasses()">Edit Classroom</a>
-        <a onClick="addClassRoom()">Add Classroom</a>
-</div>
+<script id="tmpl_listClasses" type="x-dot-template">
+        <table class="table table-hover">
+        <tr>
+            <th>Class ID</th>
+            <th>Class Name</th>
+            <th>Teacher</th>
+            <th>Room #</th>
+            <th></th>
+        </tr>
+        {{`{{~it :value:index}}`}}
+        <tr>
+            <td>{{`{{=value.roomId}}`}}</td>
+            <td>{{`{{=value.roomName}}`}}</td>
+            <td>{{`{{=value.teacher}}`}}</td>
+            <td>{{`{{=value.roomNum}}`}}</td>
+            <td><button id="edit_{{`{{=value.roomId}}`}}" type="button" class="btn btn-info">Edit Classroom</button></td>
+        </tr>
+    {{`{{~}}`}}
+    </table>              
+</script>
 
-<div id="displayData" class="displayArea">Select an option to continue</div>
+<script id="tmpl_createClass" type="x-dot-template">
+            <div class="row">
+                <div class="col-sm-4"> Classname / Colour </div>
+                <div class="col-sm-4"> <input id="cName" type="text" class="form-control form-control-sm"> </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-4"> Teacher </div>
+                <div class="col-sm-4">
+                        <select id="cTeacher">
+                                <option value="">Select a teacher...</option>
+                                {{`{{~it :value:index}}`}}
+                                <option value="{{`{{=value.userId}}`}}">{{`{{=value.userName}}`}}</option>
+                                {{`{{~}}`}}  
+                        </select> </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-4"> Room # </div>
+                <div class="col-sm-4"> <input id="cNum" type="text" class="form-control form-control-sm"> </div>
+            </div>
+            <div class="row">
+                <button id="submit" type="button" class="btn btn-info">Submit</button>
+                <button id="cancel" type="button" class="btn btn-info">Cancel</button>
+            </div>
+</script>
+<main>
+    </br>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-3">
+                <ul>
+                    <li><a onClick="listClasses()">Edit Classroom</a></li>
+                    <li><a onClick="addClassRoom()">Add Classroom</a></li>
+                </ul>
+            </div>
+        <div id="displayData" class="col-sm-9"></div>
+    </div>
+</main>
 
 {{template "footer" .}}
 

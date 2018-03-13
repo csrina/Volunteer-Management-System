@@ -25,6 +25,8 @@ func defaultReport(w http.ResponseWriter, r *http.Request) {
 
 	err := db.Select(&families, q)
 	if err != nil {
+		logger.Println(err)
+
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}

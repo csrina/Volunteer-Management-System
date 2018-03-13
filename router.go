@@ -118,10 +118,14 @@ func apiRoutes(r *mux.Router) {
 	s.HandleFunc("/admin/users", getUserList).Methods("GET")
 	s.HandleFunc("/admin/users", createUser).Methods("POST")
 	s.HandleFunc("/admin/users", updateUser).Methods("PUT")
-	s.HandleFunc("/admin/classes", basicRoomList).Methods("GET")
+	s.HandleFunc("/admin/teachers", getTeachers).Methods("GET")
+	s.HandleFunc("/admin/classes", getClassInfo).Methods("GET")
 	s.HandleFunc("/admin/facilitators", lonelyFacilitators).Methods("GET")
 	s.HandleFunc("/admin/families", getFamilyList).Methods("GET")
 	s.HandleFunc("/admin/reports", monthlyReport).Methods("GET")
+	s.HandleFunc("/admin/families", createFamily).Methods("POST")
+	s.HandleFunc("/admin/families", updateFamily).Methods("GET")
+	s.HandleFunc("/admin/dashboard", defaultReport).Methods("GET")
 	s.HandleFunc("/dashboard", getDashData).Methods("GET")
 
 	/* Events JSON routes for scheduler system */
