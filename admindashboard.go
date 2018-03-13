@@ -298,7 +298,21 @@ func createClass(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateClass(w http.ResponseWriter, r *http.Request) {
-	//TODO
+	class := roomFull{}
+	decoder := json.NewDecoder(r.Body)
+	decoder.Decode(&class)
+
+	q := `UPDATE room
+			SET room_name = $2, teacher_id = $3, room_num = $4
+			WHERE room_id = $1`
+
+	_, err := db.Exec(q, class.RoomName, class.TeacherID, class.RoomNumber)
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
 }
 
 func loadAdminDash(w http.ResponseWriter, r *http.Request) {
