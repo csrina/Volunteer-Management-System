@@ -24,7 +24,8 @@ func defaultReport(w http.ResponseWriter, r *http.Request) {
 	families := []familyShort{}
 
 	err := db.Select(&families, q)
-	if err == nil {
+	if err != nil {
+		logger.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -51,7 +52,6 @@ func getHoursBookingSlice(bks []Booking) float64 {
 	}
 	return duration
 }
-
 
 func getFamilyBookings(start time.Time, end time.Time, FID int) ([]Booking, error) {
 	/* format dates for psql */

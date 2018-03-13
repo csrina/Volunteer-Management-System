@@ -1,27 +1,27 @@
 {{define "admindashboard"}}
 
-{{template "adminheader"}}
+{{template "adminheader" .}}
+
+<script id="tmpl_familyList" type="x-dot-template">
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Family</th>
+            <th>Scheduled this Week</th>
+        </tr>
+        {{`{{~it :value:index}}`}}
+        <tr>
+            <td>{{`{{=value.familyId}}`}}</td>
+            <td>{{`{{=value.familyName}}`}}</td>
+            <td>{{`{{=value.weekHours}}`}}</td>
+        </tr>
+        {{`{{~}}`}}
+    </table>
+</script>
 
 <main>
-    <div id="familyList">
-        <table>
-            <div>
-                <tr>
-                    <th>ID</th>
-                    <th>Family</th>
-                    <th>Scheduled this Week</th>
-                </tr>
-            </div>
-            {{range .}}
-            <div>
-                <tr>
-                    <td>{{.FamilyID}}</td>
-                    <td>{{.FamilyName}}</td>
-                    <td>{{.WeekHours}}</td>
-                </tr>
-            </div>
-            {{end}}
-        </table>
+    <div class="container">
+        <div id="displayData"></div>
     </div>
 </main>
 

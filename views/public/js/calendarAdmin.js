@@ -70,6 +70,7 @@ function requestBooking(event, jsEvent, view) {
 }
 
 $(document).ready(function() {
+    setActiveCategory();
     loadAddEvent();
     // page is now ready, initialize the calendar...
     $('#calendar').fullCalendar({
@@ -126,6 +127,11 @@ $(document).ready(function() {
     })
 });
 
+//sets active category in top bars
+function setActiveCategory() {
+    let cat = window.location.href.split("/").pop();
+    document.querySelector(`#${cat}Btn`).setAttribute('class','active');
+}
 
 function loadAddEvent() {
     let xhttp = new XMLHttpRequest();
