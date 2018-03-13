@@ -17,7 +17,7 @@
             <td>{{`{{=value.roomName}}`}}</td>
             <td>{{`{{=value.teacher}}`}}</td>
             <td>{{`{{=value.roomNum}}`}}</td>
-            <td><button id="edit_{{`{{=value.roomId}}`}}" type="button" class="btn btn-info">Edit Classroom</button></td>
+            <td><button id="edit_{{`{{=value.roomId}}`}}" type="button" class="btn btn-primary">Edit Classroom</button></td>
         </tr>
     {{`{{~}}`}}
     </table>              
@@ -31,7 +31,7 @@
             <div class="row">
                 <div class="col-sm-4"> Teacher </div>
                 <div class="col-sm-4">
-                        <select id="cTeacher">
+                        <select class="form-control" id="cTeacher">
                                 <option value="">Select a teacher...</option>
                                 {{`{{~it :value:index}}`}}
                                 <option value="{{`{{=value.userId}}`}}">{{`{{=value.userName}}`}}</option>
@@ -43,8 +43,8 @@
                 <div class="col-sm-4"> <input id="cNum" type="text" class="form-control form-control-sm"> </div>
             </div>
             <div class="row">
-                <button id="submit" type="button" class="btn btn-info">Submit</button>
-                <button id="cancel" type="button" class="btn btn-info">Cancel</button>
+                <button id="submit" type="button" class="btn btn-primary">Submit</button>
+                <button id="cancel" type="button" class="btn btn-primary">Cancel</button>
             </div>
 </script>
 <main>
@@ -52,9 +52,9 @@
     <div class="container">
         <div class="row">
             <div class="col-sm-3">
-                <ul>
-                    <li><a onClick="listClasses()">Edit Classroom</a></li>
-                    <li><a onClick="addClassRoom()">Add Classroom</a></li>
+                <ul class="nav nav-pills flex-column">
+                    <li class="nav-item"><a onClick="listClasses()">Edit Classroom</a></li>
+                    <li class="nav-item"><a onClick="addClassRoom()">Add Classroom</a></li>
                 </ul>
             </div>
         <div id="displayData" class="col-sm-9"></div>

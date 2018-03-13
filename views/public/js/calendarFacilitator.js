@@ -58,13 +58,11 @@ $(document).ready(function() {
             center: 'prev, title, next',
             right: 'agendaWeek, month'
         },
-        agendaEventMinHeight: 100,
         contentHeight: 'auto',
         defaultView: "agendaWeek",
         events: "/api/v1/events/scheduler",    // link to events (bookings + blocks feed)
         allDayDefault: false,        // blocks are not all-day unless specified
-        themeSystem: "bootstrap3",
-        theme: "bootstrap",
+        themeSystem: "bootstrap4",
         editable: false,                 // Need to use templating engine to change bool based on user's rolego ,
         eventRender: function(event, element, view) {
             element.find('.fc-time').css("font-size", "1.2em");
@@ -73,7 +71,7 @@ $(document).ready(function() {
             element.find('.fc-title').append("<br/>" + event.bookingCount + " / 3<br/>");
 
             if (event.booked) {
-                element.find('.fc-title').append("<span class='glyphicon glyphicon-pushpin' aria-valuetext='You are booked in this block!'></span><br/>");
+                element.find('.fc-list-item-title').append('<i class="fas fa-thumbtack"></i><br/>');
             }
         },
         eventOverlap: function(stillEvent, movingEvent) {

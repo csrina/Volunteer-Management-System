@@ -3,13 +3,15 @@
     <head>
         <title>Caraway Volunteer Management System</title>
         <meta charset="UTF-8">
-        <!-- Latest compiled and minified CSS -->       
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-        <link rel="stylesheet" href="https://bootswatch.com/3/yeti/bootstrap.min.css">
+        <!-- Latest compiled and minified CSS -->
+        <!-- Latest compiled and minified CSS -->
+        <link href="https://use.fontawesome.com/releases/v5.0.8/css/all.css" rel="stylesheet">
+        <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+        <link href="https://maxcdn.bootstrapcdn.com/bootswatch/4.0.0/lux/bootstrap.min.css" rel="stylesheet" integrity="sha384-GxhP7S92hzaDyDJqbdpcHqV5cFflxAx0Yze/X7vUONp43KK1E8eUWaJIMkit3D0R" crossorigin="anonymous">
         <!-- Latest compiled JavaScript -->
         <script type="text/javascript" src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js'></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
         <script src ="https://cdnjs.cloudflare.com/ajax/libs/dot/1.1.2/doT.min.js"></script>
         <!--Select javascript based on pagename (and further by role of user) -- given as data to the template -->
         <script type="text/javascript" src='/views/public/js/admin.js'></script>
@@ -19,6 +21,6 @@
     </head>
     <body>
 
-    {{template "adminnav"}}
+    {{template "adminnav" .}}
 
 {{end}}

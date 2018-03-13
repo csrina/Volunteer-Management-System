@@ -1,33 +1,28 @@
 
 {{define "nav"}}
     <header>
-        <div class="col-sm-12" style="background-color:skyblue">
-            <div class="col-sm-6 col-sm-offset-1">
-                <h2 style="color: black">Caraway Volunteer Management System</h2>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <a class="navbar-brand" >Caraway Volunteering</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor02" aria-controls="navbarColor02" aria-expanded="false" aria-label="Toggle navigation" style="">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <br>
+{{if and (ne .PageName "login") (ne .PageName "mainLogin")}}
+            <div class="collapse navbar-collapse" id="navbarColor02">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item {{if eq .PageName "dashboard"}}active{{end}}">
+                        <a class="nav-link" href="/dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item {{if eq .PageName "calendar"}}active{{end}}">
+                        <a class="nav-link" href="/calendar">Calendar</a>
+                    </li>
+                </ul>
+                <div>
+                    <span class="badge badge-pill badge-primary">{{.Username}}</span>
+                    <button type="button" class="btn btn-xs" onclick="location.href='/logout';"><i class="fas fa-sign-out-alt"></i></button>
+                </div>
             </div>
-        {{if and (ne .PageName "login") (ne .PageName "mainLogin")}}
-        <!-- We are logged in -->
-             <div class="col-sm-4">
-                <br>
-                <div class="col-sm-8 text-right" style="height: 34px;padding-right: 0;">
-                    <label style="margin-bottom: 0; height: 34px; margin-top: 6px;color: #000000;">{{.Username}}</label>
-                </div>
-                <div class="col-sm-4">
-                    <button type="button" class="btn btn-default" onclick="location.href='/logout';"><span class="glyphicon glyphicon-log-out"></span></button>
-                </div>
-             </div>
-        </div>
-        <div class="col-sm-12" style="background-color:skyblue">
-            <ul class="nav nav-tabs nav-justified" >
-            {{if .Dashboard}}
-                <li class="col-sm-5 text-right active" style="color: black"><a style="color: black" href="/dashboard">Dashboard</a></li>
-                <li class="col-sm-5 text-left" style="color: black"><a style="color: black" href="/calendar">Calendar</a></li>
-            {{else}}
-                <li class="col-sm-5 text-right" style="color: black"><a style="color: black" href="/dashboard">Dashboard</a></li>
-                <li class="col-sm-5 text-left active" style="color: black"><a style="color: black" href="/calendar">Calendar</a></li>
-            {{end}}                
-            </ul>
-        </div>
-        {{end}}
+        </nav>
+{{end}}
     </header>
 {{end}}

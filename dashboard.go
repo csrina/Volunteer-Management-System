@@ -33,8 +33,8 @@ func (dd *DashData) setHoursGoal(numKids int) {
 /* START OF SCHOOL YEAR FOR HISTORY TRACKING */
 const (
 	PERIOD_LENGTH        = 3 // months
-	ONE_CHILD_HOURS_GOAL = 5.00
-	DEFAULT_HOURS_GOAL   = 7.50
+	ONE_CHILD_HOURS_GOAL = 2.50
+	DEFAULT_HOURS_GOAL   = 5.00
 )
 
 /*

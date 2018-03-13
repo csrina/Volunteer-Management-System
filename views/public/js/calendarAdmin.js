@@ -35,7 +35,6 @@ function removeEvent(event, jsEvent, view) {
 }
 
 $(document).ready(function() {
-    setActiveCategory();
     loadAddEvent();
     // page is now ready, initialize the calendar...
     $('#calendar').fullCalendar({
@@ -51,13 +50,13 @@ $(document).ready(function() {
         contentHeight: 'auto',
         events: "/api/v1/events/scheduler",    // link to events (bookings + blocks feed)
         allDayDefault: false,        // blocks are not all-day unless specified
-        themeSystem: "bootstrap3",
+        themeSystem: "bootstrap4",
         editable: true,                 // Need to use templating engine to change bool based on user's rolego ,
         eventRender: function(event, element, view) {
             element.find('.fc-time').css("font-size", "1.2em");
             element.find('.fc-title').css("font-size", "1.2em");
             if (event.booked) {
-                element.find('.fc-title').prepend("<span class='glyphicon glyphicon-pushpin' aria-valuetext='You are booked in this block!'></span><br/>");
+                element.find('.fc-list-item-title').append('<i class="fas fa-thumbtack"></i><br/>');
             } else {
                 element.find('.fc-title').prepend("<br/>");
             }
@@ -99,12 +98,6 @@ $(document).ready(function() {
     $('.fc-today').css("background-color", "#FEFEFE");
     loadAddEvent();
 });
-
-//sets active category in top bars
-function setActiveCategory() {
-    let cat = window.location.href.split("/").pop();
-    document.querySelector(`#${cat}Btn`).setAttribute('class','active');
-}
 
 function loadAddEvent() {
     let xhttp = new XMLHttpRequest();

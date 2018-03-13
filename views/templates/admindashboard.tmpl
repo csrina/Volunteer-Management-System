@@ -3,19 +3,23 @@
 {{template "adminheader" .}}
 
 <script id="tmpl_familyList" type="x-dot-template">
-    <table>
-        <tr>
-            <th>ID</th>
-            <th>Family</th>
-            <th>Scheduled this Week</th>
-        </tr>
-        {{`{{~it :value:index}}`}}
-        <tr>
-            <td>{{`{{=value.familyId}}`}}</td>
-            <td>{{`{{=value.familyName}}`}}</td>
-            <td>{{`{{=value.weekHours}}`}}</td>
-        </tr>
-        {{`{{~}}`}}
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Family</th>
+                <th scope="col">Scheduled this Week</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{`{{~it :value:index}}`}}
+            <tr class="table-default">
+                <td class="table-default">{{`{{=value.familyId}}`}}</td>
+                <td class="table-default">{{`{{=value.familyName}}`}}</td>
+                <td class="table-default">{{`{{=value.weekHours}}`}}</td>
+            </tr>
+            {{`{{~}}`}}
+        </tbody>
     </table>
 </script>
 

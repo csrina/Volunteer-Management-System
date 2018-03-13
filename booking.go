@@ -359,5 +359,13 @@ func (f *Family) getFamilyBookings(start time.Time, end time.Time) ([]Booking, e
 		logger.Println(err)
 		return nil, err
 	}
+	// Ensure locale is set
+	for i, b := range bookBlocks {
+		bookBlocks[i].Start = time.Date(b.Start.Year(), b.Start.Month(), b.Start.Day(),
+			b.Start.Hour(), b.Start.Minute(), 0, 0, time.Local)
+		bookBlocks[i].End = time.Date(b.End.Year(), b.End.Month(), b.End.Day(),
+			b.End.Hour(), b.End.Minute(), 0, 0, time.Local)
+
+	}
 	return bookBlocks, nil
 }
