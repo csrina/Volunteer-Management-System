@@ -1,8 +1,7 @@
 {{define "adminheader"}}
-
 <html>
     <head>
-        <title>ADMIN Caraway Volunteer Management System</title>
+        <title>Caraway Volunteer Management System</title>
         <meta charset="UTF-8">
         <!-- Latest compiled and minified CSS -->       
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -11,10 +10,27 @@
         <script type="text/javascript" src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js'></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-        <link rel="stylesheet" type="text/css" href="/views/public/css/admin.css">
-        <script src="/views/public/js/admin.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/dot/1.1.2/doT.min.js"></script>
+        <script src ="https://cdnjs.cloudflare.com/ajax/libs/dot/1.1.2/doT.min.js"></script>
+        <!-- Provide calendar if page wants it -->
+        {{if .Calendar }}
+            <!-- slate theme for calendar -->
+            <link rel="stylesheet" type="text/css" href="https://bootswatch.com/3/slate/bootstrap.min.css">
+            <!-- fullCalendar dependencies -->
+            <link rel="stylesheet" type='text/css' href='/views/fc/fullcalendar.css'/>
+            <!--<script type="text/javascript" src='/views/fc/lib/jquery.min.js'></script> -->
+            <script type="text/javascript" src='/views/fc/lib/moment.min.js'></script>
+            <script type="text/javascript" src='/views/fc/fullcalendar.js'></script>
+        {{end}}
+        <!--Select javascript based on pagename (and further by role of user) -- given as data to the template -->
+        {{if eq .PageName "admincalendar"}}
+            <script type="text/javascript" src='/views/public/js/calendar {{- .Role -}} .js'><%= text/javascript %></script>
+        {{else}}
+            <link rel="stylesheet" type="text/css" href="https://bootswatch.com/3/slate/bootstrap.min.css">
+            <script type="text/javascript" src='/views/public/js/admin.js'></script>
+            <link rel="stylesheet" type="text/css" href="/views/public/css/admin.css">
+        {{end}}
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        
     </head>
     <body>
 

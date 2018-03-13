@@ -3,26 +3,27 @@
 {{template "header" .}}
 <script id="tmpl_eventForm" type="x-dot-template">
         <div class="row">
-            <div class="col-xs-3">
                 <p>TimeStart</p>
+                <input id="start" type="datetime-local" class="form-control form-control-sm">
+                </br>
                 <p>TimeEnd</p>
+                <input id="end" type="datetime-local" class="form-control form-control-sm">
+                </br>
                 <p>ClassRoom</p>
-                <p>Modifier</p>
-                <p>Note</p>
-                <button id="Submit" type="button">Submit</button>
-            </div>
-            <div class="col-xs-3">
-                <input id="start" type="datetime-local">
-                <input id="end" type="datetime-local">
                 <select id="room">
                     <option value="" disabled selected hidden>Select a Classroom</option>
                     {{`{{~it :value:index}}`}}
                         <option value="{{`{{=value.roomName}}`}}">{{`{{=value.roomName}}`}}</option>
                     {{`{{~}}`}}
                 </select>
-                <input id="modifier" type="number" value="1">
-                <input id="note" type="text" placeholder="Insert a message for any facilitators viewing this block...">
-            </div>
+                </br>
+                <p>Modifier</p>
+                <input id="modifier" type="number" value="1" class="form-control form-control-sm">
+                </br>
+                <p>Note</p>
+                <input id="note" type="text" placeholder="Insert a note for facilitators..." class="form-control form-control-sm">
+                </br>
+                <button id="submit" type="button" class="btn btn-info">Submit</button>
         </div>
 </script>
 
