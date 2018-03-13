@@ -11,19 +11,19 @@ import (
 )
 
 type roomFull struct {
-	RoomID     int    `json:"roomId" db:"room_id"`
-	RoomName   string `json:"roomName" db:"room_name"`
-	TeacherID  int    `json:"teacherId" db:"teacher_id"`
-	Children   int    `json:"children" db:"children"`
-	RoomNumber string `json:"roomNum" db:"room_num"`
+	RoomID     int           `json:"roomId" db:"room_id"`
+	RoomName   string        `json:"roomName" db:"room_name"`
+	TeacherID  int           `json:"teacherId" db:"teacher_id"`
+	Children   sql.NullInt64 `json:"children" db:"children"`
+	RoomNumber string        `json:"roomNum" db:"room_num"`
 }
 
 type roomDetailed struct {
-	RoomID     int    `json:"roomId" db:"room_id"`
-	RoomName   string `json:"roomName" db:"room_name"`
-	Teacher    string `json:"teacher" db:"teacher"`
-	Children   int    `json:"children" db:"children"`
-	RoomNumber string `json:"roomNum" db:"room_num"`
+	RoomID     int           `json:"roomId" db:"room_id"`
+	RoomName   string        `json:"roomName" db:"room_name"`
+	Teacher    string        `json:"teacher" db:"teacher"`
+	Children   sql.NullInt64 `json:"children" db:"children"`
+	RoomNumber string        `json:"roomNum" db:"room_num"`
 }
 
 type roomShort struct {
@@ -50,9 +50,9 @@ type userShort struct {
 type familyFull struct {
 	FamilyID   int           `json:"familyId" db:"family_id"`
 	FamilyName string        `json:"familyName" db:"family_name"`
-	ParentOne  sql.NullInt64 `json:"parentOne" db:"parent_one"`
+	ParentOne  int           `json:"parentOne" db:"parent_one"`
 	ParentTwo  sql.NullInt64 `json:"parentTwo" db:"parent_two"`
-	Children   sql.NullInt64 `json:"children" db:"children"`
+	Children   int           `json:"children" db:"children"`
 }
 
 type familyDetailed struct {
@@ -67,6 +67,8 @@ func createFamily(w http.ResponseWriter, r *http.Request) {
 	family := familyFull{}
 	decoder := json.NewDecoder(r.Body)
 	decoder.Decode(&family)
+
+	fmt.Printf("%v#\n", family)
 
 	q := `INSERT INTO family (family_name, parent_one, parent_two, children)
 			VALUES ($1, $2, $3, $4)`
@@ -280,6 +282,41 @@ func getClassInfo(w http.ResponseWriter, r *http.Request) {
 	encoder.Encode(classes)
 }
 
+func createClass(w http.ResponseWriter, r *http.Request) {
+	class := roomFull{}
+	decoder := json.NewDecoder(r.Body)
+	decoder.Decode(&class)
+
+	q := `INSERT INTO room (room_name, teacher_id, room_num)
+			VALUES ($1, $2, $3)`
+
+	_, err := db.Exec(q, class.RoomName, class.TeacherID, class.RoomNumber)
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
+}
+
+func updateClass(w http.ResponseWriter, r *http.Request) {
+	class := roomFull{}
+	decoder := json.NewDecoder(r.Body)
+	decoder.Decode(&class)
+
+	q := `UPDATE room
+			SET room_name = $2, teacher_id = $3, room_num = $4
+			WHERE room_id = $1`
+
+	_, err := db.Exec(q, class.RoomName, class.TeacherID, class.RoomNumber)
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
+}
+
 func loadAdminDash(w http.ResponseWriter, r *http.Request) {
 	pg, err := loadPage("admindashboard", r)
 	if err != nil {
@@ -287,6 +324,7 @@ func loadAdminDash(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s := tmpls.Lookup("admindashboard.tmpl")
+	pg.DotJS = true
 	s.ExecuteTemplate(w, "admindashboard", pg)
 }
 
@@ -297,6 +335,7 @@ func loadAdminUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s := tmpls.Lookup("adminusers.tmpl")
+	pg.DotJS = true
 	s.ExecuteTemplate(w, "adminusers", pg)
 }
 
@@ -320,6 +359,8 @@ func loadAdminReports(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s := tmpls.Lookup("adminreports.tmpl")
+	pg.DotJS = true
+	pg.Chart = true
 	s.ExecuteTemplate(w, "adminreports", pg)
 }
 
@@ -330,5 +371,6 @@ func loadAdminClasses(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s := tmpls.Lookup("adminclasses.tmpl")
+	pg.DotJS = true
 	s.ExecuteTemplate(w, "adminclasses", pg)
 }
