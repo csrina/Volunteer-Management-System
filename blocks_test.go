@@ -43,7 +43,7 @@ func TestBlocksIUS(t *testing.T) {
 	t.Log("Successfully retrieved block(s)\n")
 	// test updating
 	block.End.Add(5000)
-	err = block.updateBlock()
+	err = block.update()
 	if err != nil {
 		t.Fail()
 		t.Log("Failed to update the block", err)

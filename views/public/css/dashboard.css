@@ -28,10 +28,6 @@
     border-radius: 3px;
 }
 
-div {
-    color: lightblue;
-}
-
-main {
-    background-color: '#272b30';
+.alert-info {
+    background-color: white !important;
 }

@@ -16,7 +16,7 @@ func calSetup(w http.ResponseWriter, r *http.Request) {
 
 func setAndInsertBlock(t *sql.Tx, block TimeBlock, newDate time.Time) error {
 	block.setDay(newDate)
-	err := block.insertBlock()
+	_, err := block.insert()
 	if err != nil {
 		t.Rollback()
 		return err

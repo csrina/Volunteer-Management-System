@@ -58,7 +58,8 @@ $(document).ready(function() {
             center: 'prev, title, next',
             right: 'agendaWeek, month'
         },
-        agendaEventMinHeight: 5,
+        agendaEventMinHeight: 100,
+        contentHeight: 'auto',
         defaultView: "agendaWeek",
         events: "/api/v1/events/scheduler",    // link to events (bookings + blocks feed)
         allDayDefault: false,        // blocks are not all-day unless specified
@@ -66,15 +67,14 @@ $(document).ready(function() {
         theme: "bootstrap",
         editable: false,                 // Need to use templating engine to change bool based on user's rolego ,
         eventRender: function(event, element, view) {
-            element.find('.fc-time').css("font-size", "1.5em");
-            element.find('.fc-title').css("font-size", "1.5em");
-            if (event.booked) {
-                element.find('.fc-title').prepend("<span class='glyphicon glyphicon-pushpin' aria-valuetext='You are booked in this block!'></span><br/>");
-            } else {
-                element.find('.fc-title').prepend("<br/>");
-            }
-            // noinspection Annotator
+            element.find('.fc-time').css("font-size", "1.2em");
+            element.find('.fc-title').prepend("<br/>");
+            element.find('.fc-title').css("font-size", "1.2em");            // noinspection Annotator
             element.find('.fc-title').append("<br/>" + event.bookingCount + " / 3<br/>");
+
+            if (event.booked) {
+                element.find('.fc-title').append("<span class='glyphicon glyphicon-pushpin' aria-valuetext='You are booked in this block!'></span><br/>");
+            }
         },
         eventOverlap: function(stillEvent, movingEvent) {
             return stillEvent.color === movingEvent.color;
@@ -95,7 +95,7 @@ $(document).ready(function() {
         },
         // Controls view of agendaWeek
         minTime: '07:00:00',
-        maxTime: '18:00:00',
+        maxTime: '19:00:00',
         allDaySlot: false,       // shows slot @ top for allday events
         slotDuration: '00:30:00' // hourly divisions
     });

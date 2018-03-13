@@ -219,12 +219,14 @@ func loadAdminUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func loadAdminCalendar(w http.ResponseWriter, r *http.Request) {
-	pg, err := loadPage("admincalendar", r)
+	pg, err := loadPage("calendar", r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusForbidden)
 		return
 	}
 	s := tmpls.Lookup("admincalendar.tmpl")
+	pg.Calendar = true
+	pg.DotJS = true
 	s.ExecuteTemplate(w, "admincalendar", pg)
 }
 

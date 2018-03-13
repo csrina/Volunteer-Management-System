@@ -3,18 +3,24 @@
 {{define "header"}}
 <html>
     <head>
-        <title>Caraway Volunteer Management System</title>
+        <title>{{- .Role }} - Caraway Volunteer Management System</title>
         <meta charset="UTF-8">
         <!-- Latest compiled and minified CSS -->       
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://bootswatch.com/3/yeti/bootstrap.min.css">
         <!-- Latest compiled JavaScript -->
         <script type="text/javascript" src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js'></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        {{if eq .Role "Admin"}}
+            <link rel="stylesheet" type="text/css" href="/views/public/css/admin.css">
+            <script src="/views/public/js/admin.js"></script>
+        {{end}}
+        {{if .DotJS}}
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/dot/1.1.2/doT.min.js"></script>
+        {{end}}
         <!-- Provide calendar if page wants it -->
         {{if .Calendar }}
-            <!-- slate theme for calendar -->
-            <link rel="stylesheet" type="text/css" href="https://bootswatch.com/3/slate/bootstrap.min.css">
             <!-- fullCalendar dependencies -->
             <link rel="stylesheet" type='text/css' href='/views/fc/fullcalendar.css'/>
             <!--<script type="text/javascript" src='/views/fc/lib/jquery.min.js'></script> -->
@@ -24,19 +30,21 @@
         {{if .Chart }}
             <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
         {{end}}
-        <!--Select javascript based on pagename (and further by role of user) -- given as data to the template -->
-        {{if eq .PageName "calendar" }}
+        {{if eq .PageName "calendar"}}
             <script type="text/javascript" src='/views/public/js/calendar {{- .Role -}} .js'><%= text/javascript %></script>
         {{else if eq .PageName "dashboard"}}
             <link rel="stylesheet" type="text/css" href="/views/public/css/dashboard.css">
             <script type="text/javascript" src="http://bernii.github.io/gauge.js/dist/gauge.min.js"></script>
             <script type="text/javascript" src="/views/public/js/dashboard.js"></script>
         {{end}}
+
         <script src="/views/public/js/login.js" type="text/javascript"></script>
         <meta name="viewport" content="width=device-width, initial-scale=1">
     </head>
     <body>
-
-    {{template "nav" .}}
-
+    {{if eq .Role "Admin"}}
+        {{template "adminnav" .}}
+    {{else}}
+        {{template "nav" .}}
+    {{end}}
 {{end}}

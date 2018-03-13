@@ -1,7 +1,6 @@
 {{define "admincalendar"}}
 
-{{template "adminheader" .}}
-<script type="text/javascript" src='/views/public/js/calendarAdmin.js'></script>
+{{template "header" .}}
 <script id="tmpl_eventForm" type="x-dot-template">
         <div class="row">
             <div class="col-xs-3">
@@ -18,7 +17,7 @@
                 <select id="room">
                     <option value="" disabled selected hidden>Select a Classroom</option>
                     {{`{{~it :value:index}}`}}
-                        <option value="{{`{{=value.roomId}}`}}">{{`{{=value.roomName}}`}}</option>
+                        <option value="{{`{{=value.roomName}}`}}">{{`{{=value.roomName}}`}}</option>
                     {{`{{~}}`}}
                 </select>
                 <input id="modifier" type="number" value="1">
@@ -29,9 +28,12 @@
 
 <main>
     <div class="main-container">
-        <div class="col-sm-3" id="eventForm"></div>
-        <div class="col-sm-9">
-            <div id="calendar"></div>
+        <div class="row"><div class="col-xs-12"><br></div></div>
+        <div class="row">
+            <div class="col-lg-4" id="eventForm"></div>
+            <div class="col-lg-8">
+                <div id="calendar"></div>
+            </div>
         </div>
     </div>
 </main>

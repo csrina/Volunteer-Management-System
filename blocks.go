@@ -1,6 +1,7 @@
 package main
 
 import (
+
 	"time"
 
 	_ "github.com/lib/pq"
@@ -18,32 +19,40 @@ type TimeBlock struct {
 	Note     string    `db:"note" json:"note"`
 }
 
+func getTimeBlockByID(id int) (*TimeBlock, error) {
+	tb := new(TimeBlock)
+	q := `SELECT * FROM time_block WHERE time_block.block_id = $1`
+	err := db.QueryRow(q, id).Scan(&tb.ID, &tb.Start, &tb.End, &tb.Room, &tb.Modifier, &tb.Note)
+	return tb, err
+}
+
 /*
- * Inserts tb into the database.
+ * Inserts tb into the database, returns the id (and actively sets the structs ID field in place)
  */
-func (tb *TimeBlock) insertBlock() error {
+func (tb *TimeBlock) insert() (int, error) {
+
 	q := `INSERT INTO time_block (block_start, block_end, room_id, modifier, note)
 			VALUES ($1, $2, $3, $4, $5)
 			RETURNING block_id`
 	err := db.QueryRow(q, tb.Start, tb.End, tb.Room, tb.Modifier, tb.Note).Scan(&tb.ID)
 	if err != nil {
-		return err
+		return -1, err
 	}
-	return nil
+	return tb.ID, nil
+
 }
 
 /*
  * Saves the state of the block (tb)
  * to the db. Where tb is an existing block in the db
  */
-func (tb *TimeBlock) updateBlock() error {
+func (tb *TimeBlock) update() error {
 	q := `UPDATE time_block
 			SET(block_id, block_start, block_end, room_id, modifier, note)
 			= ($1, $2, $3, $4, $5, $6)
 		WHERE (time_block.block_id = $1)`
 
 	_, err := db.Exec(q, tb.ID, tb.Start, tb.End, tb.Room, tb.Modifier, tb.Note)
-
 	return err
 }
 

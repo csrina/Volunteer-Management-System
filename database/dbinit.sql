@@ -15,9 +15,9 @@ CREATE TABLE users (
 
 CREATE TABLE room (
     room_id         SERIAL      PRIMARY KEY,
-    room_name       TEXT,
+    room_name       TEXT        UNIQUE,
     teacher_id     	INT         REFERENCES users (user_id),
-	children		INT,
+	  children		INT,
     room_num        TEXT
 );
 
