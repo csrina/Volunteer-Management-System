@@ -172,8 +172,8 @@ function submitNewFamily() {
         return;
     }
 
-    let newFamily = {"familyName":surname, "parentOne":par1,
-                    "parentTwo":par2, "children":numChild};
+    let newFamily = {"familyName":surname, "parentOne":parseInt(par1),
+                    "parentTwo":parseInt(par2), "children":numChild};
     let xhttp = new XMLHttpRequest();
     xhttp.addEventListener("loadend", () => {
         if (xhttp.status > 300) {
@@ -183,6 +183,7 @@ function submitNewFamily() {
         familyList();
     });
     xhttp.open("POST", "http://localhost:8080/api/v1/admin/families");
+    console.log(JSON.stringify(newFamily));
     xhttp.send(JSON.stringify(newFamily));
 }
 

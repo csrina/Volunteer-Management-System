@@ -50,9 +50,9 @@ type userShort struct {
 type familyFull struct {
 	FamilyID   int           `json:"familyId" db:"family_id"`
 	FamilyName string        `json:"familyName" db:"family_name"`
-	ParentOne  sql.NullInt64 `json:"parentOne" db:"parent_one"`
+	ParentOne  int           `json:"parentOne" db:"parent_one"`
 	ParentTwo  sql.NullInt64 `json:"parentTwo" db:"parent_two"`
-	Children   sql.NullInt64 `json:"children" db:"children"`
+	Children   int           `json:"children" db:"children"`
 }
 
 type familyDetailed struct {
@@ -67,6 +67,8 @@ func createFamily(w http.ResponseWriter, r *http.Request) {
 	family := familyFull{}
 	decoder := json.NewDecoder(r.Body)
 	decoder.Decode(&family)
+
+	fmt.Printf("%v#\n", family)
 
 	q := `INSERT INTO family (family_name, parent_one, parent_two, children)
 			VALUES ($1, $2, $3, $4)`
@@ -322,6 +324,7 @@ func loadAdminDash(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s := tmpls.Lookup("admindashboard.tmpl")
+	pg.DotJS = true
 	s.ExecuteTemplate(w, "admindashboard", pg)
 }
 
@@ -332,6 +335,7 @@ func loadAdminUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s := tmpls.Lookup("adminusers.tmpl")
+	pg.DotJS = true
 	s.ExecuteTemplate(w, "adminusers", pg)
 }
 
@@ -355,6 +359,8 @@ func loadAdminReports(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s := tmpls.Lookup("adminreports.tmpl")
+	pg.DotJS = true
+	pg.Chart = true
 	s.ExecuteTemplate(w, "adminreports", pg)
 }
 
@@ -365,5 +371,6 @@ func loadAdminClasses(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s := tmpls.Lookup("adminclasses.tmpl")
+	pg.DotJS = true
 	s.ExecuteTemplate(w, "adminclasses", pg)
 }
