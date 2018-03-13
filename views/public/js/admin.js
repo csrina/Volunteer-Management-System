@@ -131,7 +131,7 @@ function submitUserEdit() {
         let newLName = document.querySelector("#lName").value;
         let newEmail = document.querySelector("#email").value;
         let newPhone = document.querySelector("#phoneNum").value; 
-        let newUName = `${newLName}${newFName}`.toLowerCase();
+        let newUName = `${newLName}_${newFName}`.toLowerCase();
         let xhttp = new XMLHttpRequest();
         xhttp.addEventListener("loadend", () => {
             if (xhttp.status > 300) {
