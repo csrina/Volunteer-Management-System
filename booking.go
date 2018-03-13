@@ -71,14 +71,14 @@ func (b *bookingBlock) deleteBooking() error {
 
 /* Joined relation of time_block and booking_block */
 type Booking struct {
-	BookingID 	int       	`db:"booking_id" json:"bookingId"`
-	BlockID   	int       	`db:"block_id" json:"blockId"`
-	FamilyID  	int       	`db:"family_id" json:"familyId"`
-	UserID    	int       	`db:"user_id" json:"userID"`
-	Start 		time.Time 	`db:"block_start" json:"endBlock"`
-	End   		time.Time 	`db:"block_end" json:"endBlock"`
-	RoomID		int			`db:"room_id" json:"room_id"`
-	Modifier    int         `db:"modifier" json:"modifier"`
+	BookingID int       `db:"booking_id" json:"bookingId"`
+	BlockID   int       `db:"block_id" json:"blockId"`
+	FamilyID  int       `db:"family_id" json:"familyId"`
+	UserID    int       `db:"user_id" json:"userID"`
+	Start     time.Time `db:"block_start" json:"endBlock"`
+	End       time.Time `db:"block_end" json:"endBlock"`
+	RoomID    int       `db:"room_id" json:"room_id"`
+	Modifier  int       `db:"modifier" json:"modifier"`
 }
 
 /*
@@ -106,7 +106,7 @@ func (b *Booking) getBookingID() (int, error) {
  */
 func (b *Booking) getTimesMap() (map[string]time.Time, error) {
 	// Test if dates are set (note events which are infinite, will always go thru DB)
-	if (b.Start.IsZero() && b.End.IsZero()) {
+	if b.Start.IsZero() && b.End.IsZero() {
 		q := `SELECT block_start, block_end FROM time_block 
 				WHERE block_id = $1`
 		err := db.QueryRow(q, b.BlockID).Scan(&b.Start, &b.End)
@@ -115,9 +115,9 @@ func (b *Booking) getTimesMap() (map[string]time.Time, error) {
 		}
 	}
 	b.Start = time.Date(b.Start.Year(), b.Start.Month(), b.Start.Day(),
-							b.Start.Hour(), b.Start.Minute(), 0, 0, time.Local);
+		b.Start.Hour(), b.Start.Minute(), 0, 0, time.Local)
 	b.End = time.Date(b.End.Year(), b.End.Month(), b.End.Day(),
-		b.End.Hour(), b.End.Minute(), 0, 0, time.Local);
+		b.End.Hour(), b.End.Minute(), 0, 0, time.Local)
 	times := make(map[string]time.Time)
 	times["start"] = b.Start
 	times["end"] = b.End
@@ -140,7 +140,7 @@ func (b *Booking) isLegal() (bool, string) {
 		return false, "event is full"
 	}
 	// Check if overlaps with existing booking of user
-	q = 	`SELECT booking_id FROM booking NATURAL JOIN time_block
+	q = `SELECT booking_id FROM booking NATURAL JOIN time_block
 					WHERE booking.user_id = $1 AND booking.block_id = time_block.block_id 
 						AND (
 								(time_block.block_start <= $2 AND $2 <= time_block.block_end)
@@ -274,4 +274,3 @@ func (f *Family) getFamilyBookings(start time.Time, end time.Time) ([]Booking, e
 	}
 	return bookBlocks, nil
 }
-
