@@ -45,11 +45,13 @@ function familyData() {
 	for (let i=0; i<httpData.length;i++) {
 	    let name = httpData[i].familyName;
 	    let hours = httpData[i].weekHours;
+	    console.log(name);
+	    console.log(hours);
 	    barData.datasets.push({
 		label: name,
 		backgroundColor: colourList[total%8],
 		borderWidth: 1,
-		data: hours});
+		data: $(hours)});
 	    total ++;
 	}
 	window.myBar.update();
