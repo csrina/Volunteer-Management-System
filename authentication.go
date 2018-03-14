@@ -133,6 +133,8 @@ func auth(w http.ResponseWriter, username string, password []byte, role int) {
 }
 
 func checkPassword(w http.ResponseWriter, r *http.Request) {
+	logger.Println("check if password is good")
+	w.WriteHeader(http.StatusUnauthorized)
 
 }
 
