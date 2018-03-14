@@ -131,3 +131,11 @@ func auth(w http.ResponseWriter, username string, password []byte, role int) {
 	logger.Printf("Password is correct for user %v\n", username)
 
 }
+
+func checkPassword(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func updatePassword(w http.ResponseWriter, r *http.Request) {
+
+}
