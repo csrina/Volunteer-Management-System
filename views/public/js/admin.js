@@ -56,7 +56,7 @@ function familyData() {
 	}
 	window.myBar.update();
     });
-    xhttp.open("GET", "http://localhost:8080/api/v1/admin/reports");
+    xhttp.open("GET", "http://localhost:8080/api/v1/charts");
     xhttp.send();
 }
     

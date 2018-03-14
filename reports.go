@@ -5,6 +5,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -17,7 +18,57 @@ type familyShort struct {
 	WeekHours  float64 `json:"weekHours"`
 }
 
+type familyMonth struct {
+	FamilyID   int       `json:"familyId" db:"family_id"`
+	FamilyName string    `json:"familyName" db:"family_name"`
+	Weeks      []float64 `json:"weeks"`
+}
+
+func setWeekConstraint(time time.Time) (start, end time.Time) {
+	check := now.New(time)
+	if check.BeginningOfWeek().Before(check.BeginningOfMonth()) {
+		start = check.BeginningOfMonth()
+	} else {
+		start = check.BeginningOfWeek()
+	}
+	if check.EndOfWeek().After(check.EndOfMonth()) {
+		end = check.EndOfMonth()
+	} else {
+		end = check.EndOfWeek()
+	}
+	return start, end
+}
+
+func monthlyReport(w http.ResponseWriter, r *http.Request) {
+	q := `SELECT family_id, family_name
+			FROM family`
+
+	families := []familyShort{}
+	month := []familyMonth{}
+
+	fmt.Printf("\n\nhere\n\n")
+
+	err := db.Select(&families, q)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	start := time.Now()
+	end := time.Now()
+	for i, fam := range families {
+		for end.Before(now.EndOfMonth()) {
+			start, end = setWeekConstraint(start)
+			hours := familyHoursBooked(fam.FamilyID, start, end)
+			month[i].Weeks = append(month[i].Weeks, hours)
+		}
+	}
+	encoder := json.NewEncoder(w)
+	encoder.Encode(month)
+}
+
 func defaultReport(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("\n\nwhy are you here\n\n")
 	q := `SELECT family_id, family_name
 			FROM family`
 
@@ -33,26 +84,6 @@ func defaultReport(w http.ResponseWriter, r *http.Request) {
 	for i, fam := range families {
 		hours := familyHoursBooked(fam.FamilyID,
 			now.BeginningOfWeek(), now.EndOfWeek())
-		families[i].WeekHours = hours
-	}
-	encoder := json.NewEncoder(w)
-	encoder.Encode(families)
-}
-
-func monthlyReport(w http.ResponseWriter, r *http.Request) {
-	q := `SELECT family_id, family_name
-			FROM family`
-
-	families := []familyShort{}
-
-	err := db.Select(&families, q)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	for i, fam := range families {
-		hours := familyHoursBooked(fam.FamilyID,
-			now.BeginningOfMonth(), now.EndOfMonth())
 		families[i].WeekHours = hours
 	}
 	encoder := json.NewEncoder(w)
