@@ -5,7 +5,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -16,12 +15,15 @@ type familyShort struct {
 	FamilyID   int     `json:"familyId" db:"family_id"`
 	FamilyName string  `json:"familyName" db:"family_name"`
 	WeekHours  float64 `json:"weekHours"`
+	Children   int     `json:"children" db:"children"`
 }
 
 type familyMonth struct {
 	FamilyID   int       `json:"familyId" db:"family_id"`
 	FamilyName string    `json:"familyName" db:"family_name"`
 	Weeks      []float64 `json:"weeks"`
+	Month      float64   `json:"month"`
+	Children   int       `json:"children" db:"children"`
 }
 
 func setWeekConstraint(time time.Time) (start, end time.Time) {
@@ -39,36 +41,45 @@ func setWeekConstraint(time time.Time) (start, end time.Time) {
 	return start, end
 }
 
+func setHourGoal(children int) float64 {
+	if children == 1 {
+		return 2.5
+	}
+	return 5
+}
+
 func monthlyReport(w http.ResponseWriter, r *http.Request) {
-	q := `SELECT family_id, family_name
+	q := `SELECT family_id, family_name, children
 			FROM family`
 
 	families := []familyShort{}
-	month := []familyMonth{}
-
-	fmt.Printf("\n\nhere\n\n")
-
 	err := db.Select(&families, q)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	start := time.Now()
-	end := time.Now()
+	month := []familyMonth{}
+
 	for i, fam := range families {
-		for end.Before(now.EndOfMonth()) {
+		goal := setHourGoal(fam.Children)
+		start := now.BeginningOfMonth()
+		end := time.Now()
+		month = append(month, familyMonth{})
+		for start.Before(now.EndOfMonth()) {
 			start, end = setWeekConstraint(start)
 			hours := familyHoursBooked(fam.FamilyID, start, end)
-			month[i].Weeks = append(month[i].Weeks, hours)
+			month[i].Weeks = append(month[i].Weeks, hours-goal)
+			start = start.AddDate(0, 0, 8)
 		}
+		month[i].FamilyID = fam.FamilyID
+		month[i].FamilyName = fam.FamilyName
 	}
 	encoder := json.NewEncoder(w)
 	encoder.Encode(month)
 }
 
 func defaultReport(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("\n\nwhy are you here\n\n")
 	q := `SELECT family_id, family_name
 			FROM family`
 
