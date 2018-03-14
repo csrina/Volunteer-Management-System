@@ -100,7 +100,6 @@ func createRouter() (*mux.Router, error) {
 	r.HandleFunc("/calendar", loadCalendar)
 	r.HandleFunc("/donate", loadDonate)
 	r.HandleFunc("/change_password", loadPassword)
-	
 
 	return r, nil
 }
@@ -132,9 +131,9 @@ func apiRoutes(r *mux.Router) {
 	s.HandleFunc("/admin/families", updateFamily).Methods("GET")
 	s.HandleFunc("/admin/dashboard", defaultReport).Methods("GET")
 	s.HandleFunc("/dashboard", getDashData).Methods("GET")
-	
-	s.HandleFunc("/passwords", checkPassword).("GET")
-	s.HandleFunc("/passwords", updatePassword).("PUT")
+
+	s.HandleFunc("/passwords", checkPassword).Methods("GET")
+	s.HandleFunc("/passwords", updatePassword).Methods("PUT")
 
 	/* Events JSON routes for scheduler system */
 	s.HandleFunc("/events/{target}", getEvents).Methods("GET")
@@ -143,7 +142,7 @@ func apiRoutes(r *mux.Router) {
 	l.HandleFunc("/facilitator/", loginHandler).Methods("POST")
 	l.HandleFunc("/teacher/", loginHandler).Methods("POST")
 	l.HandleFunc("/admin/", loginHandler).Methods("POST")
-	
+
 }
 
 //noinspection ALL

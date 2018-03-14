@@ -80,7 +80,7 @@ func parseTemplates() error {
 
 func startDb() error {
 	// open config file
-	logger.Println("Reading config file...")
+	logger.Println("Reading DB data from config file...")
 
 	configFile, err := os.Open(".config")
 	if err != nil {
@@ -105,8 +105,6 @@ func startDb() error {
 }
 
 func main() {
-	// open config file
-	logger.Println("Reading config file...")
 	err := startDb()
 	if err != nil {
 		panic(err)
