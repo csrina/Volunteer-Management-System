@@ -16,9 +16,11 @@
                     <li class="nav-item {{if eq .PageName "calendar"}}active{{end}}">
                         <a class="nav-link" href="/calendar">Calendar</a>
                     </li>
+                    {{if eq .Role "Facilitator"}}
                     <li class="nav-item {{if eq .PageName "donate"}}active{{end}}">
                         <a class="nav-link" href="/donate">Donate</a>
                     </li>
+                    {{end}}
                     <li class="nav-item {{if eq .PageName "password"}}active{{end}}">
                         <a class="nav-link" href="/change_password">Change Password</a>
                     </li>
