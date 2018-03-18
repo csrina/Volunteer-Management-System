@@ -2,6 +2,12 @@ CREATE DATABASE caraway;
 
 \c caraway;
 
+CREATE TABLE family (
+    family_id       SERIAL      PRIMARY KEY,
+    family_name     TEXT,
+    children	    INT
+);
+
 CREATE TABLE users (
     user_id         SERIAL      PRIMARY KEY,
     user_role       INT         DEFAULT 1,
@@ -10,23 +16,18 @@ CREATE TABLE users (
     first_name      TEXT,
     last_name       TEXT,
     email           TEXT,
-    phone_number    TEXT 
+    phone_number    TEXT,
+    family_id       INT		REFERENCES family,
+    bonus_hours     FLOAT,
+    bonus_note 	    TEXT
 );
 
 CREATE TABLE room (
     room_id         SERIAL      PRIMARY KEY,
     room_name       TEXT        UNIQUE,
-    teacher_id     	INT         REFERENCES users (user_id),
-	  children		INT,
+    teacher_id      INT         REFERENCES users (user_id),
+    children	    INT,
     room_num        TEXT
-);
-
-CREATE TABLE family (
-    family_id       SERIAL      PRIMARY KEY,
-    family_name     TEXT,        
-    parent_one      INT         REFERENCES users (user_id),
-    parent_two      INT         REFERENCES users (user_id),
-    children		    INT
 );
 
 CREATE TABLE time_block (
@@ -46,11 +47,11 @@ CREATE TABLE booking (
     user_id         INT         REFERENCES users (user_id),
     booking_start   TIMESTAMP,
     booking_end     TIMESTAMP,
-    CONSTRAINT unq_booking UNIQUE(block_id, family_id, user_id)
+    CONSTRAINT 	    unq_booking UNIQUE(block_id, family_id, user_id)
 );
 
 CREATE TABLE clocking (
-    booking_id      SERIAL      REFERENCES booking (booking_id),
+    booking_id      SERIAL	 REFERENCES booking (booking_id),
     clock_in        TIMESTAMP,
     clock_out       TIMESTAMP,
     CONSTRAINT 	    unq_clocking UNIQUE(booking_id, clock_in, clock_out)
