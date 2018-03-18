@@ -5,9 +5,6 @@ function enterPressed(e) {
         if (t == true) {
             change_pwd();
         }
-        else {
-            console.log("not quite yet");
-        }
     }
 }
 
@@ -78,11 +75,8 @@ function eraseTextFields() {
 }
 
 function showToaster(type, msg) {
-
-    Command: toastr[type](msg);
-
     toastr.options = {
-        "closeButton": false,
+        "closeButton": true,
         "debug": false,
         "newestOnTop": true,
         "progressBar": false,
@@ -98,23 +92,25 @@ function showToaster(type, msg) {
         "showMethod": "fadeIn",
         "hideMethod": "fadeOut"
     };
+
+    Command: toastr[type](msg);
 }
 
 function addProgressBar() {
-    var location = document.getElementsByClassName('container');
-    var progress = location[0];
-    progress.insertAdjacentHTML('afterbegin',
-        '<div class="progress" id="progress_div" style="margin-bottom: 20px"> <div id="progress" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: 25%"></div><br></div>')
+    var location = document.getElementById('progress_div');
+    updateProgress("30%");
+    location.classList.remove("d-none");
 }
 
 function updateProgress(precent) {
-    var p = document.getElementById('progress')
+    var p = document.getElementById('progress_bar');
     p.style.width = precent;
 }
 
 function removeProgress() {
     var elem = document.getElementById('progress_div');
-    elem.parentNode.removeChild(elem);
+    updateProgress("0%");
+    elem.classList.add("d-none");
 }
 
 function updateDisplay(lbl, txt, msg, state) {
@@ -223,57 +219,35 @@ function check() {
     }
 }
 
-function change_pwd() {
-    //disable fields, set fields to neutral, isFailedPassword, is FailedReg 
-    updateStatus(true, true, false, false);
-
-    var ready = check();
-    if (ready == false) {
-        updateStatus(false, false, false, false);
-        return;
-    }
-    addProgressBar();
-    showToaster("info", "Updating Password ......");
-
-    // check old password
-    var old = document.getElementById('old_pwd').value;
-    const api_call = "/api/v1/passwords";
+function check_old_pwd(api_call, data, new_data) {
     const xmlhttp = new XMLHttpRequest(); // new HttpRequest instance
     xmlhttp.onreadystatechange = function() {
-        check();
         if (xmlhttp.readyState !== 4) { return; }
         if (xmlhttp.status !== 202) {
-            console.log("Failed to auth");
             console.log(xmlhttp.status);
             console.log(xmlhttp.responseText);
             showToaster("error", "Updating password failed.");
             removeProgress();
-            setAlertText('<strong>Warning!</strong> Password update failed, could not authenticate user. Please enter correct password.')
+            setAlertText('<strong>Warning!</strong> Password update failed, could not authenticate user. Please enter correct password.');
             updateStatus(false, false, true, true);
-            return;
+            return false;
         }
         else {
             updateStatus(false, false, false, false);
-            updateProgress('60%');
-            console.log("User authenticated");
-            alert("Old Password Passed, next up updating password");
+            updateProgress("80%");
+            set_new_pwd(api_call, new_data);
+            return true;
         }
     };
     xmlhttp.open("POST", api_call, true);
     xmlhttp.setRequestHeader("Content-Type", "application/json");
-
-    const data = [];
-    for (let i = 0; i < old.length; i++) {
-        data.push(old.charCodeAt(i));
-    }
-
     xmlhttp.send(JSON.stringify({ password: data }));
 
-    // update new password
-    var newp = document.getElementById('new_pwd').value;
+}
+
+function set_new_pwd(api_call, data) {
     const xmlhttp2 = new XMLHttpRequest(); // new HttpRequest instance
     xmlhttp2.onreadystatechange = function() {
-        check();
         if (xmlhttp2.readyState !== 4) { return; }
         if (xmlhttp2.status !== 200) {
             console.log("Failed to update Password");
@@ -281,27 +255,48 @@ function change_pwd() {
             console.log(xmlhttp2.responseText);
             showToaster("error", "Updating password failed.");
             removeProgress();
-            setAlertText('<strong>Warning!</strong> Password update failed, could not update password. Please try again.')
+            setAlertText('<strong>Warning!</strong> Password update failed, could not update password. Please try again.');
             updateStatus(false, true, false, true);
-            return;
+            return false;
         }
         else {
             showToaster("success", "Password Updated successfully ");
             updateStatus(false, true, false, false);
             updateProgress('100%');
-            console.log("New Password set");
-            alert("Password updated");
             eraseTextFields();
             removeProgress();
+            return true;
         }
     };
     xmlhttp2.open("PUT", api_call, true);
     xmlhttp2.setRequestHeader("Content-Type", "application/json");
-    var data2 = [];
-    for (let i = 0; i < newp.length; i++) {
-        data2.push(newp.charCodeAt(i));
-    }
-    console.log(data2);
 
-    xmlhttp2.send(JSON.stringify({ password: data2 }));
+    xmlhttp2.send(JSON.stringify({ password: data }));
+}
+
+function change_pwd() {
+    //disable fields, set fields to neutral, isFailedPassword, is FailedReg 
+    updateStatus(true, true, false, false);
+
+    var ready = check();
+    if (!ready) {
+        updateStatus(false, false, false, false);
+        return false;
+    }
+    addProgressBar();
+    showToaster("info", "Updating Password ......");
+    const api_call = "/api/v1/passwords";
+
+    // check old password
+    var old = document.getElementById('old_pwd').value;
+    const old_data = [];
+    for (let i = 0; i < old.length; i++) {
+        old_data.push(old.charCodeAt(i));
+    }
+    var newp = document.getElementById('new_pwd').value;
+    var new_data = [];
+    for (let i = 0; i < newp.length; i++) {
+        new_data.push(newp.charCodeAt(i));
+    }
+    check_old_pwd(api_call, old_data, new_data);
 }
