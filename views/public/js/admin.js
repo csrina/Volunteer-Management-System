@@ -18,8 +18,9 @@ function familyData() {
 	
 	var ctx = document.getElementById('skills').getContext('2d');
 	var barData = {
-	    //labels: ['FirstWeek', 'SecondWeek', 'ThirdWeek', 'FourthWeek'],
-	    labels: ['Week'],
+	    labels: ['FirstWeek', 'SecondWeek', 'ThirdWeek',
+		     'FourthWeek', 'FifthWeek', 'SixthWeek'],
+	    //labels: ['Week'],
 	    datasets: []
 	};
 	
@@ -44,7 +45,7 @@ function familyData() {
 	var total = 0;
 	for (let i=0; i<httpData.length;i++) {
 	    let name = httpData[i].familyName;
-	    let hours = httpData[i].weekHours;
+	    let hours = httpData[i].weeks;
 	    barData.datasets.push({
 		label: name,
 		backgroundColor: colourList[total%8],
@@ -54,7 +55,7 @@ function familyData() {
 	}
 	window.myBar.update();
     });
-    xhttp.open("GET", "http://localhost:8080/api/v1/admin/reports");
+    xhttp.open("GET", "http://localhost:8080/api/v1/charts");
     xhttp.send();
 }
     
