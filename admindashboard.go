@@ -32,14 +32,16 @@ type roomShort struct {
 }
 
 type userFull struct {
-	UserID    int    `json:"userId" db:"user_id"`
-	UserRole  int    `json:"userRole" db:"user_role"`
-	UserName  string `json:"userName" db:"username"`
-	Password  []byte `json:"password" db:"password"`
-	FirstName string `json:"firstName" db:"first_name"`
-	LastName  string `json:"lastName" db:"last_name"`
-	Email     string `json:"email" db:"email"`
-	Phone     string `json:"phoneNumber" db:"phone_number"`
+	UserID     int    `json:"userId" db:"user_id"`
+	UserRole   int    `json:"userRole" db:"user_role"`
+	UserName   string `json:"userName" db:"username"`
+	Password   []byte `json:"password" db:"password"`
+	FirstName  string `json:"firstName" db:"first_name"`
+	LastName   string `json:"lastName" db:"last_name"`
+	Email      string `json:"email" db:"email"`
+	Phone      string `json:"phoneNumber" db:"phone_number"`
+	BonusHours int    `json:"bonusHours" db:"bonus_hours"`
+	BonusNote  string `json:"bonusNote" db:"bonus_note"`
 }
 
 type userShort struct {
@@ -178,7 +180,7 @@ func getUserList(w http.ResponseWriter, r *http.Request) {
 		encoder := json.NewEncoder(w)
 		encoder.Encode(userList)
 	} else {
-		q := `SELECT user_id, user_role, last_name, first_name, username, email, phone_number
+		q := `SELECT user_id, user_role, last_name, first_name, username, email, phone_number, bonus_hours, bonus_note
 				FROM users
 				WHERE user_id = ($1)`
 		user := userFull{}
@@ -208,11 +210,12 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	q := `INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number)
-			VALUES ($1, $2, $3, $4, $5, $6, $7)`
+	q := `INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number, bonus_hours, bonus_note)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
 
 	_, err = db.Exec(q, newUser.UserRole, newUser.UserName, newPass,
-		newUser.FirstName, newUser.LastName, newUser.Email, newUser.Phone)
+		newUser.FirstName, newUser.LastName, newUser.Email, newUser.Phone,
+		newUser.BonusHours, newUser.BonusNote)
 	if err != nil {
 		logger.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -227,10 +230,10 @@ func updateUser(w http.ResponseWriter, r *http.Request) {
 	decoder.Decode(&user)
 
 	q := `UPDATE users 
-			SET username = $2, first_name = $3, last_name = $4, email = $5, phone_number = $6
+			SET username = $2, first_name = $3, last_name = $4, email = $5, phone_number = $6, bonus_hours = $7, bonus_note = $8
 			WHERE user_id = $1`
 
-	_, err := db.Exec(q, user.UserID, user.UserName, user.FirstName, user.LastName, user.Email, user.Phone)
+	_, err := db.Exec(q, user.UserID, user.UserName, user.FirstName, user.LastName, user.Email, user.Phone, user.BonusHours, user.BonusNote)
 	if err != nil {
 		logger.Println(err)
 		w.WriteHeader(http.StatusBadRequest)

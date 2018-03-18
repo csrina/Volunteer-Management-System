@@ -188,6 +188,10 @@ function submitNewFamily() {
     xhttp.send(JSON.stringify(newFamily));
 }
 
+function familyInfo() {
+
+}
+
 function submitUserEdit() {  
         let fields = document.querySelectorAll("input");
         for(let i = 0; i < fields.length; i++) {
@@ -227,7 +231,7 @@ function newUser() {
         
         let fields = document.querySelectorAll("input");
         for(let i = 0; i < fields.length; i++) {
-            if (fields[i].value == "") {
+            if (fields[i].value == "" && fields[i].id != "bonusNote") {
                 alert('Please fill out all sections');
                 return;
             } 
@@ -247,6 +251,8 @@ function newUser() {
         let newPhone = document.querySelector("#phoneNum").value;
         let newUName = `${newLName}${newFName}`.toLowerCase();
         let newPass = document.querySelector("#pass1").value;
+        let bHours = parseInt(document.querySelector("#bonusHours").value);
+        let bNote = document.querySelector("#bonusNote").value;
         let newPassData = [];
         for (let i = 0; i < newPass.length; i++) {
             newPassData.push(newPass.charCodeAt(i));
@@ -266,8 +272,12 @@ function newUser() {
         xhttp.open("POST", "http://localhost:8080/api/v1/admin/users");
         xhttp.send(JSON.stringify({userrole:newRole, username:newUName,
                     password:newPassData, firstname: newFName, lastname:newLName,
-                    email:newEmail, phoneNumber:newPhone}));
+                    email:newEmail, phoneNumber:newPhone, bonusHours:bHours, bonusNote:bNote}));
     });
+}
+
+function userInfo() {
+
 }
 
 function listClasses() {
