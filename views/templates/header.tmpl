@@ -3,7 +3,7 @@
 {{define "header"}}
 <html>
     <head>
-        <title>{{- .Role }} - Caraway Volunteer Management System</title>
+        <title>{{- .Role}} - Caraway Volunteer Management System</title>
         <meta charset="UTF-8">
         <!-- Latest compiled and minified CSS -->
         <link href="https://use.fontawesome.com/releases/v5.0.8/css/all.css" rel="stylesheet">
@@ -21,6 +21,7 @@
         {{end}}
         {{if .DotJS}}
             <script src="https://cdnjs.cloudflare.com/ajax/libs/dot/1.1.2/doT.min.js"></script>
+            <link rel="stylesheet" type="text/css" href="/views/public/css/admin.css">
         {{end}}
         <!-- Provide calendar if page wants it -->
         {{if .Calendar }}
@@ -32,6 +33,7 @@
         {{end}}
         {{if .Chart }}
             <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js"></script>
         {{end}}
         {{if eq .PageName "calendar"}}
             <script type="text/javascript" src='/views/public/js/calendar {{- .Role -}} .js'><%= text/javascript %></script>
