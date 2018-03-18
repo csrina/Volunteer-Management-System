@@ -131,7 +131,7 @@ func (dd *DashData) updateHoursData(fam Family, today time.Time) (*DashData, err
 	} else if today.Weekday() == time.Saturday {
 		today = today.AddDate(0, 0, 2)
 	}
-	now.FirstDayMonday = true
+	now.Monday()
 	nowToday := now.New(today)                // We use this to determine start of week, so it should be the adjusted today
 	startOfWeek := nowToday.BeginningOfWeek() // if weekend, this is next week's monday
 	dd.EndOfPeriod = nowToday.EndOfWeek()
@@ -159,7 +159,7 @@ func (dd *DashData) updateHoursData(fam Family, today time.Time) (*DashData, err
 			dd.HoursBooked += duration // Time is after today, but before week end --> booked hours
 		}
 	}
-	dd.HoursBooked = math.Trunc(dd.HoursBooked * 100) / 100
-	dd.HoursDone = math.Trunc(dd.HoursDone * 100) / 100
+	dd.HoursBooked = math.Trunc(dd.HoursBooked*100) / 100
+	dd.HoursDone = math.Trunc(dd.HoursDone*100) / 100
 	return dd, nil
 }

@@ -16,7 +16,7 @@
                             <div class="input-group-prepend">
                                 <label class="input-group-text" for="usr" style="font-size: 1rem;"><span class="fas fa-user"></span></label>
                             </div>
-                            <input type="text" class="form-control text-left" id="usr" placeholder="Username">
+                            <input type="text" class="form-control text-left" id="usr" placeholder="Username" onkeypress="return enterPressed(event)">
                         </div>
                     </div>
                     <div class="form-group" id="pwdgroup">
@@ -24,7 +24,7 @@
                             <div class="input-group-prepend">
                                 <label class="input-group-text" for="pwd" style="font-size: 1rem;"><span class="fas fa-key"></span></label>
                             </div>
-                            <input type="password" class="form-control text-left" id="pwd" placeholder="Password">
+                            <input type="password" class="form-control text-left" id="pwd" placeholder="Password" onkeypress="return enterPressed(event)">
                         </div>
                     </div>           
                     <div id="errorbox">

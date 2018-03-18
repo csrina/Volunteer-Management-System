@@ -131,6 +131,8 @@ func apiRoutes(r *mux.Router) {
 	s.HandleFunc("/admin/dashboard", defaultReport).Methods("GET")
 	s.HandleFunc("/dashboard", getDashData).Methods("GET")
 
+	s.HandleFunc("/passwords", checkPassword).Methods("POST")
+	s.HandleFunc("/passwords", updatePassword).Methods("PUT")
 	s.HandleFunc("/charts", monthlyReport).Methods("GET")
 
 	/* Events JSON routes for scheduler system */
@@ -140,6 +142,7 @@ func apiRoutes(r *mux.Router) {
 	l.HandleFunc("/facilitator/", loginHandler).Methods("POST")
 	l.HandleFunc("/teacher/", loginHandler).Methods("POST")
 	l.HandleFunc("/admin/", loginHandler).Methods("POST")
+
 }
 
 //noinspection ALL

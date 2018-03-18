@@ -74,16 +74,14 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	var role int
 	if strings.Contains(cur, "facilitator") {
 		role = 1
-		session.Values["role"] = 1
 	} else if strings.Contains(cur, "teacher") {
 		role = 2
-		session.Values["role"] = 2
 	} else if strings.Contains(cur, "admin") {
 		role = 3
-		session.Values["role"] = 3
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+	session.Values["role"] = role
 	session.Save(r, w)
 	auth(w, u.Username, u.Password, role)
 
@@ -129,5 +127,88 @@ func auth(w http.ResponseWriter, username string, password []byte, role int) {
 	}
 	w.WriteHeader(http.StatusAccepted)
 	logger.Printf("Password is correct for user %v\n", username)
+
+}
+
+func checkPassword(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var u User
+	err := decoder.Decode(&u)
+	if err != nil {
+		logger.Println(err)
+	}
+	defer r.Body.Close()
+	session, err := store.Get(r, "loginSession")
+	if err != nil {
+		//http.Error(w, err.Error(), http.StatusInternalServerError)
+		session.Values["username"] = nil
+		session.Save(r, w)
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+
+	// Retrieve our struct and type-assert it
+	uname, ok := session.Values["username"].(string)
+	if !ok {
+		logger.Printf("error occured while retriving sesion value")
+		return
+	}
+	role, ok := session.Values["role"].(int)
+	if !ok {
+		logger.Printf("error occured while retriving sesion value")
+		return
+	}
+	auth(w, uname, u.Password, role)
+}
+
+func updatePassword(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var u User
+	err := decoder.Decode(&u)
+	if err != nil {
+		logger.Println(err)
+	}
+	defer r.Body.Close()
+	session, err := store.Get(r, "loginSession")
+	if err != nil {
+		//http.Error(w, err.Error(), http.StatusInternalServerError)
+		session.Values["username"] = nil
+		session.Save(r, w)
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+
+	// Retrieve our struct and type-assert it
+	uname, ok := session.Values["username"].(string)
+	if !ok {
+		logger.Printf("error occured while retriving sesion value")
+		return
+	}
+	passUpdate(w, uname, u.Password)
+}
+
+func passUpdate(w http.ResponseWriter, username string, password []byte) {
+	logger.Printf("password un-encrypted", password)
+	encrypt_password, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 - Could not encrypt new password\n"))
+		return
+	}
+	logger.Printf("password encrypted", string(encrypt_password))
+	q := `update users
+			SET password = $1
+			WHERE username = $2`
+	logger.Printf(q)
+	if _, err := db.Exec(q, string(encrypt_password), username); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 - Could not update password\n"))
+		logger.Println(err)
+		return
+	}
+	logger.Printf("Password updated")
+	w.WriteHeader(http.StatusOK)
+	logger.Printf("Password upadated for user %v\n", username)
 
 }
