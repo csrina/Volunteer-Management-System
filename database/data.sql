@@ -1,8 +1,21 @@
 \c caraway
+--Update families
+
+INSERT INTO family (family_name, children)
+VALUES ('test', 1);
+INSERT INTO family (family_name, children)
+VALUES ('Robert', 2);
+INSERT INTO family (family_name, children)
+VALUES ('Name', 1);
+INSERT INTO family (family_name, children)
+VALUES ('Samename', 10);
+
+
+
 --Adds basic users
 
-INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number)
-VALUES (1, 'parent', '$2a$10$SqeZIWv4nkdfppU8TL7.hO2lwcrPPP7Dg01LXHqBW1NWQNf8Vcf6C', 'parentfirst', 'parentlast', 'email', '123-4567');
+INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number, family_id)
+VALUES (1, 'parent', '$2a$10$SqeZIWv4nkdfppU8TL7.hO2lwcrPPP7Dg01LXHqBW1NWQNf8Vcf6C', 'parentfirst', 'parentlast', 'email', '123-4567', 1);
 INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number)
 VALUES (2, 'teacher', '$2a$10$SqeZIWv4nkdfppU8TL7.hO2lwcrPPP7Dg01LXHqBW1NWQNf8Vcf6C', 'teacherfirst', 'teacherlast', 'email', '123-4567');
 INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number)
@@ -20,16 +33,6 @@ INSERT INTO users (user_role, username, password, first_name, last_name, email, 
 VALUES(1, 'Stevie', 'pass', 'Stevie', 'Samename', 'stevie54@gmail.com', '132-4365');
 INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number)
 VALUES(1, '1234', '1234', 'Bad', 'Username', 'badusername@gmail.com', '132-4365');
---Adds families with corresponding users
-
-INSERT INTO family (family_name, parent_one, children)
-VALUES ('test', 1, 1);
-INSERT INTO family (family_name, parent_one, children)
-VALUES ('Robert',4, 2);
-INSERT INTO family (family_name, parent_one, parent_two, children)
-VALUES ('Name', 5, 8, 1);
-INSERT INTO family (family_name, parent_one, parent_two, children)
-VALUES ('Samename', 6, 7, 10);
 
 --Adds rooms
 
