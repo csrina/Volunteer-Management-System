@@ -87,8 +87,6 @@ func createFamily(w http.ResponseWriter, r *http.Request) {
 
 	for _, user := range family.Parents {
 		_, err := tx.Exec(q2, user, family.FamilyID)
-		fmt.Println(family.FamilyID)
-		fmt.Println(user)
 		if err != nil {
 			tx.Rollback()
 			logger.Println(err)
