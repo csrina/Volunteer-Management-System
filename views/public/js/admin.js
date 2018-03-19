@@ -146,41 +146,50 @@ function loadEditFamily() {
 }
 
 function newFamily() {
+    let tmpl = document.querySelector("#tmpl_newFamily").innerHTML;
+    document.querySelector("#displayData").innerHTML = tmpl;
+    document.querySelector("#cancel").addEventListener('click', familyList);
+    document.querySelector("#submit").addEventListener('click', submitNewFamily);
+    document.querySelector("#addFacil").addEventListener('click', addParent);
+}
+
+function addParent() {
     let xhttp = new XMLHttpRequest();
     xhttp.addEventListener("loadend", () => {
-        let facilitators = JSON.parse(xhttp.response);
-        let tmpl = document.querySelector("#tmpl_newFamily").innerHTML;
-        let func = doT.template(tmpl);
-        document.querySelector("#displayData").innerHTML = func(facilitators);
-        document.querySelector("#cancel").addEventListener('click', familyList);
-        document.querySelector("#submit").addEventListener('click', submitNewFamily);
+        let parents = JSON.parse(xhttp.response);
+        let tmpl = document.querySelector("#tmpl_newParent").innerHTML;
+        func = doT.template(tmpl);
+        document.querySelector("#parents").insertAdjacentHTML('beforeend', func(parents));
     });
-    xhttp.open("GET", `http://localhost:8080/api/v1/admin/facilitators`);
+    xhttp.open("GET", "http://localhost:8080/api/v1/admin/facilitators");
     xhttp.send();
 }
 
 function submitNewFamily() {
-    let par1 = document.querySelector("#parent1").value;
-    let par2 = document.querySelector("#parent2").value;
     let surname = document.querySelector("#famName").value;
     let numChild = parseInt(document.querySelector("#children").value);
-    if (par1 === par2 && par1 != "") {
-        alert('Parents cannot match.');
+    let parents = document.querySelectorAll("#parent");
+    let pList = new Array();
+    for (let i = 0; i < parents.length; i++) {
+        if (parents[i] === "") {
+            alert('Cannot have empty parent')
+            return;
+        }
+        pList.push(parseInt(parents[i].value));
+    };
+    if (surname === "") {
+        alert('Please enter a family name');
         return;
-    }
-    if (surname === "" || numChild === "") {
-        alert('Please fill out all fields');
-        return;
-    }
-
-    let newFamily = {"familyName":surname, "parentOne":parseInt(par1),
-                    "parentTwo":parseInt(par2), "children":numChild};
+    };
+    let newFamily = {"familyName":surname, "children":numChild,
+                    "parents":pList};
     let xhttp = new XMLHttpRequest();
     xhttp.addEventListener("loadend", () => {
         if (xhttp.status > 300) {
             alert('ERROR: Could not create family');
             return;
         }
+        alert('SUCESS: Family created');
         familyList();
     });
     xhttp.open("POST", "http://localhost:8080/api/v1/admin/families");
