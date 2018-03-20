@@ -75,9 +75,9 @@
 <script id="tmpl_newParent" type="x-dot-template">
     <select class="form-control" id="parent">
         <option value="">Select a Parent/Facilitator</option>
-                {{`{{~it :value:index}}`}}
+            {{`{{~it :value:index}}`}}
         <option value="{{`{{=value.userId}}`}}">{{`{{=value.userName}}`}}</option>
-        {{`{{~}}`}}    
+        {{`{{~}}`}}
     </select>
 </script>
 
@@ -89,13 +89,42 @@
         <p>Children</p>
         <input id="children" type="number" value="0" class="form-control form-control-sm">
         <br>
+        <p>Facilitators</p>
         <div id="parents"></div>
         <button id="addFacil" type="button" class="btn btn-primary">Add Facilitator</button>
+        <button id="remFacil" type="button" class="btn btn-primary">Remove Facilitator</button>
         <br>
         <button id="submit" type="button" class="btn btn-primary">Submit</button>
         <button id="cancel" type="button" class="btn btn-primary">Cancel</button>
     </div>
 </script>
+
+<script id="tmpl_editFamily" type="x-dot-template">
+   <div class="form-group">
+        <p>Family ID</p>
+        <input id="famId" type="text" value="{{`{{=it.familyId}}`}}" class="form-control form-control-sm" readonly>
+        <br>
+        <p>Family Name</p>
+        <input id="famName" type="text" value="{{`{{=it.familyName}}`}}" class="form-control form-control-sm">
+        <br>
+        <p>Children</p>
+        <input id="children" type="number" value="{{`{{=it.children}}`}}" class="form-control form-control-sm">
+        <br>
+        <p>Facilitators</p>
+        <div id="parents">
+            {{`{{~it.parents :value:index}}`}}
+            <input type="text" value="{{`{{=value.userName}}`}}" class="form-control form-control-sm" readonly>
+            <button id="rem_{{`{{=value.userId}}`}}" type="button" class="btn btn-primary">Remove from Family</button>
+            {{`{{~}}`}}
+        </div>
+        <button id="addFacil" type="button" class="btn btn-primary">Add Facilitator</button>
+        <button id="remFacil" type="button" class="btn btn-primary">Remove Facilitator</button>
+        <br>
+        <button id="submit" type="button" class="btn btn-primary">Submit</button>
+        <button id="cancel" type="button" class="btn btn-primary">Cancel</button>
+    </div>
+</script>
+    
 
 <script id="tmpl_editUser" type="x-dot-template">
     <div class="form-group">

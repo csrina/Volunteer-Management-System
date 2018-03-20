@@ -56,6 +56,13 @@ type familyFull struct {
 	Parents    []int  `json:"parents"`
 }
 
+type familyDetailed struct {
+	FamilyID   int         `json:"familyId" db:"family_id"`
+	FamilyName string      `json:"familyName" db:"family_name"`
+	Children   int         `json:"children" db:"children"`
+	Parents    []userShort `json:"parents"`
+}
+
 func createFamily(w http.ResponseWriter, r *http.Request) {
 	family := familyFull{}
 	decoder := json.NewDecoder(r.Body)
@@ -250,30 +257,67 @@ func updateUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func getFamilyList(w http.ResponseWriter, r *http.Request) {
-	q := `SELECT family_id, family_name, children
-				FROM family`
+func removeFromFamily(w http.ResponseWriter, r *http.Request) {
+	user := userFull{}
+	decoder := json.NewDecoder(r.Body)
+	decoder.Decode(&user)
 
-	familyList := []familyFull{}
-	err := db.Select(&familyList, q)
+	q := `UPDATE users
+			SET family_id = NULL
+			WHERE user_id = $1`
 
+	_, err := db.Exec(q, user.UserID)
 	if err != nil {
 		logger.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
-	encoder := json.NewEncoder(w)
-	encoder.Encode(familyList)
+	w.WriteHeader(http.StatusOK)
 }
 
-func detailedFamily(w http.ResponseWriter, r *http.Request) {
-	// TODO
-	/*
-		q := `SELECT family.family_id, family.family_name, users.username AS parent_one,
-		user.username AS parent_two, family.children
-		FROM family`
-	*/
+func getFamilyList(w http.ResponseWriter, r *http.Request) {
+	options := r.URL.Query()
+	familyID, err := strconv.Atoi(options.Get("f"))
+	if err != nil {
+		q := `SELECT family_id, family_name, children
+				FROM family`
+
+		familyList := []familyFull{}
+		err := db.Select(&familyList, q)
+
+		if err != nil {
+			logger.Println(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		encoder := json.NewEncoder(w)
+		encoder.Encode(familyList)
+	} else {
+		q2 := `SELECT family_name, children
+				FROM family
+				WHERE family_id = $1`
+		q3 := `SELECT user_id, username
+				FROM users
+				WHERE family_id = $1`
+		family := familyDetailed{}
+		err := db.QueryRowx(q2, familyID).StructScan(&family)
+
+		if err != nil {
+			logger.Println(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		err = db.Select(&family.Parents, q3, familyID)
+		if err != nil {
+			logger.Println(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		encoder := json.NewEncoder(w)
+		encoder.Encode(family)
+	}
 }
 
 func getClassInfo(w http.ResponseWriter, r *http.Request) {

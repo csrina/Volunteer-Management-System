@@ -141,8 +141,47 @@ function familyList() {
     xhttp.send();
 }
 
-function loadEditFamily() {
-    // TODO
+function loadEditFamily(e) {
+    let familyID = e.srcElement.id.split("_")[1];
+    let xhttp = new XMLHttpRequest();
+    xhttp.addEventListener("loadend", () => {
+        console.log(xhttp.response);
+        let userInfo = JSON.parse(xhttp.response);
+        let tmpl = document.querySelector("#tmpl_editFamily").innerHTML;
+        let func = doT.template(tmpl);
+        document.querySelector("#displayData").innerHTML = func(userInfo);
+        document.querySelector("#cancel").addEventListener('click', familyList);
+        document.querySelector("#submit").addEventListener('click', submitFamilyEdit);
+        let btns = document.querySelectorAll("[id*='rem_']");
+        for(let i = 0; i < btns.length; i++) {
+            btns[i].addEventListener("click", dropParent);
+        }
+    });
+    xhttp.open("GET", `http://localhost:8080/api/v1/admin/families?f=${familyID}`);
+    xhttp.send();
+}
+
+function submitFamilyEdit() {
+    alert('submitted');
+}
+
+function dropParent(e) {
+    let userID = e.srcElement.id.split("_")[1];
+    let user = {"userId":parseInt(userID)}
+    let check = confirm("Are you sure you want to remove this parent?");
+    if (check == true) {
+        let xhttp = new XMLHttpRequest();
+        xhttp.addEventListener("loadend", () => {
+            if (xhttp.response > 300) {
+                alert('ERROR: Could not remove user from family.');
+            } else {
+                alert('SUCCES: User removed from family');
+                familyList();
+            }
+        });
+        xhttp.open("PUT", "http://localhost:8080/api/v1/admin/users/family");
+        xhttp.send(JSON.stringify(user));
+    }
 }
 
 function newFamily() {
@@ -151,6 +190,10 @@ function newFamily() {
     document.querySelector("#cancel").addEventListener('click', familyList);
     document.querySelector("#submit").addEventListener('click', submitNewFamily);
     document.querySelector("#addFacil").addEventListener('click', addParent);
+    document.querySelector("#remFacil").addEventListener('click', () => {
+        let p = document.querySelector("#parents").lastChild;
+        document.querySelector("#parents").removeChild(p);
+    });
 }
 
 function addParent() {
