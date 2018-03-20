@@ -31,6 +31,24 @@ function removeEvent(event, jsEvent, view) {
     if (!yn) {
         return false; // event should not be deleted
     }
+    let event_json = JSON.stringify({
+        id:    event.id,
+    });
+    // Make ajax post request with updated event data
+    $.ajax({
+        url: '/api/v1/events/delete',
+        type: 'POST',
+        contentType:'json',
+        data: event_json,
+        dataType:'json',
+        success: function(data) {
+            alert(data.msg);
+        },
+        error: function(xhr, ajaxOptions, thrownError) {
+            revertFunc();
+            alert("Request failed: " + xhr.responseText);
+        }
+    });
     return true; // event was deleted
 }
 

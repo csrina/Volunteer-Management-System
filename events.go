@@ -62,46 +62,36 @@ func eventPostHandler(w http.ResponseWriter, r *http.Request) {
 	dest := mux.Vars(r)["target"] // Determine POST destination from URL
 	if dest == "book" { // add/remove booking corresponding to event data
 		bookingHandler(w, r, role)
-		return
+	} else if role == ADMIN {
+		adminPostHandler(w, r, dest)
+	} else if role == TEACHER {
+		teacherPostHandler(w, r, dest)
 	}
-	if role != ADMIN {
-		http.Error(w, "Insufficient priveledge", http.StatusBadRequest)
-		return
-	}
+}
 
-	// We want to modify the time_block
-	response := new(Response)     // Response data
+/* not implemented yet */
+func teacherPostHandler(w http.ResponseWriter, r *http.Request, dest string) {
+	return
+}
+
+/*
+ * Handles posts which are not bookings (ergo, must be admin.)
+ */
+func adminPostHandler(w http.ResponseWriter, r *http.Request, dest string) {
+	var response *Response
 	e, err := EventFromJSON(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	var tb *TimeBlock
-	if dest == "update" {
-		tb, err = getTimeBlockByID(e.ID)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		tb.Start = e.Start
-		tb.End = e.End
-		logger.Println("Updating block: ", tb)
-		err = tb.update()
-		response.Msg = "Successfully updated time block"
-	} else if dest == "add" {
-		tb, err = e.getTimeBlock(role)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		tb.ID, err = tb.insert()
-		e.updateColourCode()
-		response.Msg = "Successfully added time block"
-		response.Colour = e.Colour
-		response.setID(tb.ID)
-	} else {
-		err = errors.New("invalid target")
+
+	switch dest {
+	case "add":		response, err = e.add()
+	case "update": 	response, err = e.update()
+	case "delete": 	response, err = e.delete()
+	default:		err = errors.New("invalid target")
 	}
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -143,6 +133,74 @@ type Event struct {
 	Note string `json:"note"`
 }
 
+/*
+ * Deletes the underlying timeblock db entry of the reciever event.
+ */
+func (e *Event) delete() (*Response, error) {
+	tb, err := getTimeBlockByID(e.ID)
+	if err != nil {
+		return nil, err
+	}
+	// delete any bookings associated --> send notifications when possible!
+	bookings, err := tb.bookings()
+	if err != nil {
+		return nil, err
+	}
+	// delete bookings
+	for _, b := range bookings {
+		err = b.deleteBooking()
+		if err != nil {
+			logger.Println(err)
+			continue
+		}
+	}
+	err = tb.delete()
+	if err != nil {
+		return nil, err
+	}
+	return &Response{Msg: "Event removed"}, nil
+}
+
+/*
+ * Update the underlying timeblock db entry of a reciever event (e)
+ * to reflect the start and end times of the reciever event.
+ */
+func (e *Event) update() (*Response, error) {
+	tb, err := getTimeBlockByID(e.ID)
+	if err != nil {
+		return nil, err
+	}
+	tb.Start = e.Start
+	tb.End = e.End
+	err = tb.update()
+	if err != nil {
+		return nil, err
+	}
+	return &Response{Msg: "Successfully updated time block"}, nil
+}
+
+/*
+ * Add a new time block to DB, for the event reciever.
+ * Return a response struct or error
+ */
+func (e *Event) add() (*Response, error) {
+	tb, err := e.getTimeBlock()
+	if err != nil {
+		return nil, err
+	}
+	e.ID, err = tb.insert() // insert block & set e.ID to correspond to the tbID returned
+	if err != nil {
+		return nil, err
+	}
+	e.updateColourCode()   // update color of event
+	// create and return response
+	response := new(Response)
+	response.Msg = "Successfully added time block"
+	response.Colour = e.Colour
+	response.setID(tb.ID)
+	return response, nil
+}
+
 func EventFromJSON(r *http.Request) (*Event, error) {
 	e := new(Event)
 	decoder := json.NewDecoder(r.Body)
@@ -150,10 +208,7 @@ func EventFromJSON(r *http.Request) (*Event, error) {
 	return e, err
 }
 
-func (e *Event) getTimeBlock(role int) (*TimeBlock, error) {
-	if (role != ADMIN) {
-		return nil, errors.New("Insufficient priviledge")
-	}
+func (e *Event) getTimeBlock() (*TimeBlock, error) {
 	tb := new(TimeBlock)
 	tb.ID = e.ID
 	tb.Start = e.Start

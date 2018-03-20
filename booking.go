@@ -18,6 +18,19 @@ type bookingBlock struct {
 	End       time.Time `db:"booking_end" json:"end"`
 }
 
+/*
+ * Initialize a Booking struct given a BookingID
+ */
+func (b *bookingBlock) init(BID int) error {
+	q := `SELECT booking_id, block_id, family_id, user_id, COALESCE(LOCALTIMESTAMP, booking_start), COALESCE(LOCALTIMESTAMP, booking_end) FROM booking WHERE booking_id = $1`
+	err := db.QueryRow(q, BID).Scan(&b.BookingID, &b.BlockID, &b.FamilyID, &b.UserID, &b.Start, &b.End)
+	if err != nil {
+		logger.Println(err)
+		return err
+	}
+	return nil
+}
+
 // inserts a booking into the database
 func (b *bookingBlock) insertBooking() error {
 	q := `INSERT INTO booking (block_id, family_id, user_id, 
@@ -54,18 +67,21 @@ func (b *bookingBlock) updateBooking() error {
 
 // deletes an existing booking in the database
 func (b *bookingBlock) deleteBooking() error {
-	q := `DELETE FROM booking WHERE bookind_id = $1`
+	q := `DELETE FROM booking WHERE booking_id = $1`
 
-	results, err := db.Exec(q, b.BlockID, b.Start, b.End)
+	results, err := db.Exec(q, b.BookingID)
 	if err != nil {
+		logger.Println(err)
 		return err
 	}
 	count, err := results.RowsAffected()
 	if err != nil {
+		logger.Println(err)
 		return err
 	}
 	if count != 1 {
 		err = errors.New("booking not deleted")
+		logger.Println(err)
 		return err
 	}
 	return nil
@@ -110,6 +126,7 @@ type Booking struct {
 	Modifier  int       `db:"modifier" json:"modifier"`
 	Note      string    `db:"note" json:"note"`
 }
+
 
 /*
  * Reads json request, and creates a partially filled booking struct
@@ -316,9 +333,6 @@ func getBookingCount(blockID int) int {
 
 /* Ayyy */
 func getUserBookings(start time.Time, end time.Time, UID int) ([]Booking, error) {
-	/* format dates for psql */
-	logger.Println("Preformat --> Start ", start, "\tEnd ", end)
-
 	/* Get all bookings in range start-now  (start > block_start & end > blocK_end) */
 	q := `SELECT booking_id, block_id, family_id, user_id, block_start, block_end, room_id, modifier
 			FROM booking NATURAL JOIN time_block WHERE (
@@ -340,9 +354,6 @@ func getUserBookings(start time.Time, end time.Time, UID int) ([]Booking, error)
 
 /* Like get bookings for a family*/
 func (f *Family) getFamilyBookings(start time.Time, end time.Time) ([]Booking, error) {
-	/* format dates for psql */
-	logger.Println("Preformat --> Start ", start, "\tEnd ", end)
-
 	/* Get all bookings in range start-now  (start > block_start & end > blocK_end) */
 	q := `SELECT booking_id, block_id, family_id, user_id, block_start, block_end, room_id, modifier
 			FROM booking NATURAL JOIN time_block WHERE (

@@ -1,7 +1,7 @@
 package main
 
 import (
-
+	"errors"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -24,6 +24,33 @@ func getTimeBlockByID(id int) (*TimeBlock, error) {
 	q := `SELECT * FROM time_block WHERE time_block.block_id = $1`
 	err := db.QueryRow(q, id).Scan(&tb.ID, &tb.Start, &tb.End, &tb.Room, &tb.Modifier, &tb.Note)
 	return tb, err
+}
+
+/*
+ * Returns the bookings associated with a given timeblock
+ */
+func (tb *TimeBlock) bookings() ([]bookingBlock, error) {
+	q := `SELECT booking_id FROM booking WHERE booking.block_id = $1`
+	var bids []int
+	err := db.Select(&bids, q, tb.ID)
+	if err != nil {
+		logger.Println(err)
+		return nil, err
+	}
+	// Initialize the booking structs using the ids and return them in a slice
+	bookings := make([]bookingBlock, len(bids), len(bids))
+	for _, bid := range bids {
+		logger.Println("BookingID: ", bid)
+		b := new(bookingBlock)
+		err = b.init(bid)
+		if err != nil {
+			logger.Println("bookingBlock creation failed: ", err)
+			return nil, err
+		}
+		bookings = append(bookings, *b)
+	}
+	logger.Println(bookings)
+	return bookings, nil
 }
 
 /*
@@ -54,6 +81,28 @@ func (tb *TimeBlock) update() error {
 
 	_, err := db.Exec(q, tb.ID, tb.Start, tb.End, tb.Room, tb.Modifier, tb.Note)
 	return err
+}
+
+/*
+ * Deletes the recieving block's (tb) entry in the db.
+ */
+func (tb *TimeBlock) delete() error {
+	q := `DELETE FROM time_block WHERE time_block.block_id = $1`
+	results, err := db.Exec(q, tb.ID)
+	if err != nil {
+		logger.Println(err)
+		return err
+	}
+	count, err := results.RowsAffected()
+	if err != nil {
+		logger.Println(err)
+		return err
+	} else if count != 1 {
+		err = errors.New("time block not deleted")
+		logger.Println(err)
+		return err
+	}
+	return nil
 }
 
 /*
