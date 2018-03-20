@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -42,9 +43,26 @@ type userFull struct {
 	Phone     string `json:"phoneNumber" db:"phone_number"`
 }
 
-type userShort struct {
-	UserID   int    `json:"userId" db:"user_id"`
-	UserName string `json:"userName" db:"username"`
+type UserShort struct {
+	UserID   int    `db:"user_id" json:"userId"`
+	UserName string `db:"username" json:"userName"`
+}
+
+/*
+ * Retrieves the user's first + last name and returns it
+ */
+func (u *UserShort) getFullName() (name string, err error) {
+	q := `SELECT first_name || ' ' || last_name FROM users WHERE user_id = $1`
+	if u.UserID > 0 {
+		err = db.QueryRow(q, u.UserID).Scan(&name)
+	} else if u.UserName != "" {
+		err = db.QueryRow(q, u.UserName).Scan(&name)
+	} else {
+		// struct is empty
+		return "", errors.New("Cannot retrieve name of unidentifiable user -- need UID or UName")
+	}
+
+	return // returns name, error via magical named return values
 }
 
 type familyFull struct {
@@ -121,7 +139,7 @@ func basicRoomList(w http.ResponseWriter, r *http.Request) {
 
 //gets all users not currently linked to a family
 func lonelyFacilitators(w http.ResponseWriter, r *http.Request) {
-	users := []userShort{}
+	users := []UserShort{}
 	q := `SELECT user_id, username 
 			FROM users 
 			WHERE user_role = 1 
@@ -143,7 +161,7 @@ func lonelyFacilitators(w http.ResponseWriter, r *http.Request) {
 }
 
 func getTeachers(w http.ResponseWriter, r *http.Request) {
-	users := []userShort{}
+	users := []UserShort{}
 	q := `SELECT user_id, username
 			FROM users
 			WHERE user_role = 2`

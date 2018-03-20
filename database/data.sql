@@ -23,16 +23,16 @@ VALUES (3, 'admin', '$2a$10$SqeZIWv4nkdfppU8TL7.hO2lwcrPPP7Dg01LXHqBW1NWQNf8Vcf6
 
 --Adds parents to be associated with families
 
-INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number)
-VALUES(1, 'Will', 'pass', 'William', 'Robert', 'billybob@gmail.com', '132-4365');
-INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number)
-VALUES(1, 'Lope', 'pass', 'Penelope', 'Name', 'penName@gmail.com', '132-4365');
-INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number)
-VALUES(1, 'Susie', 'pass', 'Susie', 'Samename', 'susie53@gmail.com', '132-4365');
-INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number)
-VALUES(1, 'Stevie', 'pass', 'Stevie', 'Samename', 'stevie54@gmail.com', '132-4365');
-INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number)
-VALUES(1, '1234', '1234', 'Bad', 'Username', 'badusername@gmail.com', '132-4365');
+INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number, family_id)
+VALUES(1, 'Will', 'pass', 'William', 'Robert', 'billybob@gmail.com', '132-4365', 2);
+INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number, family_id)
+VALUES(1, 'Lope', 'pass', 'Penelope', 'Name', 'penName@gmail.com', '132-4365', 2);
+INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number, family_id)
+VALUES(1, 'Susie', 'pass', 'Susie', 'Samename', 'susie53@gmail.com', '132-4365', 3);
+INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number, family_id)
+VALUES(1, 'Stevie', 'pass', 'Stevie', 'Samename', 'stevie54@gmail.com', '132-4365', 4);
+INSERT INTO users (user_role, username, password, first_name, last_name, email, phone_number, family_id)
+VALUES(1, '1234', '1234', 'Bad', 'Username', 'badusername@gmail.com', '132-4365', 4);
 
 --Adds rooms
 
@@ -221,3 +221,10 @@ INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
 VALUES('2018-03-13 12:00:00', '2018-03-13 14:00:00', 3, 1, 'noon block!');
 INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
 VALUES('2018-03-12 15:00:00', '2018-03-12 17:00:00', 3, 1, 'afternoon block!');
+
+INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
+VALUES('2018-03-21 08:00:00', '2018-03-21 11:00:00', 3, 1, 'morning block!');
+INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
+VALUES('2018-03-21 12:00:00', '2018-03-21 14:00:00', 3, 1, 'noon block!');
+INSERT INTO time_block(block_start, block_end, room_id, modifier, note)
+VALUES('2018-03-21 15:00:00', '2018-03-21 17:00:00', 3, 1, 'afternoon block!');

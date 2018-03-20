@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"io"
@@ -13,12 +14,13 @@ import (
 	"github.com/gorilla/mux"
 )
 
-
 type Response struct {
-	Msg string `json:"msg"` // message
-	Colour string `json:"color"` // color of room
-	BID int    `json:"bookId"` // booking id
-	ID 	int 	`json:"id"` // block/event id
+	Msg    string `json:"msg"`      // message
+	UID      int   `json:"userId"`  // users ID for adding to bookings listing client side
+	UserName string `json:"userName"` // user's full name for adding to bookings listing client side
+	Colour string `json:"color"`    // color of room
+	BID    int    `json:"bookId"`   // booking id
+	ID     int    `json:"id"`       // block/event id
 }
 
 func (r *Response) setMsg(msg string) *Response {
@@ -60,7 +62,7 @@ func eventPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	dest := mux.Vars(r)["target"] // Determine POST destination from URL
-	if dest == "book" { // add/remove booking corresponding to event data
+	if dest == "book" {           // add/remove booking corresponding to event data
 		bookingHandler(w, r, role)
 	} else if role == ADMIN {
 		adminPostHandler(w, r, dest)
@@ -86,10 +88,14 @@ func adminPostHandler(w http.ResponseWriter, r *http.Request, dest string) {
 	}
 
 	switch dest {
-	case "add":		response, err = e.add()
-	case "update": 	response, err = e.update()
-	case "delete": 	response, err = e.delete()
-	default:		err = errors.New("invalid target")
+	case "add":
+		response, err = e.add()
+	case "update":
+		response, err = e.update()
+	case "delete":
+		response, err = e.delete()
+	default:
+		err = errors.New("invalid target")
 	}
 
 	if err != nil {
@@ -123,14 +129,16 @@ type Event struct {
 	Title  string    `db:"note" json:"title"`
 	Start  time.Time `db:"block_start" json:"start"`
 	End    time.Time `db:"block_end" json:"end"`
+	roomID int		 `db:"room_id"`
 	Room   string    `db:"room_name" json:"room"` // fullCalendar will make blocks colour of room
 	Colour string    `json:"color"`               // color code for event rendering (corresponds to the room name)
 	// booking ids for lookup
-	BookingCount int  `json:"bookingCount"`
-	Booked       bool `json:"booked"`
+	BookingCount int         `json:"bookingCount"`
+	Booked       bool        `json:"booked"`
+	Bookings     []UserShort `json:"bookings"` // we store their actual names in the username field
 	// description
-	Modifier int	`db:"modifier" json:"modifier"`
-	Note string `json:"note"`
+	Modifier int    `db:"modifier" json:"modifier"`
+	Note     string `json:"note"`
 }
 
 /*
@@ -184,15 +192,13 @@ func (e *Event) update() (*Response, error) {
  * Return a response struct or error
  */
 func (e *Event) add() (*Response, error) {
-	tb, err := e.getTimeBlock()
-	if err != nil {
-		return nil, err
-	}
+	tb:= e.getTimeBlock()
+	var err error
 	e.ID, err = tb.insert() // insert block & set e.ID to correspond to the tbID returned
 	if err != nil {
 		return nil, err
 	}
-	e.updateColourCode()   // update color of event
+	e.updateColourCode() // update color of event
 	// create and return response
 	response := new(Response)
 	response.Msg = "Successfully added time block"
@@ -208,21 +214,16 @@ func EventFromJSON(r *http.Request) (*Event, error) {
 	return e, err
 }
 
-func (e *Event) getTimeBlock() (*TimeBlock, error) {
+func (e *Event) getTimeBlock() (*TimeBlock) {
 	tb := new(TimeBlock)
 	tb.ID = e.ID
 	tb.Start = e.Start
 	tb.End = e.End
 	tb.Note = e.Note
 	tb.Modifier = e.Modifier
+	tb.Room = e.roomID
 
-	q := `SELECT room_id FROM room WHERE room_name = $1`
-	err := db.QueryRow(q, e.Room).Scan(&tb.Room)
-
-	if err != nil {
-		return nil, err
-	}
-	return tb, nil
+	return tb
 }
 
 /* Lists the events requested */
@@ -286,9 +287,13 @@ func getEvents(w http.ResponseWriter, r *http.Request) {
  */
 func serveEventJSON(w io.Writer, events []*Event) {
 	/* Create and serve JSON*/
-	enc := json.NewEncoder(w)
-	enc.SetEscapeHTML(true)
-	enc.Encode(events)
+	eventJSON, err := json.Marshal(events)
+	if err != nil {
+		logger.Println(err)
+		return
+	} else {
+		w.Write(eventJSON);
+	}
 }
 
 /*
@@ -300,7 +305,6 @@ func makeEvents(blocks []TimeBlock) []*Event {
 	for _, b := range blocks {
 		events = append(events, NewEvent(&b))
 	}
-	logger.Println(events)
 	return events
 }
 
@@ -334,13 +338,47 @@ func NewEvent(b *TimeBlock) *Event {
 		Note:  b.Note,
 		Title: "Facilitation",
 	}
+	err := e.initBookings()
+	if err != nil {
+		logger.Println(err)
+	}
 	/* Get room and bookings for the Event */
-	err := db.QueryRow(`SELECT room_name FROM room WHERE $1 = room_id`, b.Room).Scan(&e.Room) // Get the room name
+	err = db.QueryRow(`SELECT room_name FROM room WHERE $1 = room_id`, b.Room).Scan(&e.Room) // Get the room name
 	if err != nil {
 		logger.Println(err)
 	}
 	e.updateColourCode()
 	return e
+}
+
+/*
+ * Initializes the bookings list from the DB
+ *
+ * requires the eventID be set to a valid blockID
+ */
+func (e *Event) initBookings() error {
+	tb := e.getTimeBlock()
+	bookings, err := tb.bookings()
+	if err != nil {
+		if err != sql.ErrNoRows {
+			e.BookingCount = 0
+			return nil
+		}
+		return err
+	}
+
+	e.BookingCount = len(bookings)
+	for _, b := range bookings {
+		u := new(UserShort)
+		u.UserID = b.UserID
+		u.UserName, err = u.getFullName()
+		if err != nil {
+			logger.Println(err)
+			return err
+		}
+		e.Bookings = append(e.Bookings, *u)
+	}
+	return nil
 }
 
 func (e *Event) setBookingStatus(uid int) (*Event, error) {
@@ -393,7 +431,7 @@ func (e *Event) updateColourCode() {
 	case "blue":
 		e.Colour = BLUE
 	case "green":
-		e.Colour = LGREEN
+		e.Colour = DGREEN
 	case "orange":
 		e.Colour = ORANGE
 	case "yellow":

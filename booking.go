@@ -97,6 +97,10 @@ func bookingHandler(w http.ResponseWriter, r *http.Request, role int) {
 		return
 	}
 	response := new(Response) // Response data
+	usr := UserShort{UserID: booking.UserID}
+	response.UserName, _ = usr.getFullName()
+	response.UID = booking.UserID;
+
 	// book/unbook based on BookingID (if 0 value, then booking doesn't exist yet and must be created)
 	if booking.BookingID > 0 {
 		err = booking.unbook(role)

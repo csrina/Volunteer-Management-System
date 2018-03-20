@@ -5,6 +5,7 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
+	"database/sql"
 )
 
 /* TimeBlock ...
@@ -34,13 +35,15 @@ func (tb *TimeBlock) bookings() ([]bookingBlock, error) {
 	var bids []int
 	err := db.Select(&bids, q, tb.ID)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, err // Dont log this but pass it up chain incase its important to know
+		}
 		logger.Println(err)
 		return nil, err
 	}
 	// Initialize the booking structs using the ids and return them in a slice
-	bookings := make([]bookingBlock, len(bids), len(bids))
+	var bookings []bookingBlock
 	for _, bid := range bids {
-		logger.Println("BookingID: ", bid)
 		b := new(bookingBlock)
 		err = b.init(bid)
 		if err != nil {
@@ -49,7 +52,6 @@ func (tb *TimeBlock) bookings() ([]bookingBlock, error) {
 		}
 		bookings = append(bookings, *b)
 	}
-	logger.Println(bookings)
 	return bookings, nil
 }
 
