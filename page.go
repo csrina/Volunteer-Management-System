@@ -5,15 +5,16 @@ import (
 )
 
 type Page struct {
-	PageName 	string
-	Role     	string
-	Username 	string
+	PageName string
+	Role     string
+	Username string
 	/* Dependency flags for templates */
 	Calendar 	bool // page has calendar --> set flag to true
 	Chart    	bool // page requires chart.js
 	Dashboard 	bool //is it the dahsboard?
 	DotJS 		bool
 	Toaster     bool
+	MultiSelect bool // page requires multiselectc css and js
 }
 
 /*
