@@ -12,6 +12,28 @@ var elems = {
     chart: "",
 };
 
+function makeToast(type, msg) {
+    toastr.options = {
+        "closeButton": true,
+        "debug": false,
+        "newestOnTop": true,
+        "progressBar": false,
+        "positionClass": "toast-top-right",
+        "preventDuplicates": true,
+        "onclick": null,
+        "showDuration": "300",
+        "hideDuration": "1000",
+        "timeOut": "5000",
+        "extendedTimeOut": "1000",
+        "showEasing": "swing",
+        "hideEasing": "linear",
+        "showMethod": "fadeIn",
+        "hideMethod": "fadeOut"
+    };
+
+    Command: toastr[type](msg);
+}
+
 // This function will send a booking removal request to the server
 function requestRemoval(event) {
     let promptStr = "Are you sure you want to remove yourself from:\n";
@@ -33,12 +55,12 @@ function requestRemoval(event) {
         data: booking_json,
         dataType:'json',
         success: function(data) {  // We expect the server to return json data with a msg field
-            alert(data.msg);
+            makeToast("success", data.msg);
             $("#calendar").fullCalendar("removeEvents", event.id);
             refreshWidgets();
         },
         error: function(xhr, ajaxOptions, thrownError) {
-            alert("Request failed: " + xhr.responseText);
+            makeToast("error", "Request failed: " + xhr.responseText);
         }
     });
 }
@@ -195,7 +217,7 @@ function refreshWidgets() {
             elems.chart.update();
         },
         error: function(xhr, ajaxOptions, thrownError) {
-            alert("Request failed: " + xhr.responseText);
+            makeToast("error", "Refresh failed: " + xhr.responseText);
         },
         dataType: 'json'
     });

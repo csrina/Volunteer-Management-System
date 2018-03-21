@@ -227,6 +227,9 @@ func (e *Event) getTimeBlock() *TimeBlock {
 	tb.Note = e.Note
 	tb.Modifier = e.Modifier
 	tb.Room = e.RoomID
+	if e.Title == "" {
+		e.Title = "Facilitation"
+	}
 	tb.Title = e.Title
 
 	return tb
