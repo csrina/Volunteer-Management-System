@@ -39,6 +39,10 @@
             <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js"></script>
         {{end}}
+        {{if .Toaster}}
+            <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+            <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+        {{end}}
         {{if eq .PageName "calendar"}}
             <script type="text/javascript" src='/views/public/js/calendar {{- .Role -}} .js'><%= text/javascript %></script>
         {{else if eq .PageName "dashboard"}}
