@@ -178,13 +178,20 @@ function submitFamilyEdit() {
 function newFamily() {
     let tmpl = document.querySelector("#tmpl_newFamily").innerHTML;
     document.querySelector("#displayData").innerHTML = tmpl;
+    $('#parent-select').multiSelect({
+        selectableHeader: "<div class='parent-select'>Available Facilitators</div>",
+        selectionHeader: "<div class='parent-select'>Family Members</div>"
+    });
+    $('#parent-select').multiSelect({});
+    
+
+    $.getJSON("http://localhost:8080/api/v1/admin/facilitators", function(data, status){
+        $.each(data, function(index){
+            $('#parent-select').multiSelect('addOption', { value: data[index].userId, text: data[index].userName});
+        });
+    });
     document.querySelector("#cancel").addEventListener('click', familyList);
     document.querySelector("#submit").addEventListener('click', submitNewFamily);
-    document.querySelector("#addFacil").addEventListener('click', addParent);
-    document.querySelector("#remFacil").addEventListener('click', () => {
-        let p = document.querySelector("#parents").lastChild;
-        document.querySelector("#parents").removeChild(p);
-    });
 }
 
 function lonelyFacilitators() {
@@ -200,21 +207,29 @@ function lonelyFacilitators() {
 }
 
 function submitNewFamily() {
-    let surname = document.querySelector("#famName").value;
-    let numChild = parseInt(document.querySelector("#children").value);
-
-    let xhttp = new XMLHttpRequest();
-    xhttp.addEventListener("loadend", () => {
-        if (xhttp.status > 300) {
-            alert('ERROR: Could not create family');
-            return;
-        }
-        alert('SUCESS: Family created');
-        familyList();
+    let surname = $("#famName").val();
+    let numChild = parseInt($("#children").val());
+    let pList = new Array();
+    $('#parent-select option:selected').each(function() {
+        pList.push(parseInt($(this).val()));
     });
-    xhttp.open("POST", "http://localhost:8080/api/v1/admin/families");
-    console.log(JSON.stringify(newFamily));
-    xhttp.send(JSON.stringify(newFamily));
+
+    let data = {"familyName":surname, "children": children, "parents":pList};
+
+    $.ajax({
+        type: 'POST',
+        url: '/api/v1/admin/families',
+        contentType: 'json',
+        data: JSON.stringify(data),
+        dataType: 'text',
+        success: function(data) { 
+            alert('SUCCESS: Family created');
+            familyList();
+        },
+        error: function(xhr) {
+            alert(`ERROR: Could not create family (${xhr.status})`);
+        }
+    });
 }
 
 function familyInfo() {

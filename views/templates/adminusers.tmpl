@@ -90,7 +90,8 @@
         <input id="children" type="number" value="0" class="form-control form-control-sm">
         <br>
         <p>Facilitators</p>
-        <div id="parents"></div>
+        <select multiple="multiple" id="parent-select" name="parent-select[]">
+        </select>
         <br>
         <button id="submit" type="button" class="btn btn-primary">Submit</button>
         <button id="cancel" type="button" class="btn btn-primary">Cancel</button>
@@ -109,10 +110,9 @@
         <input id="children" type="number" value="{{`{{=it.children}}`}}" class="form-control form-control-sm">
         <br>
         <p>Facilitators</p>
-        <div id="parents">
-            {{`{{~it.parents :value:index}}`}}
-            {{`{{~}}`}}
-        </div>
+        <select multiple="multiple" id="parent-select" name="parent-select[]">
+            {{`{{~it :value:index}}`}}
+        </select>
         <br>
         <button id="submit" type="button" class="btn btn-primary">Submit</button>
         <button id="cancel" type="button" class="btn btn-primary">Cancel</button>

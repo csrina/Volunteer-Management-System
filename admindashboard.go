@@ -78,7 +78,7 @@ type familyDetailed struct {
 	FamilyID   int         `json:"familyId" db:"family_id"`
 	FamilyName string      `json:"familyName" db:"family_name"`
 	Children   int         `json:"children" db:"children"`
-	Parents    []userShort `json:"parents"`
+	Parents    []UserShort `json:"parents"`
 }
 
 func createFamily(w http.ResponseWriter, r *http.Request) {
@@ -184,26 +184,12 @@ func basicRoomList(w http.ResponseWriter, r *http.Request) {
 
 //gets all users not currently linked to a family
 func lonelyFacilitators(w http.ResponseWriter, r *http.Request) {
-<<<<<<< HEAD
-	users := []userShort{}
+	users := []UserShort{}
 	q := `SELECT user_id, username
 			FROM users
 			WHERE family_id IS NULL
 			AND user_role = 1`
 
-=======
-	users := []UserShort{}
-	q := `SELECT user_id, username 
-			FROM users 
-			WHERE user_role = 1 
-			AND user_id NOT IN 
-				(
-				SELECT user_id 
-					FROM users, family 
-					WHERE users.user_id = family.parent_one 
-					OR family.parent_two = users.user_id
-				)`
->>>>>>> master
 	err := db.Select(&users, q)
 	if err != nil {
 		logger.Println(err)
@@ -446,6 +432,7 @@ func loadAdminUsers(w http.ResponseWriter, r *http.Request) {
 	}
 	s := tmpls.Lookup("adminusers.tmpl")
 	pg.DotJS = true
+	pg.MultiSelect = true
 	s.ExecuteTemplate(w, "adminusers", pg)
 }
 
