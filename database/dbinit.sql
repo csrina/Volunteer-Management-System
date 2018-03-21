@@ -57,3 +57,10 @@ CREATE TABLE clocking (
     CONSTRAINT 	    unq_clocking UNIQUE(booking_id, clock_in, clock_out)
 );
 
+CREATE TABLE donation (
+    donation_id     SERIAL PRIMARY KEY,
+    donator_id      INT    REFERENCES family (family_id),
+    recipient_id    INT    REFERENCES family (family_id),
+    amount          FLOAT,
+    date_sent       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

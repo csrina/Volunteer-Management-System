@@ -17,7 +17,7 @@ const (
 )
 
 // tmp user struct just holds username and password
-type User struct {
+type TmpUser struct {
 	Username string `json:"username" db:"username"`
 	Password []byte `json:"password" db:"password"`
 	UserID   int    `db:"user_id"`
@@ -56,7 +56,7 @@ func loadLogin(w http.ResponseWriter, r *http.Request) {
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
-	var u User
+	var u TmpUser
 	err := decoder.Decode(&u)
 	if err != nil {
 		logger.Println(err)
@@ -105,7 +105,7 @@ func auth(w http.ResponseWriter, username string, password []byte, role int) {
 			where username = $1 AND user_role = $2`
 	logger.Println("Checking if user exits")
 	logger.Println(q + " " + username)
-	var users []User
+	var users []TmpUser
 	if err := db.Select(&users, q, username, role); err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		logger.Println(err)
@@ -132,7 +132,7 @@ func auth(w http.ResponseWriter, username string, password []byte, role int) {
 
 func checkPassword(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
-	var u User
+	var u TmpUser
 	err := decoder.Decode(&u)
 	if err != nil {
 		logger.Println(err)
@@ -163,7 +163,7 @@ func checkPassword(w http.ResponseWriter, r *http.Request) {
 
 func updatePassword(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
-	var u User
+	var u TmpUser
 	err := decoder.Decode(&u)
 	if err != nil {
 		logger.Println(err)
