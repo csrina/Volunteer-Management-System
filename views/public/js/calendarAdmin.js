@@ -153,11 +153,12 @@ function submitEvent() {
     let event = {}
     event.start = moment(document.querySelector("#start").value).format();
     event.end = moment(document.querySelector("#end").value).format();
-    event.room = document.querySelector("#room").value;
-    event.color = event.room
+    event.roomId = parseInt(document.querySelector("#room").value);
+    event.room = $("#room option:selected").text();
     event.modifier = parseInt(document.querySelector("#modifier").value);
     event.note = document.querySelector("#note").value;
     eventJson = JSON.stringify(event);
+    console.log(eventJson);
     // Make ajax POST request with booking request or request bookign delete if already booked
     $.ajax({
         url: '/api/v1/events/add',
@@ -168,7 +169,7 @@ function submitEvent() {
         success: function (data) {
             event.id = data.id;
             event.color = data.color;
-            event.title = "<br>Facilitation 0/3";
+            event.title = "Facilitation";
             $('#calendar').fullCalendar('renderEvent', event); // render event on calendar
         },
         error: function (xhr, ajaxOptions, thrownError) {
