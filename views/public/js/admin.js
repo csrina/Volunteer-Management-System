@@ -152,36 +152,27 @@ function loadEditFamily(e) {
         document.querySelector("#displayData").innerHTML = func(userInfo);
         document.querySelector("#cancel").addEventListener('click', familyList);
         document.querySelector("#submit").addEventListener('click', submitFamilyEdit);
-        let btns = document.querySelectorAll("[id*='rem_']");
-        for(let i = 0; i < btns.length; i++) {
-            btns[i].addEventListener("click", dropParent);
-        }
     });
     xhttp.open("GET", `http://localhost:8080/api/v1/admin/families?f=${familyID}`);
     xhttp.send();
 }
 
 function submitFamilyEdit() {
-    alert('submitted');
-}
+    let familyID = document.querySelector("#famId").value;
+    let familyName = document.querySelector("#famName").value;
+    let children = document.querySelector("#children").value;
 
-function dropParent(e) {
-    let userID = e.srcElement.id.split("_")[1];
-    let user = {"userId":parseInt(userID)}
-    let check = confirm("Are you sure you want to remove this parent?");
-    if (check == true) {
-        let xhttp = new XMLHttpRequest();
-        xhttp.addEventListener("loadend", () => {
-            if (xhttp.response > 300) {
-                alert('ERROR: Could not remove user from family.');
-            } else {
-                alert('SUCCES: User removed from family');
-                familyList();
-            }
-        });
-        xhttp.open("PUT", "http://localhost:8080/api/v1/admin/users/family");
-        xhttp.send(JSON.stringify(user));
-    }
+    let xhttp = new XMLHttpRequest();
+    xhttp.addEventListener("loadend", () => {
+        if (xhttp.status > 300) {
+            alert('ERROR: Could not update family');
+            return;
+        }
+        alert('SUCESS: Family updated');
+        familyList();
+    });
+    xhttp.open("PUT", "http://localhost:8080/api/v1/admin/families");
+    xhttp.send(JSON.stringify(family));
 }
 
 function newFamily() {
@@ -196,7 +187,7 @@ function newFamily() {
     });
 }
 
-function addParent() {
+function lonelyFacilitators() {
     let xhttp = new XMLHttpRequest();
     xhttp.addEventListener("loadend", () => {
         let parents = JSON.parse(xhttp.response);
@@ -211,21 +202,7 @@ function addParent() {
 function submitNewFamily() {
     let surname = document.querySelector("#famName").value;
     let numChild = parseInt(document.querySelector("#children").value);
-    let parents = document.querySelectorAll("#parent");
-    let pList = new Array();
-    for (let i = 0; i < parents.length; i++) {
-        if (parents[i] === "") {
-            alert('Cannot have empty parent')
-            return;
-        }
-        pList.push(parseInt(parents[i].value));
-    };
-    if (surname === "") {
-        alert('Please enter a family name');
-        return;
-    };
-    let newFamily = {"familyName":surname, "children":numChild,
-                    "parents":pList};
+
     let xhttp = new XMLHttpRequest();
     xhttp.addEventListener("loadend", () => {
         if (xhttp.status > 300) {

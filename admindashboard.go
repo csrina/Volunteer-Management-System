@@ -110,20 +110,43 @@ func updateFamily(w http.ResponseWriter, r *http.Request) {
 	family := familyFull{}
 	decoder := json.NewDecoder(r.Body)
 	decoder.Decode(&family)
+	tx, err := db.Begin()
+	fmt.Printf("%v#\n", family)
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	q := `UPDATE family
 			SET family_name = $2, children = $3
 			WHERE family_id = $1`
 
-	_, err := db.Exec(q, family.FamilyID, family.FamilyName,
+	q2 := `UPDATE users
+			SET family_id = $2
+			WHERE user_id = $1`
+
+	_, err = tx.Exec(q, family.FamilyID, family.FamilyName,
 		family.Children)
 
 	if err != nil {
+		tx.Rollback()
 		logger.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
+
+	for _, user := range family.Parents {
+		_, err := tx.Exec(q2, user, family.FamilyID)
+		if err != nil {
+			tx.Rollback()
+			logger.Println(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+	}
+	tx.Commit()
+	w.WriteHeader(http.StatusOK)
 }
 
 func basicRoomList(w http.ResponseWriter, r *http.Request) {
@@ -294,7 +317,7 @@ func getFamilyList(w http.ResponseWriter, r *http.Request) {
 		encoder := json.NewEncoder(w)
 		encoder.Encode(familyList)
 	} else {
-		q2 := `SELECT family_name, children
+		q2 := `SELECT family_id, family_name, children
 				FROM family
 				WHERE family_id = $1`
 		q3 := `SELECT user_id, username
