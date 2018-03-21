@@ -4,6 +4,36 @@
 
 <br><br><br><br>
     <main>
+        <!-- Event Details Modal -->
+        <div class="modal fade" id="eventDetailsModal" tabindex="-1" role="dialog" aria-labelledby="eventDetailsModalCenterTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="eventModalTitle"></h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <h5 class="text-muted">Where:</h5>
+                        <h5 id="modalEventRoom"></h5>
+                        <h5 class="text-muted">When:</h5>
+                        <h5 id="modalEventTime"></h5>
+                        <h5 class="text-muted">Description:</h5><br>
+                        <p id="eventNote"></p><br>
+                        <h5 class="text-left text-muted">Booked Facilitators:</h5><br>
+                        <div class="text-center" id="eventBookings">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <p aria-hidden="true" style="visibility: hidden" id="modalEventData"></p>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" id="modalConfirm" onclick="requestBooking()"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="main-container">
             <div class="container">
                 <div class="row">

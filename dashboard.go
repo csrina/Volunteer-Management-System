@@ -146,7 +146,7 @@ func (dd *DashData) updateHoursData(fam Family, today time.Time) (*DashData, err
 		duration := (b.End.Sub(b.Start).Hours() * float64(b.Modifier))
 		// historical bookings must be separated by parent
 		if b.Start.Before(startOfWeek) {
-			if b.UserID == fam.ParentOneID {
+			if b.UserID == fam.Parents[0].UserID {
 				dd.History1.addDurationPoint(DurationPoint{Y: duration, X: now.New(b.Start).BeginningOfDay()})
 			} else {
 				dd.History2.addDurationPoint(DurationPoint{Y: duration, X: now.New(b.Start).BeginningOfDay()})
