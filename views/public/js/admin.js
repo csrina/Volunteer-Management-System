@@ -151,7 +151,7 @@ function loadEditFamily(e) {
 
         document.querySelector("#displayData").innerHTML = func(data);
         document.querySelector("#cancel").addEventListener('click', familyList);
-        document.querySelector("#submit").addEventListener('click', submitNewFamily);
+        document.querySelector("#submit").addEventListener('click', submitEditFamily);
         
         $('#parent-select').multiSelect({
             selectableHeader: "<div class='parent-select'>Available Facilitators</div>",
@@ -162,30 +162,45 @@ function loadEditFamily(e) {
             $('#parent-select').multiSelect('addOption', { value: data.parents[index].userId, text: data.parents[index].userName});
             $('#parent-select').multiSelect('select_all');
         });
-    });
-    $.getJSON("http://localhost:8080/api/v1/admin/facilitators", function(data, status){
-        $.each(data, function(index){
+        $.getJSON("http://localhost:8080/api/v1/admin/facilitators", function(data, status){
+            $.each(data, function(index){
             $('#parent-select').multiSelect('addOption', { value: data[index].userId, text: data[index].userName});
+            });
         });
     });
 }
 
-function submitFamilyEdit() {
-    let familyID = document.querySelector("#famId").value;
-    let familyName = document.querySelector("#famName").value;
-    let children = document.querySelector("#children").value;
-
-    let xhttp = new XMLHttpRequest();
-    xhttp.addEventListener("loadend", () => {
-        if (xhttp.status > 300) {
-            alert('ERROR: Could not update family');
-            return;
-        }
-        alert('SUCESS: Family updated');
-        familyList();
+//Not a big fan of the way this "removes" family members
+//Could be more effecicient
+function submitEditFamily() {
+    let familyID = parseInt($("#famId").val());
+    let surname = $("#famName").val();
+    let numChild = parseInt($("#children").val());
+    let dList = new Array();
+    let pList = new Array();
+    $('#parent-select option:selected').each(function() {
+        pList.push(parseInt($(this).val()));
     });
-    xhttp.open("PUT", "http://localhost:8080/api/v1/admin/families");
-    xhttp.send(JSON.stringify(family));
+    $('#parent-select option:not(:selected)').each(function() {
+        dList.push(parseInt($(this).val()));
+    });
+
+    let data = {"familyId":familyID, "familyName":surname,
+                "children": numChild, "parents":pList, "dropped":dList};
+    $.ajax({
+        type: 'PUT',
+        url: '/api/v1/admin/families',
+        contentType: 'json',
+        data: JSON.stringify(data),
+        dataType: 'text',
+        success: function(data) { 
+            alert('SUCCESS: Family updated');
+            familyList();
+        },
+        error: function(xhr) {
+            alert(`ERROR: Could not update family (${xhr.status})`);
+        }
+    });
 }
 
 function newFamily() {

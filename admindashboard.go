@@ -72,6 +72,7 @@ type familyFull struct {
 	FamilyName string `json:"familyName" db:"family_name"`
 	Children   int    `json:"children" db:"children"`
 	Parents    []int  `json:"parents"`
+	Dropped    []int  `json:"dropped"`
 }
 
 type familyDetailed struct {
@@ -129,7 +130,7 @@ func updateFamily(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	decoder.Decode(&family)
 	tx, err := db.Begin()
-	fmt.Printf("%v#\n", family)
+
 	if err != nil {
 		logger.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -144,6 +145,11 @@ func updateFamily(w http.ResponseWriter, r *http.Request) {
 			SET family_id = $2
 			WHERE user_id = $1`
 
+	q3 := `UPDATE users
+			SET family_id = NULL
+			WHERE family_id = $2
+			AND user_id = $1`
+
 	_, err = tx.Exec(q, family.FamilyID, family.FamilyName,
 		family.Children)
 
@@ -156,6 +162,17 @@ func updateFamily(w http.ResponseWriter, r *http.Request) {
 
 	for _, user := range family.Parents {
 		_, err := tx.Exec(q2, user, family.FamilyID)
+		if err != nil {
+			tx.Rollback()
+			logger.Println(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+	}
+
+	for _, user := range family.Dropped {
+		fmt.Println(user)
+		_, err := tx.Exec(q3, user, family.FamilyID)
 		if err != nil {
 			tx.Rollback()
 			logger.Println(err)
