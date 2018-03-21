@@ -143,18 +143,31 @@ function familyList() {
 
 function loadEditFamily(e) {
     let familyID = e.srcElement.id.split("_")[1];
-    let xhttp = new XMLHttpRequest();
-    xhttp.addEventListener("loadend", () => {
-        console.log(xhttp.response);
-        let userInfo = JSON.parse(xhttp.response);
+    
+    
+    $.getJSON(`http://localhost:8080/api/v1/admin/families?f=${familyID}`, function(data, status){
         let tmpl = document.querySelector("#tmpl_editFamily").innerHTML;
         let func = doT.template(tmpl);
-        document.querySelector("#displayData").innerHTML = func(userInfo);
+
+        document.querySelector("#displayData").innerHTML = func(data);
         document.querySelector("#cancel").addEventListener('click', familyList);
-        document.querySelector("#submit").addEventListener('click', submitFamilyEdit);
+        document.querySelector("#submit").addEventListener('click', submitNewFamily);
+        
+        $('#parent-select').multiSelect({
+            selectableHeader: "<div class='parent-select'>Available Facilitators</div>",
+            selectionHeader: "<div class='parent-select'>Family Members</div>"
+        });
+        $('#parent-select').multiSelect({});
+        $.each(data.parents, function(index){
+            $('#parent-select').multiSelect('addOption', { value: data.parents[index].userId, text: data.parents[index].userName});
+            $('#parent-select').multiSelect('select_all');
+        });
     });
-    xhttp.open("GET", `http://localhost:8080/api/v1/admin/families?f=${familyID}`);
-    xhttp.send();
+    $.getJSON("http://localhost:8080/api/v1/admin/facilitators", function(data, status){
+        $.each(data, function(index){
+            $('#parent-select').multiSelect('addOption', { value: data[index].userId, text: data[index].userName});
+        });
+    });
 }
 
 function submitFamilyEdit() {
@@ -214,7 +227,7 @@ function submitNewFamily() {
         pList.push(parseInt($(this).val()));
     });
 
-    let data = {"familyName":surname, "children": children, "parents":pList};
+    let data = {"familyName":surname, "children": numChild, "parents":pList};
 
     $.ajax({
         type: 'POST',

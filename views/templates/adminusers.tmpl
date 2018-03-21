@@ -72,15 +72,6 @@
     </table>
 </script>
 
-<script id="tmpl_newParent" type="x-dot-template">
-    <select class="form-control" id="parent">
-        <option value="">Select a Parent/Facilitator</option>
-            {{`{{~it :value:index}}`}}
-        <option value="{{`{{=value.userId}}`}}">{{`{{=value.userName}}`}}</option>
-        {{`{{~}}`}}
-    </select>
-</script>
-
 <script id="tmpl_newFamily" type="x-dot-template">    
     <div class="form-group">
         <p>Family Name</p>
@@ -111,7 +102,6 @@
         <br>
         <p>Facilitators</p>
         <select multiple="multiple" id="parent-select" name="parent-select[]">
-            {{`{{~it :value:index}}`}}
         </select>
         <br>
         <button id="submit" type="button" class="btn btn-primary">Submit</button>
