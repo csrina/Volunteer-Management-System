@@ -31,6 +31,10 @@
             <script type="text/javascript" src='/views/fc/lib/moment.min.js'></script>
             <script type="text/javascript" src='/views/fc/fullcalendar.js'></script>
         {{end}}
+        {{if .MultiSelect }}
+            <link rel="stylesheet" type="text/css" href="/views/ms/multi-select.css" media="screen">
+            <script type="text/javascript" src="/views/ms/jquery.multi-select.js"></script>
+        {{end}}
         {{if .Chart }}
             <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js"></script>

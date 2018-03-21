@@ -141,51 +141,127 @@ function familyList() {
     xhttp.send();
 }
 
-function loadEditFamily() {
-    // TODO
+function loadEditFamily(e) {
+    let familyID = e.srcElement.id.split("_")[1];
+    
+    
+    $.getJSON(`http://localhost:8080/api/v1/admin/families?f=${familyID}`, function(data, status){
+        let tmpl = document.querySelector("#tmpl_editFamily").innerHTML;
+        let func = doT.template(tmpl);
+
+        document.querySelector("#displayData").innerHTML = func(data);
+        document.querySelector("#cancel").addEventListener('click', familyList);
+        document.querySelector("#submit").addEventListener('click', submitEditFamily);
+        
+        $('#parent-select').multiSelect({
+            selectableHeader: "<div class='parent-select'>Available Facilitators</div>",
+            selectionHeader: "<div class='parent-select'>Family Members</div>"
+        });
+        $('#parent-select').multiSelect({});
+        $.each(data.parents, function(index){
+            $('#parent-select').multiSelect('addOption', { value: data.parents[index].userId, text: data.parents[index].userName});
+            $('#parent-select').multiSelect('select_all');
+        });
+        $.getJSON("http://localhost:8080/api/v1/admin/facilitators", function(data, status){
+            $.each(data, function(index){
+            $('#parent-select').multiSelect('addOption', { value: data[index].userId, text: data[index].userName});
+            });
+        });
+    });
+}
+
+//Not a big fan of the way this "removes" family members
+//Could be more effecicient
+function submitEditFamily() {
+    let familyID = parseInt($("#famId").val());
+    let surname = $("#famName").val();
+    let numChild = parseInt($("#children").val());
+    let dList = new Array();
+    let pList = new Array();
+    $('#parent-select option:selected').each(function() {
+        pList.push(parseInt($(this).val()));
+    });
+    $('#parent-select option:not(:selected)').each(function() {
+        dList.push(parseInt($(this).val()));
+    });
+
+    let data = {"familyId":familyID, "familyName":surname,
+                "children": numChild, "parents":pList, "dropped":dList};
+    $.ajax({
+        type: 'PUT',
+        url: '/api/v1/admin/families',
+        contentType: 'json',
+        data: JSON.stringify(data),
+        dataType: 'text',
+        success: function(data) { 
+            alert('SUCCESS: Family updated');
+            familyList();
+        },
+        error: function(xhr) {
+            alert(`ERROR: Could not update family (${xhr.status})`);
+        }
+    });
 }
 
 function newFamily() {
+    let tmpl = document.querySelector("#tmpl_newFamily").innerHTML;
+    document.querySelector("#displayData").innerHTML = tmpl;
+    $('#parent-select').multiSelect({
+        selectableHeader: "<div class='parent-select'>Available Facilitators</div>",
+        selectionHeader: "<div class='parent-select'>Family Members</div>"
+    });
+    $('#parent-select').multiSelect({});
+    
+
+    $.getJSON("http://localhost:8080/api/v1/admin/facilitators", function(data, status){
+        $.each(data, function(index){
+            $('#parent-select').multiSelect('addOption', { value: data[index].userId, text: data[index].userName});
+        });
+    });
+    document.querySelector("#cancel").addEventListener('click', familyList);
+    document.querySelector("#submit").addEventListener('click', submitNewFamily);
+}
+
+function lonelyFacilitators() {
     let xhttp = new XMLHttpRequest();
     xhttp.addEventListener("loadend", () => {
-        let facilitators = JSON.parse(xhttp.response);
-        let tmpl = document.querySelector("#tmpl_newFamily").innerHTML;
-        let func = doT.template(tmpl);
-        document.querySelector("#displayData").innerHTML = func(facilitators);
-        document.querySelector("#cancel").addEventListener('click', familyList);
-        document.querySelector("#submit").addEventListener('click', submitNewFamily);
+        let parents = JSON.parse(xhttp.response);
+        let tmpl = document.querySelector("#tmpl_newParent").innerHTML;
+        func = doT.template(tmpl);
+        document.querySelector("#parents").insertAdjacentHTML('beforeend', func(parents));
     });
-    xhttp.open("GET", `http://localhost:8080/api/v1/admin/facilitators`);
+    xhttp.open("GET", "http://localhost:8080/api/v1/admin/facilitators");
     xhttp.send();
 }
 
 function submitNewFamily() {
-    let par1 = document.querySelector("#parent1").value;
-    let par2 = document.querySelector("#parent2").value;
-    let surname = document.querySelector("#famName").value;
-    let numChild = parseInt(document.querySelector("#children").value);
-    if (par1 === par2 && par1 != "") {
-        alert('Parents cannot match.');
-        return;
-    }
-    if (surname === "" || numChild === "") {
-        alert('Please fill out all fields');
-        return;
-    }
-
-    let newFamily = {"familyName":surname, "parentOne":parseInt(par1),
-                    "parentTwo":parseInt(par2), "children":numChild};
-    let xhttp = new XMLHttpRequest();
-    xhttp.addEventListener("loadend", () => {
-        if (xhttp.status > 300) {
-            alert('ERROR: Could not create family');
-            return;
-        }
-        familyList();
+    let surname = $("#famName").val();
+    let numChild = parseInt($("#children").val());
+    let pList = new Array();
+    $('#parent-select option:selected').each(function() {
+        pList.push(parseInt($(this).val()));
     });
-    xhttp.open("POST", "http://localhost:8080/api/v1/admin/families");
-    console.log(JSON.stringify(newFamily));
-    xhttp.send(JSON.stringify(newFamily));
+
+    let data = {"familyName":surname, "children": numChild, "parents":pList};
+
+    $.ajax({
+        type: 'POST',
+        url: '/api/v1/admin/families',
+        contentType: 'json',
+        data: JSON.stringify(data),
+        dataType: 'text',
+        success: function(data) { 
+            alert('SUCCESS: Family created');
+            familyList();
+        },
+        error: function(xhr) {
+            alert(`ERROR: Could not create family (${xhr.status})`);
+        }
+    });
+}
+
+function familyInfo() {
+
 }
 
 function submitUserEdit() {  
@@ -227,7 +303,7 @@ function newUser() {
         
         let fields = document.querySelectorAll("input");
         for(let i = 0; i < fields.length; i++) {
-            if (fields[i].value == "") {
+            if (fields[i].value == "" && fields[i].id != "bonusNote") {
                 alert('Please fill out all sections');
                 return;
             } 
@@ -247,6 +323,8 @@ function newUser() {
         let newPhone = document.querySelector("#phoneNum").value;
         let newUName = `${newLName}${newFName}`.toLowerCase();
         let newPass = document.querySelector("#pass1").value;
+        let bHours = parseInt(document.querySelector("#bonusHours").value);
+        let bNote = document.querySelector("#bonusNote").value;
         let newPassData = [];
         for (let i = 0; i < newPass.length; i++) {
             newPassData.push(newPass.charCodeAt(i));
@@ -266,8 +344,12 @@ function newUser() {
         xhttp.open("POST", "http://localhost:8080/api/v1/admin/users");
         xhttp.send(JSON.stringify({userrole:newRole, username:newUName,
                     password:newPassData, firstname: newFName, lastname:newLName,
-                    email:newEmail, phoneNumber:newPhone}));
+                    email:newEmail, phoneNumber:newPhone, bonusHours:bHours, bonusNote:bNote}));
     });
+}
+
+function userInfo() {
+
 }
 
 function listClasses() {
