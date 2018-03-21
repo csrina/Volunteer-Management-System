@@ -13,6 +13,7 @@ type Page struct {
 	Chart    	bool // page requires chart.js
 	Dashboard 	bool //is it the dahsboard?
 	DotJS 		bool
+	Toaster     bool
 }
 
 /*

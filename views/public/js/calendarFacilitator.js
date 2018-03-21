@@ -2,6 +2,28 @@
 // Like the updateEvent function, post-demo I will refactor this out
 // and have the templates populate based on role. Additional auth checks
 // server side to ensure correct user/role and such should still take place
+function showToaster(type, msg) {
+    toastr.options = {
+        "closeButton": true,
+        "debug": false,
+        "newestOnTop": true,
+        "progressBar": false,
+        "positionClass": "toast-top-right",
+        "preventDuplicates": true,
+        "onclick": null,
+        "showDuration": "300",
+        "hideDuration": "1000",
+        "timeOut": "5000",
+        "extendedTimeOut": "1000",
+        "showEasing": "swing",
+        "hideEasing": "linear",
+        "showMethod": "fadeIn",
+        "hideMethod": "fadeOut"
+    };
+
+    Command: toastr[type](msg);
+}
+
 function requestBooking() {
     let event = JSON.parse($('.modal-footer').find('#modalEventData').text());
     if (event.booked && event.bookingCount >= 3 && !prompt("This block is pretty crowded, are you sure you want to proceed?")) {
@@ -34,7 +56,7 @@ function requestBooking() {
         dataType:'json',
         success: function(data) {  // We expect the server to return json data with a msg field
             // noinspection Annotator
-            alert(data.msg);
+            showToaster("success", data.msg);
             event = $('#calendar').fullCalendar('clientEvents', event.id)[0];
             $('#modalConfirm').removeClass((event.booked) ? "btn-warning" : "btn-success");
             event.booked = !event.booked;
@@ -60,7 +82,7 @@ function requestBooking() {
             $('#eventDetailsModal').modal('hide');
         },
         error: function(xhr, ajaxOptions, thrownError) {
-            alert("Booking request failed: " + xhr.responseText)
+           showToaster("error", "Booking request failed: " + xhr.responseText);
         }
     });
 }
@@ -82,10 +104,9 @@ $(document).ready(function() {
         themeSystem: "bootstrap4",
         editable: false,                 // Need to use templating engine to change bool based on user's rolego ,
         eventRender: function(event, element, view) {
-            element.attr("data-eventID", event.id);
             let fctime = element.find('.fc-time');
             let fctitle = element.find('.fc-title');
-            fctime.css("font-size", "1.2em");
+            fctime.css("font-size", "1em");
             fctitle.prepend("<br/>");
             fctitle.css("font-size", "1.0em");
             if (event.booked) {
@@ -120,8 +141,12 @@ $(document).ready(function() {
                 bookingsHTML += "<p>" + event.bookings[i].userName + "</p><br>";
             }
             $('#eventBookings').html(bookingsHTML);
+            // set text and colour of submit button:
+            // if booking and potential overbooking --> danger,
+            // else if booking open slot --> success
+            // else if unbook --> warning
             $('#modalConfirm').html((!event.booked) ? "Book" : "Unbook")
-                              .addClass((!event.booked) ? "btn-success" : "btn-warning");
+                              .addClass((!event.booked) ? ((event.bookingCount < 3) ? "btn-success" : "btn-danger") : "btn-warning");
             $('#eventDetailsModal').modal('show');
         },
         businessHours: {

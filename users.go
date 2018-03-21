@@ -110,6 +110,15 @@ func getUID(r *http.Request) (UID int) {
 	return UID
 }
 
+func getUIDFromName(userName string) (uid int, err error){
+	q := `SELECT user_id FROM users WHERE username = $1`
+	err = db.QueryRow(q, userName).Scan(&uid)
+	if err != nil {
+		return -1, err
+	}
+	return
+}
+
 /* Given a UID, get the FID which the user belongs to */
 func getUsersFID(userID int) (int, error) {
 	FID := -1

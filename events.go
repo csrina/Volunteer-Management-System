@@ -62,7 +62,7 @@ func eventPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	dest := mux.Vars(r)["target"] // Determine POST destination from URL
-	if dest == "book" {           // add/remove booking corresponding to event data
+	if  dest == "book" {           // add/remove booking corresponding to event data
 		bookingHandler(w, r, role)
 	} else if role == ADMIN {
 		adminPostHandler(w, r, dest)
@@ -178,8 +178,12 @@ func (e *Event) update() (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	tb.Start = e.Start
 	tb.End = e.End
+	tb.Note = e.Note
+	tb.Title = e.Title
+
 	err = tb.update()
 	if err != nil {
 		return nil, err
@@ -222,6 +226,7 @@ func (e *Event) getTimeBlock() (*TimeBlock) {
 	tb.Note = e.Note
 	tb.Modifier = e.Modifier
 	tb.Room = e.roomID
+	tb.Title = e.Title
 
 	return tb
 }
@@ -336,7 +341,7 @@ func NewEvent(b *TimeBlock) *Event {
 		Start: b.Start,
 		End:   b.End,
 		Note:  b.Note,
-		Title: "Facilitation",
+		Title: b.Title,
 	}
 	err := e.initBookings()
 	if err != nil {
