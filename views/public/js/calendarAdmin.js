@@ -345,6 +345,7 @@ function submitEvent() {
         //loadAddEvent();
     });
     let event = {}
+    event.title = $("#bTitle").val();
     event.start = moment(document.querySelector("#start").value).format();
     event.end = moment(document.querySelector("#end").value).format();
     event.roomId = parseInt(document.querySelector("#room").value);
@@ -352,7 +353,6 @@ function submitEvent() {
     event.modifier = parseInt(document.querySelector("#modifier").value);
     event.note = document.querySelector("#note").value;
     eventJson = JSON.stringify(event);
-    console.log(eventJson);
     // Make ajax POST request with booking request or request bookign delete if already booked
     $.ajax({
         url: '/api/v1/events/add',
@@ -363,7 +363,7 @@ function submitEvent() {
         success: function (data) {
             event.id = data.id;
             event.color = data.color;
-            event.title = "Facilitation";
+            event.bookingCount = 0;
             $('#calendar').fullCalendar('renderEvent', event); // render event on calendar
         },
         error: function (xhr, ajaxOptions, thrownError) {

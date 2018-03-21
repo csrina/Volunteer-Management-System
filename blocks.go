@@ -4,8 +4,9 @@ import (
 	"errors"
 	"time"
 
-	_ "github.com/lib/pq"
 	"database/sql"
+
+	_ "github.com/lib/pq"
 )
 
 /* TimeBlock ...
