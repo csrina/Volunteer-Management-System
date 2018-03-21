@@ -195,6 +195,7 @@ func loadCalendar(w http.ResponseWriter, r *http.Request) {
 	s := tmpls.Lookup("calendar.tmpl")
 	// calendar dependency flag
 	pg.Calendar = true
+	pg.Toaster = true
 	logger.Println(pg)
 	logger.Println(s.ExecuteTemplate(w, "calendar", pg))
 }

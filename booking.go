@@ -148,10 +148,16 @@ func bookingFromJSON(r *http.Request) (*Booking, error) {
 	}
 	uid := getUID(r)
 	if uid < 1 {
-		return nil, errors.New("uid unresolved")
+		return nil, errors.New("uid unresolved -- please re-login")
 	}
 	if uidTest, ok := ev["userId"].(float64); ok {
 		uid = int(uidTest)
+	} else if uName, ok := ev["userId"].(string); ok {
+		uid, err = getUIDFromName(uName)
+		if err != nil {
+			logger.Println("Failed to resolve: ", ev["userId"]);
+			return nil, err
+		}
 	}
 	booking.UserID = uid
 	booking.BlockID = int(eid)

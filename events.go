@@ -178,8 +178,13 @@ func (e *Event) update() (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	tb.Start = e.Start
 	tb.End = e.End
+	tb.Note = e.Note
+	tb.Title = e.Title
+	tb.Modifier = e.Modifier
+
 	err = tb.update()
 	if err != nil {
 		return nil, err
@@ -222,6 +227,7 @@ func (e *Event) getTimeBlock() *TimeBlock {
 	tb.Note = e.Note
 	tb.Modifier = e.Modifier
 	tb.Room = e.RoomID
+	tb.Title = e.Title
 
 	return tb
 }
@@ -332,11 +338,12 @@ func _(date string) (time.Time, error) {
 func NewEvent(b *TimeBlock) *Event {
 	/* Init w/ directly transferable properties */
 	e := &Event{
-		ID:    b.ID,
-		Start: b.Start,
-		End:   b.End,
-		Note:  b.Note,
-		Title: "Facilitation",
+		ID:       b.ID,
+		Start:    b.Start,
+		End:      b.End,
+		Note:     b.Note,
+		Title:    b.Title,
+		Modifier: b.Modifier,
 	}
 	err := e.initBookings()
 	if err != nil {

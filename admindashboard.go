@@ -459,10 +459,10 @@ func loadAdminCalendar(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusForbidden)
 		return
 	}
-	pg.Calendar = true
 	s := tmpls.Lookup("admincalendar.tmpl")
 	pg.Calendar = true
 	pg.DotJS = true
+	pg.Toaster = true
 	s.ExecuteTemplate(w, "admincalendar", pg)
 }
 

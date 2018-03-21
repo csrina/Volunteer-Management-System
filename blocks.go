@@ -17,13 +17,14 @@ type TimeBlock struct {
 	End      time.Time `db:"block_end" json:"end"`
 	Room     int       `db:"room_id" json:"room"`
 	Modifier int       `db:"modifier" json:"modifier"`
+	Title    string    `db:"title" json:"title"`
 	Note     string    `db:"note" json:"note"`
 }
 
 func getTimeBlockByID(id int) (*TimeBlock, error) {
 	tb := new(TimeBlock)
 	q := `SELECT * FROM time_block WHERE time_block.block_id = $1`
-	err := db.QueryRow(q, id).Scan(&tb.ID, &tb.Start, &tb.End, &tb.Room, &tb.Modifier, &tb.Note)
+	err := db.QueryRow(q, id).Scan(&tb.ID, &tb.Start, &tb.End, &tb.Room, &tb.Modifier, &tb.Title, &tb.Note)
 	return tb, err
 }
 
@@ -60,10 +61,10 @@ func (tb *TimeBlock) bookings() ([]bookingBlock, error) {
  */
 func (tb *TimeBlock) insert() (int, error) {
 
-	q := `INSERT INTO time_block (block_start, block_end, room_id, modifier, note)
-			VALUES ($1, $2, $3, $4, $5)
+	q := `INSERT INTO time_block (block_start, block_end, room_id, modifier, title, note)
+			VALUES ($1, $2, $3, $4, $5, $6)
 			RETURNING block_id`
-	err := db.QueryRow(q, tb.Start, tb.End, tb.Room, tb.Modifier, tb.Note).Scan(&tb.ID)
+	err := db.QueryRow(q, tb.Start, tb.End, tb.Room, tb.Modifier, tb.Title, tb.Note).Scan(&tb.ID)
 	if err != nil {
 		return -1, err
 	}
@@ -77,11 +78,11 @@ func (tb *TimeBlock) insert() (int, error) {
  */
 func (tb *TimeBlock) update() error {
 	q := `UPDATE time_block
-			SET(block_id, block_start, block_end, room_id, modifier, note)
-			= ($1, $2, $3, $4, $5, $6)
+			SET(block_id, block_start, block_end, room_id, modifier, title, note)
+			= ($1, $2, $3, $4, $5, $6, $7)
 		WHERE (time_block.block_id = $1)`
 
-	_, err := db.Exec(q, tb.ID, tb.Start, tb.End, tb.Room, tb.Modifier, tb.Note)
+	_, err := db.Exec(q, tb.ID, tb.Start, tb.End, tb.Room, tb.Modifier, tb.Title, tb.Note)
 	return err
 }
 
