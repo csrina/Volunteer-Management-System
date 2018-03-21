@@ -314,26 +314,6 @@ func makeEvents(blocks []TimeBlock) []*Event {
 	return events
 }
 
-/*
- * Parses the ISO6801 date string passed in url by fullCalendar.
- * Attempts to get long-form, then short-form;
- * upon failure it returns the current datetime and the parsing error
- */
-func _(date string) (time.Time, error) {
-	// try parsing long-form
-
-	d, err := time.Parse(isoTimeShort, date)
-	if err == nil {
-		return d, nil
-	}
-	// try short form
-	d, err = time.Parse(isoTimeFull, date)
-	if err == nil {
-		return d, nil
-	}
-	return time.Now(), err
-}
-
 /* NewEvent creates and returns ptr to a corresponding event representation */
 func NewEvent(b *TimeBlock) *Event {
 	/* Init w/ directly transferable properties */

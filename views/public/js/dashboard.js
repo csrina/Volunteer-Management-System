@@ -47,17 +47,20 @@ function requestRemoval(event) {
  * Spawns our chart (hours vs. time)
  */
 function chartInit(elementId, data) {
-    console.log(elementId, data);
+    /* We get datasets in a map of {id => dataset}, break them into array */
+    console.log(data.history)
+    let datasets = [];
+    for (var key in data.history) {
+        datasets.push(data.history[key]);
+    }
+
     let ctx = document.getElementById(elementId).getContext("2d");
     // noinspection ES6ConvertVarToLetConst
     var hoursChart = new Chart(ctx, {
         type: "line",
         data:
             {
-                datasets: [
-                    data.history1,
-                    data.history2,
-                ]
+                datasets: datasets,
             },
         options: {
             scales: {
