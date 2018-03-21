@@ -269,11 +269,11 @@ func (b *Booking) isLegal() (bool, error) {
 	if err != nil {
 		return illegal, err
 	} else if illegal == true {
-		return illegal, &ClientSafeError{Msg: "Oops! Booking conflicts with existing"}
+		return !illegal, &ClientSafeError{Msg: "Oops! Booking conflicts with existing"}
 	}
 
 	if b.isPast() == true {
-		return illegal, &ClientSafeError{Msg: "Sorry! The event has already finshed"}
+		return !illegal, &ClientSafeError{Msg: "Sorry! The event has already finshed"}
 	}
 	// booking is legal
 	return false, nil
@@ -298,7 +298,7 @@ func (b *Booking) hasConflict() (bool, error) {
 	if err != nil {
 		logger.Println("conflict detection encountered an error:", err)
 	}
-	return len(bids) == 0, err
+	return len(bids) != 0, err
 }
 
 /*
