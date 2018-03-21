@@ -2,28 +2,6 @@
 // Note: We dont want this to be populated if we aren't admin.
 // post-demo will refactor this out into templates populated differently based on the role of the user
 
-function makeToast(type, msg) {
-    toastr.options = {
-        "closeButton": true,
-        "debug": false,
-        "newestOnTop": true,
-        "progressBar": false,
-        "positionClass": "toast-top-right",
-        "preventDuplicates": true,
-        "onclick": null,
-        "showDuration": "300",
-        "hideDuration": "1000",
-        "timeOut": "5000",
-        "extendedTimeOut": "1000",
-        "showEasing": "swing",
-        "hideEasing": "linear",
-        "showMethod": "fadeIn",
-        "hideMethod": "fadeOut"
-    };
-
-    Command: toastr[type](msg);
-}
-
 function showModal(btn) {
     let event = $('#calendar').fullCalendar('clientEvents', btn.getAttribute("data-id"))[0]; // get event from returned array
     // Make open/closing button tags which allows us to insert  the current data as the btton text
@@ -39,7 +17,7 @@ function showModal(btn) {
     // use the open/close button strings to create edit buttons containing the data to be altered
     $('#eventModalTitle').html(openEditTitleButton + "<h5>" + event.title + closeEditButton + "</h5>");
     $('#modalEventRoom').html(event.room + " Room").css("color", event.color);
-    $('#modalEventTime').html(event.start.format("ddd, hA") + " - " + event.end.format("hA"))
+    $('#modalEventTime').html(event.start.format("ddd, hhA") + " - " + event.end.format("hA"))
 
     let hourlyValue = moment.duration(event.end.diff(event.start)).asHours() * event.modifier;
     $('#modalValueLabel').append("<button type='button' class='btn btn-outline-secondary border-0 mpb-1' "

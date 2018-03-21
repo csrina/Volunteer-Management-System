@@ -29,17 +29,6 @@ function requestBooking() {
     if (event.booked && event.bookingCount >= 3 && !prompt("This block is pretty crowded, are you sure you want to proceed?")) {
         return;
     }
-    let promptStr = "Confirm ";
-    if (event.booked === true) {
-        promptStr += "Cancellation (";
-    } else {
-        promptStr += "Booking (";
-    }
-    // noinspection Annotator
-    if (!confirm(promptStr + moment(event.start).format("ddd, hA") + " - " + moment(event.end).format("ddd, hA")  + ", in the " + event.room + " room)")) {
-        return;
-    }
-
     // Block info for booking
     let booking_json = JSON.stringify({
         id:         event.id,

@@ -163,6 +163,7 @@ func loadDashboard(w http.ResponseWriter, r *http.Request) {
 	pg.Calendar = true
 	pg.Chart = true
 	pg.Dashboard = true
+	pg.Toaster = true
 	s.ExecuteTemplate(w, "dashboard", pg) // include page struct
 }
 
