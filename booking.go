@@ -18,9 +18,8 @@ type bookingBlock struct {
 	End       time.Time `db:"booking_end" json:"end"`
 }
 
-/*
- * Initialize a Booking struct given a BookingID
- */
+
+ // Initialize a Booking struct given a BookingID
 func (b *bookingBlock) init(BID int) error {
 	q := `SELECT booking_id, block_id, family_id, user_id, COALESCE(LOCALTIMESTAMP, booking_start), COALESCE(LOCALTIMESTAMP, booking_end) FROM booking WHERE booking_id = $1`
 	err := db.QueryRow(q, BID).Scan(&b.BookingID, &b.BlockID, &b.FamilyID, &b.UserID, &b.Start, &b.End)
@@ -31,7 +30,7 @@ func (b *bookingBlock) init(BID int) error {
 	return nil
 }
 
-// inserts a booking into the database
+// Inserts a booking into the database
 func (b *bookingBlock) insertBooking() error {
 	q := `INSERT INTO booking (block_id, family_id, user_id, 
 			booking_start, booking_end) 
@@ -45,7 +44,7 @@ func (b *bookingBlock) insertBooking() error {
 	return nil
 }
 
-// updates an existing booking in the database
+// Updates an existing booking in the database
 func (b *bookingBlock) updateBooking() error {
 	q := `UPDATE booking SET booking_start = $2, booking_end = $3
 			WHERE booking_id = $3`
@@ -65,7 +64,7 @@ func (b *bookingBlock) updateBooking() error {
 	return nil
 }
 
-// deletes an existing booking in the database
+// Deletes an existing booking in the database
 func (b *bookingBlock) deleteBooking() error {
 	q := `DELETE FROM booking WHERE booking_id = $1`
 
@@ -89,6 +88,7 @@ func (b *bookingBlock) deleteBooking() error {
 
 // -------------------------------------------------
 // -------------------------------------------------
+// Handles requests for booking from calendar
 func bookingHandler(w http.ResponseWriter, r *http.Request, role int) {
 	booking, err := bookingFromJSON(r)
 	if err != nil {
@@ -99,7 +99,7 @@ func bookingHandler(w http.ResponseWriter, r *http.Request, role int) {
 	response := new(Response) // Response data
 	usr := UserShort{UserID: booking.UserID}
 	response.UserName, _ = usr.getFullName()
-	response.UID = booking.UserID;
+	response.UID = booking.UserID
 
 	// book/unbook based on BookingID (if 0 value, then booking doesn't exist yet and must be created)
 	if booking.BookingID > 0 {
@@ -111,7 +111,14 @@ func bookingHandler(w http.ResponseWriter, r *http.Request, role int) {
 	}
 	// We may have an error condition after book/unbook
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		if _, ok := err.(*ClientSafeError); ok {
+			// We can send the error text of a client safe error
+			http.Error(w, err.Error(), http.StatusBadRequest);
+		} else {
+			// We log the results of a real error, but send generic string
+		    logger.Println("Booking handler encountered: ", err)
+			http.Error(w, "Your request was not processed, try again", http.StatusInternalServerError);
+		}
 		return
 	}
 	response.setBID(booking.BookingID).send(w)
@@ -132,9 +139,7 @@ type Booking struct {
 }
 
 
-/*
- * Reads json request, and creates a partially filled booking struct
- */
+// Reads json request, and creates a partially filled booking struct
 func bookingFromJSON(r *http.Request) (*Booking, error) {
 	booking := new(Booking)
 	// Now extract data from json request body
@@ -155,7 +160,7 @@ func bookingFromJSON(r *http.Request) (*Booking, error) {
 	} else if uName, ok := ev["userId"].(string); ok {
 		uid, err = getUIDFromName(uName)
 		if err != nil {
-			logger.Println("Failed to resolve: ", ev["userId"]);
+			logger.Println("Failed to resolve: ", ev["userId"])
 			return nil, err
 		}
 	}
@@ -163,7 +168,7 @@ func bookingFromJSON(r *http.Request) (*Booking, error) {
 	booking.BlockID = int(eid)
 	booking.FamilyID, err = getUsersFID(booking.UserID)
 	if err != nil {
-		return nil, errors.New("couldn't resolve FID from UID")
+		return nil, err
 	}
 	booking.getTimesMap() // Will set our Start/End for the event with DB values
 	// get the bookingID (if this booking doesn't exist, the ID will remain as 0
@@ -175,6 +180,7 @@ func bookingFromJSON(r *http.Request) (*Booking, error) {
 	return booking, nil
 }
 
+// Retrieves a timeblock for the booking instance
 func (b *Booking) getTimeBlock(role int) (*TimeBlock, error) {
 	if role != ADMIN {
 		return nil, errors.New("Insufficient priviledge")
@@ -238,23 +244,49 @@ func (b *Booking) getTimesMap() (map[string]time.Time, error) {
 	return times, nil
 }
 
+// Has the timeblock expired?
+func (b *Booking) isPast() bool {
+	if b.Start.Before(time.Now()) && b.End.Before(time.Now()) {
+		return true // Cannot book if the block is in the past!
+	}
+	return false
+}
+
+// Is the block *full*
+func (b *Booking) isFull() (bool, error) {
+	var bids []int
+	q := `SELECT booking_id FROM booking WHERE booking.block_id = $1`
+	err := db.Select(&bids, q, b.BlockID)
+	if err != nil {
+		logger.Println("isFull encountered an error: ", err)
+	}
+	return len(bids) >= 3, err
+}
+
+// return false if there are conflicts or has the block expired?
+func (b *Booking) isLegal() (bool, error) {
+	illegal, err := b.hasConflict()
+	if err != nil {
+		return illegal, err
+	} else if illegal == true {
+		return illegal, &ClientSafeError{Msg: "Oops! Booking conflicts with existing"}
+	}
+
+	if b.isPast() == true {
+		return illegal, &ClientSafeError{Msg: "Sorry! The event has already finshed"}
+	}
+	// booking is legal
+	return false, nil
+}
+
 /*
  * Determines if a booking is legal: that is, the maximum capacity is not reached,
  * and/or the booking is not in past.
  */
-func (b *Booking) isLegal() (bool, string) {
-	if b.Start.Before(time.Now()) && b.End.Before(time.Now()) {
-		return false, "event has passed" // Cannot book if the block is in the past!
-	}
-
-	var bids []int
-	q := `SELECT booking_id FROM booking WHERE booking.block_id = $1`
-	db.Select(&bids, q, b.BlockID)
-	if len(bids) >= 3 {
-		return false, "event is full"
-	}
+func (b *Booking) hasConflict() (bool, error) {
 	// Check if overlaps with existing booking of user
-	q = `SELECT booking_id FROM booking NATURAL JOIN time_block
+	var bids []int
+	q := `SELECT booking_id FROM booking NATURAL JOIN time_block
 					WHERE booking.user_id = $1 AND booking.block_id = time_block.block_id 
 						AND (
 								(time_block.block_start <= $2 AND $2 <= time_block.block_end)
@@ -262,8 +294,11 @@ func (b *Booking) isLegal() (bool, string) {
 								(time_block.block_start <= $3 AND $3 <= time_block.block_end)
 						)`
 
-	db.Select(&bids, q, b.UserID, b.Start, b.End)
-	return len(bids) == 0, "conflicts with an existing booking"
+	err := db.Select(&bids, q, b.UserID, b.Start, b.End)
+	if err != nil {
+		logger.Println("conflict detection encountered an error:", err)
+	}
+	return len(bids) == 0, err
 }
 
 /*
@@ -272,25 +307,26 @@ func (b *Booking) isLegal() (bool, string) {
  * is set upon successful booking.
  */
 func (b *Booking) book(role int) error {
-	if role == FACILITATOR {
-		if ok, reason := b.isLegal(); !ok {
-			return errors.New(reason)
-		}
+	/* Prevent booking in completed and/or conflicting events */
+	_, err := b.isLegal()
+	if err != nil {
+		return err  // The error returned may or may not be clientsafe -- is up to caller to determine what route to take
 	}
+
 	// Dont update booking_start and booking_end in DB --> these are the ACTUAL start/end times
 	q := `INSERT INTO booking (block_id, user_id, family_id) 
 			VALUES ($1, $2, $3)
 			RETURNING booking_id`
 
-	err := db.QueryRow(q, b.BlockID, b.UserID, b.FamilyID).Scan(&b.BookingID)
+	err = db.QueryRow(q, b.BlockID, b.UserID, b.FamilyID).Scan(&b.BookingID)
 	if err != nil {
 		logger.Println("Error creating booking: ", err, "\nbooking data: ", b)
 		return err
 	}
-	logger.Println("New Booking created!\nBooking id: ", b.BookingID)
 	return nil
 }
 
+// Remove the booking instance from the database
 func (b *Booking) unbook(role int) error {
 	if b.Start.Before(time.Now()) && b.End.Before(time.Now()) {
 		logger.Println("Now: ", time.Now(), "Start: ", b.Start, "  local: ", b.Start.Local())
@@ -339,54 +375,4 @@ func getBookingCount(blockID int) int {
 	q := `SELECT count(*) FROM booking WHERE block_id = $1`
 	db.QueryRow(q, blockID).Scan(&cnt)
 	return cnt
-}
-
-/* Ayyy */
-func getUserBookings(start time.Time, end time.Time, UID int) ([]Booking, error) {
-	/* Get all bookings in range start-now  (start > block_start & end > blocK_end) */
-	q := `SELECT booking_id, block_id, family_id, user_id, block_start, block_end, room_id, modifier
-			FROM booking NATURAL JOIN time_block WHERE (
-					time_block.block_id = booking.block_id
-					AND booking.user_id = $1
-					AND time_block.block_start >= $2 AND time_block.block_start < $3
-					AND time_block.block_end > $2 AND  time_block.block_end <= $3
-			) ORDER BY block_start`
-
-	var bookBlocks []Booking
-	err := db.Select(&bookBlocks, q, UID, start, end)
-	logger.Println("Selected blocks: ", bookBlocks)
-	if err != nil {
-		logger.Println(err)
-		return nil, err
-	}
-	return bookBlocks, nil
-}
-
-/* Like get bookings for a family*/
-func (f *Family) getFamilyBookings(start time.Time, end time.Time) ([]Booking, error) {
-	/* Get all bookings in range start-now  (start > block_start & end > blocK_end) */
-	q := `SELECT booking_id, block_id, family_id, user_id, block_start, block_end, room_id, modifier
-			FROM booking NATURAL JOIN time_block WHERE (
-					time_block.block_id = booking.block_id
-					AND booking.family_id = $1
-					AND time_block.block_start >= $2 AND time_block.block_start < $3
-					AND time_block.block_end > $2 AND  time_block.block_end <= $3
-			) ORDER BY block_start`
-
-	var bookBlocks []Booking
-	err := db.Select(&bookBlocks, q, f.ID, start, end)
-	logger.Println("Selected blocks: ", bookBlocks)
-	if err != nil {
-		logger.Println(err)
-		return nil, err
-	}
-	// Ensure locale is set
-	for i, b := range bookBlocks {
-		bookBlocks[i].Start = time.Date(b.Start.Year(), b.Start.Month(), b.Start.Day(),
-			b.Start.Hour(), b.Start.Minute(), 0, 0, time.Local)
-		bookBlocks[i].End = time.Date(b.End.Year(), b.End.Month(), b.End.Day(),
-			b.End.Hour(), b.End.Minute(), 0, 0, time.Local)
-
-	}
-	return bookBlocks, nil
 }

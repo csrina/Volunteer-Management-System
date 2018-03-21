@@ -11,21 +11,14 @@ import (
 	"github.com/jinzhu/now"
 )
 
-type familyShort struct {
-	FamilyID   int     `json:"familyId" db:"family_id"`
-	FamilyName string  `json:"familyName" db:"family_name"`
-	WeekHours  float64 `json:"weekHours"`
-	Children   int     `json:"children" db:"children"`
-}
+/* START OF SCHOOL YEAR FOR HISTORY TRACKING */
+const (
+	PERIOD_LENGTH        = 3 // months
+	ONE_CHILD_HOURS_GOAL = 2.00
+	DEFAULT_HOURS_GOAL   = 5.00
+)
 
-type familyMonth struct {
-	FamilyID   int       `json:"familyId" db:"family_id"`
-	FamilyName string    `json:"familyName" db:"family_name"`
-	Weeks      []float64 `json:"weeks"`
-	Month      float64   `json:"month"`
-	Children   int       `json:"children" db:"children"`
-}
-
+/* Find start/end contstraints within the month */
 func setWeekConstraint(time time.Time) (start, end time.Time) {
 	check := now.New(time)
 	if check.BeginningOfWeek().Before(check.BeginningOfMonth()) {
@@ -41,11 +34,11 @@ func setWeekConstraint(time time.Time) (start, end time.Time) {
 	return start, end
 }
 
-func setHourGoal(children int) float64 {
+func getHourGoal(children int) float64 {
 	if children == 1 {
-		return 2.5
+		return ONE_CHILD_HOURS_GOAL
 	}
-	return 5
+	return DEFAULT_HOURS_GOAL
 }
 
 func monthlyReport(w http.ResponseWriter, r *http.Request) {
@@ -62,7 +55,7 @@ func monthlyReport(w http.ResponseWriter, r *http.Request) {
 	month := []familyMonth{}
 
 	for i, fam := range families {
-		goal := setHourGoal(fam.Children)
+		goal := getHourGoal(fam.Children)
 		start := now.BeginningOfMonth()
 		end := time.Now()
 		month = append(month, familyMonth{})
