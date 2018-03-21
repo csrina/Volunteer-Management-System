@@ -2,7 +2,7 @@
 // Note: We dont want this to be populated if we aren't admin.
 // post-demo will refactor this out into templates populated differently based on the role of the user
 
-function showToaster(type, msg) {
+function makeToast(type, msg) {
     toastr.options = {
         "closeButton": true,
         "debug": false,
@@ -28,19 +28,24 @@ function showModal(btn) {
     let event = $('#calendar').fullCalendar('clientEvents', btn.getAttribute("data-id"))[0]; // get event from returned array
     // Make open/closing button tags which allows us to insert  the current data as the btton text
     let openEditNoteButton = "<button type='button' class='btn btn-outline-secondary border-0 mpb-1' "
-            + "data-fieldName='note' onclick='editNote(this)' + data-id='"
+            + "data-fieldName='note' onclick='editEventDetails(this)' data-id='"
             + event.id + "'>";
     // Need another prefix tag for title
     let openEditTitleButton = "<button type='button' class='btn btn-outline-secondary border-0 mpb-1' "
-        + "data-fieldName='title' onclick='editNote(this)' + data-id='"
+        + "data-fieldName='title' onclick='editEventDetails(this)' data-id='"
         + event.id + "'>";
 
-    let closeEditNoteButton = "    <span class='far fa-edit fa-lg'></span></button>"; // close the edit button
+    let closeEditButton = "    <span class='far fa-edit fa-lg'></span></button>"; // close the edit button
     // use the open/close button strings to create edit buttons containing the data to be altered
-    $('#eventModalTitle').html(openEditTitleButton + "<h5>" + event.title + closeEditNoteButton + "</h5>");
+    $('#eventModalTitle').html(openEditTitleButton + "<h5>" + event.title + closeEditButton + "</h5>");
     $('#modalEventRoom').html(event.room + " Room").css("color", event.color);
     $('#modalEventTime').html(event.start.format("ddd, hA") + " - " + event.end.format("hA"))
-    $('#eventNote').html(openEditNoteButton + "<p class='text-muted'>" + event.note + closeEditNoteButton + "</p>");
+
+    let hourlyValue = moment.duration(event.end.diff(event.start)).asHours() * event.modifier;
+    $('#modalValueLabel').append("<button type='button' class='btn btn-outline-secondary border-0 mpb-1' "
+        + "data-fieldName='modifier' onclick='editEventDetails(this)' data-id='"
+        + event.id + "'>" + "modifier: " + event.modifier + closeEditButton).append("<h5 id='modalEventValue' class='text-primary'>" + hourlyValue + "</h5>");
+    $('#eventNote').html(openEditNoteButton + "<p class='text-muted'>" + event.note + closeEditButton + "</p>");
 
     let len = (!event.bookings) ? 0 : event.bookings.length;
     let bookingsHTML = "";
@@ -78,6 +83,7 @@ function storeChangesToEvent(event, delta, revertFunc, jsEvent, ui, view) {
         end:   event.end.format(),
         title: event.title,
         note:  event.note,
+        modifier: event.modifier,
     };
 
     if (!temp.start.endsWith("Z")) { temp.start = temp.start + "Z"; }
@@ -92,13 +98,13 @@ function storeChangesToEvent(event, delta, revertFunc, jsEvent, ui, view) {
         data: event_json,
         dataType:'json',
         success: function(data) { 
-            showToaster("success", data.msg);
+            makeToast("success", data.msg);
         },
         error: function(xhr, ajaxOptions, thrownError) {
             if (!!revertFunc) {
                 revertFunc();
             }
-            showToaster("error", "Request failed: " + xhr.responseText);
+            makeToast("error", "Request failed: " + xhr.responseText);
         }
     });
 }
@@ -148,7 +154,7 @@ function requestBooking(event, uid, btn) {
         dataType:'json',
         success: function(data) {  // We expect the server to return json data with a msg field
             // noinspection Annotator
-            showToaster("success", data.msg);
+            makeToast("success", data.msg);
             event = $('#calendar').fullCalendar('clientEvents', event.id)[0]; // get calendar event
             event.booked = !event.booked;
             if (event.booked === true) {
@@ -172,7 +178,7 @@ function requestBooking(event, uid, btn) {
             updateEventRefreshModal(event, btn);
         },
         error: function(xhr, ajaxOptions, thrownError) {
-            showToaster("error", "Booking request failed: " + xhr.responseText);
+            makeToast("error", "Booking request failed: " + xhr.responseText);
         }
     });
 }
@@ -184,13 +190,28 @@ function updateEventRefreshModal(event, btn) {
     }) .modal('hide');
 }
 
-function editNote(btn) {
+function editEventDetails(btn) {
     let event = $('#calendar').fullCalendar('clientEvents', btn.getAttribute("data-id"))[0];
     let field = btn.getAttribute("data-fieldName");
     if (field === "title") {
         event.title = prompt("Enter the new title: ");
+        if (!isNaN(event.title)) {
+            makeToast("warning", "The new title is a number, is that a typo?");
+        }
     } else if (field === "note") {
         event.note = prompt("Enter the new description: ");
+        if (!isNaN(event.note)) {
+            makeToast("warning", "The new description is numeric, was that on purpose?");
+        }
+    } else if (field == "modifier") {
+        temp = parseFloat(prompt("Enter the new multiplier value: "));
+        if (isNaN(temp)) {
+            makeToast("error", "Modifier must be a number!");
+            return
+        }
+        event.modifier = temp;
+    } else {
+        return
     }
     storeChangesToEvent(event);
     updateEventRefreshModal(event, btn)
@@ -214,10 +235,10 @@ function removeEvent(btn) {
         data: event_json,
         dataType:'json',
         success: function(data) {
-            showToaster("success", data.msg);
+            makeToast("success", data.msg);
         },
         error: function(xhr, ajaxOptions, thrownError) {
-            showToaster("error", "Request failed: " + xhr.responseText);
+            makeToast("error", "Request failed: " + xhr.responseText);
         }
     });
     // remove event from calendar
@@ -231,7 +252,8 @@ $(document).ready(function() {
     $('#eventDetailsModal').on('hide.bs.modal', function (e) {
         $('#modalNoteLabel').html("Description:");
         $('#modalBookedLabel').html("Attending:");
-    })
+        $('#modalValueLabel').html("Value:");
+    });
 
     // page is now ready, initialize the calendar...
     $('#calendar').fullCalendar({
@@ -259,7 +281,7 @@ $(document).ready(function() {
         // DOM-Event handling for Calendar Eventblocks (why do js people suck at naming)
         eventOverlap: function(stillEvent, movingEvent) {
             if (stillEvent.color === movingEvent.color) {
-                showToaster("warning", "Events of same color may not overlap");
+                makeToast("warning", "Events of same color may not overlap");
             }
             return stillEvent.color !== movingEvent.color;
         },
@@ -317,7 +339,7 @@ function submitEvent() {
     let xhttp = new XMLHttpRequest();
     xhttp.addEventListener("loadend", () => {
         if (xhttp.status > 300) {
-            showToaster("error", 'Could not create event.');
+            makeToast("error", 'Could not create event.');
             return;
         }
         //loadAddEvent();
@@ -344,7 +366,7 @@ function submitEvent() {
             $('#calendar').fullCalendar('renderEvent', event); // render event on calendar
         },
         error: function (xhr, ajaxOptions, thrownError) {
-            showToaster("error", "Request failed: " + xhr.responseText);
+            makeToast("error", "Request failed: " + xhr.responseText);
         }
     });
 }

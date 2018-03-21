@@ -183,6 +183,7 @@ func (e *Event) update() (*Response, error) {
 	tb.End = e.End
 	tb.Note = e.Note
 	tb.Title = e.Title
+	tb.Modifier = e.Modifier
 
 	err = tb.update()
 	if err != nil {
@@ -342,6 +343,7 @@ func NewEvent(b *TimeBlock) *Event {
 		End:   b.End,
 		Note:  b.Note,
 		Title: b.Title,
+		Modifier: b.Modifier,
 	}
 	err := e.initBookings()
 	if err != nil {

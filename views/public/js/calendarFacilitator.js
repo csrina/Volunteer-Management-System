@@ -123,6 +123,7 @@ $(document).ready(function() {
             $('#eventModalTitle').html("Book " + event.title);
             $('#modalEventRoom').html(event.room + " Room").css("color", event.color);
             $('#modalEventTime').html(event.start.format("ddd, hA") + " - " + event.end.format("hA"))
+            $('#modalEventValue').html(moment.duration(event.end.diff(event.start)).asHours() * event.modifier);
             $('#eventNote').html(event.note);
             $('#modalEventData').html(JSON.stringify({
                 id: event.id,
