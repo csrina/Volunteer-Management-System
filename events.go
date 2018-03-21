@@ -15,12 +15,12 @@ import (
 )
 
 type Response struct {
-	Msg    string `json:"msg"`      // message
-	UID      int   `json:"userId"`  // users ID for adding to bookings listing client side
+	Msg      string `json:"msg"`      // message
+	UID      int    `json:"userId"`   // users ID for adding to bookings listing client side
 	UserName string `json:"userName"` // user's full name for adding to bookings listing client side
-	Colour string `json:"color"`    // color of room
-	BID    int    `json:"bookId"`   // booking id
-	ID     int    `json:"id"`       // block/event id
+	Colour   string `json:"color"`    // color of room
+	BID      int    `json:"bookId"`   // booking id
+	ID       int    `json:"id"`       // block/event id
 }
 
 func (r *Response) setMsg(msg string) *Response {
@@ -62,7 +62,7 @@ func eventPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	dest := mux.Vars(r)["target"] // Determine POST destination from URL
-	if  dest == "book" {           // add/remove booking corresponding to event data
+	if dest == "book" {           // add/remove booking corresponding to event data
 		bookingHandler(w, r, role)
 	} else if role == ADMIN {
 		adminPostHandler(w, r, dest)
@@ -129,7 +129,7 @@ type Event struct {
 	Title  string    `db:"note" json:"title"`
 	Start  time.Time `db:"block_start" json:"start"`
 	End    time.Time `db:"block_end" json:"end"`
-	roomID int		 `db:"room_id"`
+	RoomID int       `db:"room_id" json:"roomId"`
 	Room   string    `db:"room_name" json:"room"` // fullCalendar will make blocks colour of room
 	Colour string    `json:"color"`               // color code for event rendering (corresponds to the room name)
 	// booking ids for lookup
@@ -197,7 +197,7 @@ func (e *Event) update() (*Response, error) {
  * Return a response struct or error
  */
 func (e *Event) add() (*Response, error) {
-	tb:= e.getTimeBlock()
+	tb := e.getTimeBlock()
 	var err error
 	e.ID, err = tb.insert() // insert block & set e.ID to correspond to the tbID returned
 	if err != nil {
@@ -219,14 +219,14 @@ func EventFromJSON(r *http.Request) (*Event, error) {
 	return e, err
 }
 
-func (e *Event) getTimeBlock() (*TimeBlock) {
+func (e *Event) getTimeBlock() *TimeBlock {
 	tb := new(TimeBlock)
 	tb.ID = e.ID
 	tb.Start = e.Start
 	tb.End = e.End
 	tb.Note = e.Note
 	tb.Modifier = e.Modifier
-	tb.Room = e.roomID
+	tb.Room = e.RoomID
 	tb.Title = e.Title
 
 	return tb
@@ -298,7 +298,7 @@ func serveEventJSON(w io.Writer, events []*Event) {
 		logger.Println(err)
 		return
 	} else {
-		w.Write(eventJSON);
+		w.Write(eventJSON)
 	}
 }
 
@@ -318,11 +318,11 @@ func makeEvents(blocks []TimeBlock) []*Event {
 func NewEvent(b *TimeBlock) *Event {
 	/* Init w/ directly transferable properties */
 	e := &Event{
-		ID:    b.ID,
-		Start: b.Start,
-		End:   b.End,
-		Note:  b.Note,
-		Title: b.Title,
+		ID:       b.ID,
+		Start:    b.Start,
+		End:      b.End,
+		Note:     b.Note,
+		Title:    b.Title,
 		Modifier: b.Modifier,
 	}
 	err := e.initBookings()
