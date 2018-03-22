@@ -321,7 +321,7 @@ function newUser() {
         let newLName = document.querySelector("#lName").value;
         let newEmail = document.querySelector("#email").value;
         let newPhone = document.querySelector("#phoneNum").value;
-        let newUName = `${newLName}${newFName}`.toLowerCase();
+        let newUName = `${newLName}_${newFName}`.toLowerCase();
         let newPass = document.querySelector("#pass1").value;
         let bHours = parseInt(document.querySelector("#bonusHours").value);
         let bNote = document.querySelector("#bonusNote").value;
