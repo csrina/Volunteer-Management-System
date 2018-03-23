@@ -321,7 +321,7 @@ function newUser() {
         let newLName = document.querySelector("#lName").value;
         let newEmail = document.querySelector("#email").value;
         let newPhone = document.querySelector("#phoneNum").value;
-        let newUName = `${newLName}${newFName}`.toLowerCase();
+        let newUName = `${newLName}_${newFName}`.toLowerCase();
         let newPass = document.querySelector("#pass1").value;
         let bHours = parseInt(document.querySelector("#bonusHours").value);
         let bNote = document.querySelector("#bonusNote").value;
@@ -369,9 +369,73 @@ function listClasses() {
     xhttp.send();
 }
 
-function loadEditClass() {
+function loadEditClass(e) {
+    let classID = e.srcElement.id.split("_")[1];
+    $.ajax({
+        type: 'GET',
+        url: `/api/v1/admin/classes?c=${classID}`,
+        contentType: 'json',
+        dataType: 'json',
+        success: function(data) {
+            console.log(data);
+            let tmpl = document.querySelector("#tmpl_editClass").innerHTML;
+            let func = doT.template(tmpl);
+            //requires data[0] because API is returning a list
+            document.querySelector("#displayData").innerHTML = func(data[0]);
 
+            getTeachers();
+
+            document.querySelector("#cancel").addEventListener('click', listClasses);
+            document.querySelector("#submit").addEventListener('click', submitClassEdit);
+        },
+        error: function(xhr) {
+            alert(`ERROR: Could not retrieve class info`);
+            listClasses();
+        },
+    });
 }
+
+function submitClassEdit() {
+    let classID = parseInt($("#cId").val());
+    let className = $("#cName").val();
+    let classNum = $("#cNum").val();
+    let classTeacher = parseInt($("#cTeacher").val());
+
+    let data = {"roomId":classID, "roomName": className, "teacherId": classTeacher,"roomNum":classNum};
+    $.ajax({
+        type: 'PUT',
+        url: '/api/v1/admin/classes',
+        contentType: 'json',
+        data: JSON.stringify(data),
+        dataType: 'text',
+        success: function(data) { 
+            alert('SUCCESS: Class updated');
+            listClasses();
+        },
+        error: function(xhr) {
+            alert(`ERROR: Could not update class (${xhr.status})`);
+        }
+    });
+}
+
+function getTeachers() {
+    $.ajax({
+        type: 'GET',
+        url: '/api/v1/admin/teachers',
+        contentType: 'json',
+        dataType: 'json',
+        success: function(data) { 
+            let tmpl = document.querySelector("#tmpl_teachers").innerHTML;
+            let func = doT.template(tmpl);
+            document.querySelector("#cTeacher").insertAdjacentHTML('beforeend',func(data));
+        },
+        error: function(xhr) {
+            alert(`ERROR: Could not retrieve teachers`);
+            classList();
+        },
+    });
+}
+
 
 function addClassRoom() {
     let xhttp = new XMLHttpRequest();
