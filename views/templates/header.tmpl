@@ -32,7 +32,10 @@
             <!--<script type="text/javascript" src='/views/fc/lib/jquery.min.js'></script> -->
             <script type="text/javascript" src='/views/fc/lib/moment.min.js'></script>
             <script type="text/javascript" src='/views/fc/fullcalendar.js'></script>
-            <script type="text/javascript" src='/views/public/js/calendarBase.js'></script>
+            <!-- Shared javascript for all roles -->
+            <script type="text/javascript" src='/views/public/js/calendar.js'></script>
+            <!-- Role specific calendar js-->
+            <script type="text/javascript" src='/views/public/js/calendar {{- .Role -}} .js'><%= text/javascript %></script>
         {{end}}
 
         {{if .MultiSelect }}
@@ -51,10 +54,7 @@
             <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
         {{end}}
 
-
-        {{if eq .PageName "calendar"}}
-            <script type="text/javascript" src='/views/public/js/calendar {{- .Role -}} .js'><%= text/javascript %></script>
-        {{else if eq .PageName "dashboard"}}
+        {{if eq .PageName "dashboard"}}
             <link rel="stylesheet" type="text/css" href="/views/public/css/dashboard.css">
             <script type="text/javascript" src="https://bernii.github.io/gauge.js/dist/gauge.min.js"></script>
             <script type="text/javascript" src="/views/public/js/dashboard.js"></script>
