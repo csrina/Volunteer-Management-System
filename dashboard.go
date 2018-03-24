@@ -3,10 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
-	"sort"
 	"time"
-
-	"github.com/lucasb-eyer/go-colorful"
 )
 
 // For charting
@@ -88,26 +85,7 @@ func getDashData(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
-	for _, parent := range fd.family.Parents {
-		fd.History[parent.UserID].configureAsHistoricalHours(parent.FirstName, colorful.FastHappyColor().Hex(), false, 0.00)
-		data := fd.History[parent.UserID].Data
-		var zeroData DurationPoints
-		// fill in some 0 y-points to span gaps better
-		for i, _ := range data {
-			if i > 0 {
-				dayDelta := data[i].X.YearDay() - data[i-1].X.YearDay()
-				if dayDelta > 5 {
-					// prepend a 0 value point with x = median day
-					medianDay := data[i-1].X.AddDate(0, 0, dayDelta/2)
-					medianPt := DurationPoint{X: medianDay, Y: 0}
-					zeroData = append(zeroData, medianPt)
-				}
-			}
-		}
-		fd.History[parent.UserID].Data = append(fd.History[parent.UserID].Data, zeroData...)
-		sort.Sort(fd.History[parent.UserID].Data)
-	}
+	fd.spanHistoryGaps() // Fill in some 0 days for better charting
 
 	encoder := json.NewEncoder(w)
 	encoder.SetEscapeHTML(true)

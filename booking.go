@@ -328,13 +328,8 @@ func (b *Booking) book(role int) error {
 
 // Remove the booking instance from the database
 func (b *Booking) unbook(role int) error {
-	if b.Start.Before(time.Now()) && b.End.Before(time.Now()) {
-		logger.Println("Now: ", time.Now(), "Start: ", b.Start, "  local: ", b.Start.Local())
-		return errors.New("cannot unbook from completed event")
-	}
-
-	if b.Start.Before(time.Now()) || b.End.Before(time.Now()) && role == FACILITATOR {
-		return errors.New("only administration may remove bookings in progress")
+	if b.isPast() {
+		return &ClientSafeError{Msg: " Cannot remove bookings for completed events"}
 	}
 
 	q := `DELETE FROM booking WHERE booking_id = $1`

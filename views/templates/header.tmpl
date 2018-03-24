@@ -19,6 +19,8 @@
             <link rel="stylesheet" type="text/css" href="/views/public/css/admin.css">
             <script src="/views/public/js/admin.js"></script>
         {{end}}
+
+
         {{if .DotJS}}
             <script src="https://cdnjs.cloudflare.com/ajax/libs/dot/1.1.2/doT.min.js"></script>
             <link rel="stylesheet" type="text/css" href="/views/public/css/admin.css">
@@ -30,22 +32,29 @@
             <!--<script type="text/javascript" src='/views/fc/lib/jquery.min.js'></script> -->
             <script type="text/javascript" src='/views/fc/lib/moment.min.js'></script>
             <script type="text/javascript" src='/views/fc/fullcalendar.js'></script>
+            <!-- Shared javascript for all roles -->
+            <script type="text/javascript" src='/views/public/js/calendar.js'></script>
+            <!-- Role specific calendar js-->
+            <script type="text/javascript" src='/views/public/js/calendar {{- .Role -}} .js'><%= text/javascript %></script>
         {{end}}
+
         {{if .MultiSelect }}
             <link rel="stylesheet" type="text/css" href="/views/ms/multi-select.css" media="screen">
             <script type="text/javascript" src="/views/ms/jquery.multi-select.js"></script>
         {{end}}
+
         {{if .Chart }}
             <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js"></script>
         {{end}}
+
         {{if .Toaster}}
+            <script type="text/javascript" src='/views/public/js/toasters.js'></script>
             <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
             <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
         {{end}}
-        {{if eq .PageName "calendar"}}
-            <script type="text/javascript" src='/views/public/js/calendar {{- .Role -}} .js'><%= text/javascript %></script>
-        {{else if eq .PageName "dashboard"}}
+
+        {{if eq .PageName "dashboard"}}
             <link rel="stylesheet" type="text/css" href="/views/public/css/dashboard.css">
             <script type="text/javascript" src="https://bernii.github.io/gauge.js/dist/gauge.min.js"></script>
             <script type="text/javascript" src="/views/public/js/dashboard.js"></script>

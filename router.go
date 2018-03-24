@@ -173,6 +173,7 @@ func loadPassword(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusForbidden)
 		return
 	}
+	pg.Toaster = true
 	s := tmpls.Lookup("password.tmpl")
 	s.ExecuteTemplate(w, "password", pg) // include page struct
 }

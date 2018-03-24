@@ -1,7 +1,6 @@
 // Callback function for drag/drops and resizes of existing events
 // Note: We dont want this to be populated if we aren't admin.
 // post-demo will refactor this out into templates populated differently based on the role of the user
-
 function showModal(btn) {
     let event = $('#calendar').fullCalendar('clientEvents', btn.getAttribute("data-id"))[0]; // get event from returned array
     // Make open/closing button tags which allows us to insert  the current data as the btton text
@@ -171,16 +170,33 @@ function updateEventRefreshModal(event, btn) {
 function editEventDetails(btn) {
     let event = $('#calendar').fullCalendar('clientEvents', btn.getAttribute("data-id"))[0];
     let field = btn.getAttribute("data-fieldName");
+
+    /*
+     * Gross nested if-elses... just a bunch of error checking with slightly different edge case checking
+     * Basically we can have empty notes, but we warn; cannot have empty title so throw error
+     * If numeric notes/title, we make change but show warning.
+     * If cancel is clicked (only matter for notes because can be empty) --> we leave silently [for title we throw an error toast b/c can't have empty title so cancel is covered]
+     * Lastly, we client-side validate the modifier value
+     */
     if (field === "title") {
-        event.title = prompt("Enter the new title: ");
-        if (!isNaN(event.title)) {
+        temp = prompt("Enter the new title: ");
+        if (temp === null || temp === "" || temp === undefined) {
+            makeToast("error", "Cannot have empty title");
+            return;
+        } else if (!isNaN(temp)) {
             makeToast("warning", "The new title is a number, is that a typo?");
         }
+        event.title = temp;
     } else if (field === "note") {
-        event.note = prompt("Enter the new description: ");
-        if (!isNaN(event.note)) {
+        temp = prompt("Enter the new description: ");
+        if (temp === null) {
+            return;
+        } else if (temp === "") {
+            makeToast("warning", "You left the description field empty, was that on purpose?")
+        } else if (!isNaN(event.note)) {
             makeToast("warning", "The new description is numeric, was that on purpose?");
         }
+        event.note = temp;
     } else if (field == "modifier") {
         temp = parseFloat(prompt("Enter the new multiplier value: "));
         if (isNaN(temp)) {
@@ -189,6 +205,7 @@ function editEventDetails(btn) {
         }
         event.modifier = temp;
     } else {
+        makeToast("error", "An unpredicted error occurred");
         return
     }
     storeChangesToEvent(event);
@@ -235,7 +252,6 @@ $(document).ready(function() {
 
     // page is now ready, initialize the calendar...
     $('#calendar').fullCalendar({
-        // Education use (both now and if deployed!)
         weekends: false,
         header: {
             left: 'today',
@@ -255,7 +271,8 @@ $(document).ready(function() {
             element.find('.fc-title').css("font-size", "1.2em").append("<br>")
                     .append("<button type='button' class='btn btn-outline-primary border-0 btn-sm' data-id='" + event.id + "' onclick='showModal(this)'><i class='far fa-edit fa-lg'></i></button>    ")
                     .append("<br><button type='button' class='btn btn-outline-primary border-0 btn-sm' data-id='" + event.id + "' onclick='removeEvent(this)'><i class='fas fa-times-circle fa-lg'></i></button>    ");
-        },
+            return renderFiltered(event);
+         },
         // DOM-Event handling for Calendar Eventblocks (why do js people suck at naming)
         eventOverlap: function(stillEvent, movingEvent) {
             if (stillEvent.color === movingEvent.color) {

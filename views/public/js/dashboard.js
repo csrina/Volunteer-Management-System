@@ -30,7 +30,6 @@ function makeToast(type, msg) {
         "showMethod": "fadeIn",
         "hideMethod": "fadeOut"
     };
-
     Command: toastr[type](msg);
 }
 

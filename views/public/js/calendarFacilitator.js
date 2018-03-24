@@ -2,28 +2,6 @@
 // Like the updateEvent function, post-demo I will refactor this out
 // and have the templates populate based on role. Additional auth checks
 // server side to ensure correct user/role and such should still take place
-function showToaster(type, msg) {
-    toastr.options = {
-        "closeButton": true,
-        "debug": false,
-        "newestOnTop": true,
-        "progressBar": false,
-        "positionClass": "toast-top-right",
-        "preventDuplicates": true,
-        "onclick": null,
-        "showDuration": "300",
-        "hideDuration": "1000",
-        "timeOut": "5000",
-        "extendedTimeOut": "1000",
-        "showEasing": "swing",
-        "hideEasing": "linear",
-        "showMethod": "fadeIn",
-        "hideMethod": "fadeOut"
-    };
-
-    Command: toastr[type](msg);
-}
-
 function requestBooking() {
     let event = JSON.parse($('.modal-footer').find('#modalEventData').text());
     if (event.booked && event.bookingCount >= 3 && !prompt("This block is pretty crowded, are you sure you want to proceed?")) {
@@ -43,43 +21,44 @@ function requestBooking() {
         contentType:'json',
         data: booking_json,
         dataType:'json',
-        success: function(data) {  // We expect the server to return json data with a msg field
-            // noinspection Annotator
-            showToaster("success", data.msg);
-            event = $('#calendar').fullCalendar('clientEvents', event.id)[0];
-            $('#modalConfirm').removeClass((event.booked) ? "btn-warning" : "btn-success");
-            event.booked = !event.booked;
-            if (event.booked === true) {
-                if (!event.bookings) {
-                    event.bookings = [];
-                }
-                // noinspection Annotator
-                event.bookings.push({userName: data.userName, userId: data.userId});
-                event.bookingCount++;
-            } else {
-                // noinspection Annotator
-                event.bookingCount--;
-                let len = event.bookings.length;
-                for (let i = 0; i < len; i++) {
-                    if (event.bookings[i].userId == data.userId) {
-                        event.bookings.splice(i, 1);
-                        break;
-                    }
-                }
-            }
-            $('#calendar').fullCalendar('updateEvent', event);
-            $('#eventDetailsModal').modal('hide');
-        },
+        success: bookingRequestSuccess(data),
         error: function(xhr, ajaxOptions, thrownError) {
            showToaster("error", "Booking request failed: " + xhr.responseText);
         }
     });
 }
 
+function bookingRequestSuccess(data) {  // We expect the server to return json data with a msg field
+    // noinspection Annotator
+    showToaster("success", data.msg);
+    event = $('#calendar').fullCalendar('clientEvents', event.id)[0];
+    $('#modalConfirm').removeClass((event.booked) ? "btn-warning" : "btn-success");
+    event.booked = !event.booked;
+    if (event.booked === true) {
+        if (!event.bookings) {
+            event.bookings = [];
+        }
+        // noinspection Annotator
+        event.bookings.push({userName: data.userName, userId: data.userId});
+        event.bookingCount++;
+    } else {
+        // noinspection Annotator
+        event.bookingCount--;
+        let len = event.bookings.length;
+        for (let i = 0; i < len; i++) {
+            if (event.bookings[i].userId == data.userId) {
+                event.bookings.splice(i, 1);
+                break;
+            }
+        }
+    }
+    $('#calendar').fullCalendar('updateEvent', event);
+    $('#eventDetailsModal').modal('hide');
+}
+
 $(document).ready(function() {
     // page is now ready, initialize the calendar...
     $('#calendar').fullCalendar({
-        // Education use (both now and if deployed!)
         weekends: false,
         header: {
             left: 'today',
@@ -103,7 +82,7 @@ $(document).ready(function() {
             } else {
                 fctime.append('<br>' + event.bookingCount + "/3");
             }
-            console.log(event);
+            return renderFiltered(event);
         },
         eventOverlap: function(stillEvent, movingEvent) {
             return stillEvent.color === movingEvent.color;
