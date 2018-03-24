@@ -74,28 +74,6 @@ function eraseTextFields() {
     conf_pwd_txt.value = "";
 }
 
-function showToaster(type, msg) {
-    toastr.options = {
-        "closeButton": true,
-        "debug": false,
-        "newestOnTop": true,
-        "progressBar": false,
-        "positionClass": "toast-top-full-width",
-        "preventDuplicates": true,
-        "onclick": null,
-        "showDuration": "300",
-        "hideDuration": "1000",
-        "timeOut": "5000",
-        "extendedTimeOut": "1000",
-        "showEasing": "swing",
-        "hideEasing": "linear",
-        "showMethod": "fadeIn",
-        "hideMethod": "fadeOut"
-    };
-
-    Command: toastr[type](msg);
-}
-
 function addProgressBar() {
     var location = document.getElementById('progress_div');
     updateProgress("30%");

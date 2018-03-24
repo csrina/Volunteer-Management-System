@@ -1,7 +1,6 @@
 // Callback function for drag/drops and resizes of existing events
 // Note: We dont want this to be populated if we aren't admin.
 // post-demo will refactor this out into templates populated differently based on the role of the user
-
 function showModal(btn) {
     let event = $('#calendar').fullCalendar('clientEvents', btn.getAttribute("data-id"))[0]; // get event from returned array
     // Make open/closing button tags which allows us to insert  the current data as the btton text

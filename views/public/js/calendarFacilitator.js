@@ -2,28 +2,6 @@
 // Like the updateEvent function, post-demo I will refactor this out
 // and have the templates populate based on role. Additional auth checks
 // server side to ensure correct user/role and such should still take place
-function showToaster(type, msg) {
-    toastr.options = {
-        "closeButton": true,
-        "debug": false,
-        "newestOnTop": true,
-        "progressBar": false,
-        "positionClass": "toast-top-right",
-        "preventDuplicates": true,
-        "onclick": null,
-        "showDuration": "300",
-        "hideDuration": "1000",
-        "timeOut": "5000",
-        "extendedTimeOut": "1000",
-        "showEasing": "swing",
-        "hideEasing": "linear",
-        "showMethod": "fadeIn",
-        "hideMethod": "fadeOut"
-    };
-
-    Command: toastr[type](msg);
-}
-
 function requestBooking() {
     let event = JSON.parse($('.modal-footer').find('#modalEventData').text());
     if (event.booked && event.bookingCount >= 3 && !prompt("This block is pretty crowded, are you sure you want to proceed?")) {

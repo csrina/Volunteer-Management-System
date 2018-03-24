@@ -4,9 +4,14 @@ import (
 	"errors"
 	"math"
 	"net/http"
+	"sort"
 	"time"
 
+	"database/sql"
+
 	"github.com/jinzhu/now"
+	colorful "github.com/lucasb-eyer/go-colorful"
+	"strconv"
 )
 
 /*
@@ -38,14 +43,17 @@ type familyMonth struct {
 
 // Data for a family's dashboard or for other repurposing
 type FamilyData struct {
-	family      	*Family
-	HoursGoal     	float64        		 `json:"hoursGoal"`
-	HoursBooked   	float64        		 `json:"hoursBooked"`
-	HoursDone     	float64        		 `json:"hoursDone"`
+	family *Family
+	Start        time.Time `json:"startMoment"`
+	End          time.Time `json:"endMoment"`
+	HoursGoal    float64   `json:"hoursGoal"`	// weekly goal
+	HoursBooked  float64   `json:"hoursBooked"` // hours to booked in
+	HoursDone    float64   `json:"hoursDone"` // actually completed hrs
+	NetDonations float64   `json"donatedHours"` // net gain/loss for week
 	// Where historical keys are the parent UID
-	History       	map[int]*ChartDataSet `json:"history"`       // each dataset is a facilitator in the family
-	StartOfPeriod 	time.Time      		 `json:"startOfPeriod"` // start date for chart
-	EndOfPeriod   	time.Time      		 `json:"endOfPeriod"`   // end date for chart
+	History       map[int]*ChartDataSet `json:"history"`       // each dataset is a facilitator in the family
+	StartOfPeriod time.Time             `json:"startOfPeriod"` // start date for chart
+	EndOfPeriod   time.Time             `json:"endOfPeriod"`   // end date for chart
 }
 
 func (fd *FamilyData) setHoursGoal(numKids int) {
@@ -73,10 +81,32 @@ func (fd *FamilyData) setHoursData(startOfWeek time.Time, today now.Now) error {
 		}
 	}
 	fd.HoursBooked = math.Trunc(fd.HoursBooked*100) / 100
-	fd.HoursDone = math.Trunc(fd.HoursDone*100) / 100
+	fd.HoursDone = math.Trunc(fd.HoursDone*100)/100
 	return nil
 }
 
+// Add 0 values to correct charting behaviour inbetween gaps of data
+func (fd *FamilyData) spanHistoryGaps() {
+	for _, parent := range fd.family.Parents {
+		fd.History[parent.UserID].configureAsHistoricalHours(parent.FirstName, colorful.FastHappyColor().Hex(), false, 0.00)
+		data := fd.History[parent.UserID].Data
+		var zeroData DurationPoints
+		// fill in some 0 y-points to span gaps better
+		for i, _ := range data {
+			if i > 0 {
+				dayDelta := data[i].X.YearDay() - data[i-1].X.YearDay()
+				if dayDelta > 5 {
+					// prepend a 0 value point with x = median day
+					medianDay := data[i-1].X.AddDate(0, 0, dayDelta/2)
+					medianPt := DurationPoint{X: medianDay, Y: 0}
+					zeroData = append(zeroData, medianPt)
+				}
+			}
+		}
+		fd.History[parent.UserID].Data = append(fd.History[parent.UserID].Data, zeroData...)
+		sort.Sort(fd.History[parent.UserID].Data)
+	}
+}
 
 /*
  * Creates a FamilyData struct and fills it with data given a family, and the reference date: today
@@ -84,7 +114,7 @@ func (fd *FamilyData) setHoursData(startOfWeek time.Time, today now.Now) error {
  * The history will be tracked from the FIRST_MONTH and FIRST_DAY
  * of today's year.
  */
-func (fd *FamilyData) init(fam *Family, today time.Time) (error) {
+func (fd *FamilyData) init(fam *Family, today time.Time) error {
 	fd.setHoursGoal(fam.Children)
 	fd.family = fam // set fd to hold family given
 	fd.History = make(map[int]*ChartDataSet)
@@ -96,12 +126,12 @@ func (fd *FamilyData) init(fam *Family, today time.Time) (error) {
 	if today.Weekday() == time.Sunday { // weekend days must be shifted to monday
 		today = today.AddDate(0, 0, 1) // move to monday so we reference next week
 	} else if today.Weekday() == time.Saturday {
-		today = today.AddDate(0, 0, 2)  // move to monday
+		today = today.AddDate(0, 0, 2) // move to monday
 	}
-	now.Monday()								// first day of week
-	nowToday := now.New(today)                // We use this to determine start of week, so it should be the adjusted today
-	startOfWeek := nowToday.BeginningOfWeek() // if weekend, this is next week's monday
-	fd.EndOfPeriod = nowToday.EndOfWeek()    // set end of period
+	now.Monday()                                           // first day of week
+	nowToday := now.New(today)                             // We use this to determine start of week, so it should be the adjusted today
+	startOfWeek := nowToday.BeginningOfWeek()              // if weekend, this is next week's monday
+	fd.EndOfPeriod = nowToday.EndOfWeek()                  // set end of period
 	fd.StartOfPeriod = today.AddDate(0, -PERIOD_LENGTH, 0) // Go back 4 months --> set startperiod
 	// create the history
 	err := fd.setHoursData(startOfWeek, *realToday)
@@ -138,6 +168,47 @@ func (f *Family) getFamilyBookings(start time.Time, end time.Time) ([]Booking, e
 
 	}
 	return bookBlocks, nil
+}
+
+// Get donations between start and end two-tailed inclusive (where the family may be either the donor, or donee
+func (f *Family) getDonations(start, end time.Time) (gifts Donations, err error) {
+	q := `SELECT * FROM donation 
+			WHERE (donation.donor_id = $1 OR donation.donee_id = $1)
+			AND (
+					(donation.date_sent <= $3 AND donation.date_sent >= $2)
+				OR 
+					(donation.date_sent <= $2 AND donation.date_sent >= $3)
+				)`
+
+	err = db.Select(&gifts, q, f.ID, start, end)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return gifts, nil
+		} else {
+			return // []nil, error
+		}
+	}
+	return // gift, err
+}
+
+func (donor *Family) GetID() int {
+	return donor.ID
+}
+
+/*
+ * Send a donation -- including saving it to db
+ */
+func (donor *Family) GiveCharity(donee *Family, amount float64) (*Donation, error) {
+	d := new(Donation)
+	d.Sender = donor
+	d.Recipient = donee
+	d.Amount = amount
+
+	q := `INSERT INTO donation (donor_id, donee_id, amount)
+				VALUES ($1, $2, $3) RETURNING donation_id, date_sent`
+
+	err := db.QueryRow(q, strconv.Itoa(donor.ID), strconv.Itoa(donee.ID), amount).Scan(&d.ID, &d.Date)
+	return d, err
 }
 
 /*
@@ -209,7 +280,7 @@ func (u *User) init(UID int) error {
 			FROM users 
 			WHERE user_id = $1`
 	err := db.QueryRow(q, UID).Scan(&u.UserID, &u.Role, &u.Username, &u.FirstName, &u.LastName,
-											&u.Email, &u.Phone, &u.FamilyID, &u.Bonus, &u.BonusNote)
+		&u.Email, &u.Phone, &u.FamilyID, &u.Bonus, &u.BonusNote)
 	if err != nil {
 		return err
 	}
