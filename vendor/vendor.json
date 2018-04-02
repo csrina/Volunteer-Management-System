@@ -57,6 +57,12 @@
 			"revisionTime": "2018-03-27T07:18:24Z"
 		},
 		{
+			"checksumSHA1": "QPjV8nrnzjkHGgLYwlqYCOSbwH4=",
+			"path": "github.com/lib/pq/oid",
+			"revision": "d34b9ff171c21ad295489235aec8b6626023cd04",
+			"revisionTime": "2018-03-27T07:18:24Z"
+		},
+		{
 			"checksumSHA1": "qMOUgNGUq1BoMG2EoFf2KgjWCp8=",
 			"path": "github.com/lucasb-eyer/go-colorful",
 			"revision": "231272389856c976b7500c4fffcc52ddf06ff4eb",
