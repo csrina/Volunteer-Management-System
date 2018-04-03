@@ -55,7 +55,7 @@ function familyData() {
 	}
 	window.myBar.update();
     });
-    xhttp.open("GET", "http://localhost:8080/api/v1/charts");
+    xhttp.open("GET", "/api/v1/charts");
     xhttp.send();
 }
     
@@ -68,7 +68,7 @@ function loadDash() {
         document.querySelector("#displayData").innerHTML = func(familyInfo);
 
     });
-    xhttp.open("GET", `http://localhost:8080/api/v1/admin/dashboard`);
+    xhttp.open("GET", `/api/v1/admin/dashboard`);
 
     xhttp.send();
 }
@@ -90,7 +90,7 @@ function userList() {
             passBtns[i].addEventListener('click', loadEditPassword);
         }
     });
-    xhttp.open("GET", `http://localhost:8080/api/v1/admin/users`);
+    xhttp.open("GET", `/api/v1/admin/users`);
     xhttp.send();
 }
 
@@ -105,7 +105,7 @@ function loadEditUser(e) {
         document.querySelector("#cancel").addEventListener('click', userList);
         document.querySelector("#submit").addEventListener('click', submitUserEdit);
     });
-    xhttp.open("GET", `http://localhost:8080/api/v1/admin/users?u=${userID}`);
+    xhttp.open("GET", `/api/v1/admin/users?u=${userID}`);
     xhttp.send();
 }
 
@@ -120,7 +120,7 @@ function loadEditPassword(e) {
         document.querySelector("#cancel").addEventListener('click', userList);
         document.querySelector("#submit").addEventListener('click', submitPassword);
     });
-    xhttp.open("GET", `http://localhost:8080/api/v1/admin/users?u=${userID}`);
+    xhttp.open("GET", `/api/v1/admin/users?u=${userID}`);
     xhttp.send();
 }
 
@@ -137,7 +137,7 @@ function familyList() {
             btns[i].addEventListener("click", loadEditFamily);
         }
     });
-    xhttp.open("GET", `http://localhost:8080/api/v1/admin/families`);
+    xhttp.open("GET", `/api/v1/admin/families`);
     xhttp.send();
 }
 
@@ -145,7 +145,7 @@ function loadEditFamily(e) {
     let familyID = e.srcElement.id.split("_")[1];
     
     
-    $.getJSON(`http://localhost:8080/api/v1/admin/families?f=${familyID}`, function(data, status){
+    $.getJSON(`api/v1/admin/families?f=${familyID}`, function(data, status){
         let tmpl = document.querySelector("#tmpl_editFamily").innerHTML;
         let func = doT.template(tmpl);
 
@@ -162,7 +162,7 @@ function loadEditFamily(e) {
             $('#parent-select').multiSelect('addOption', { value: data.parents[index].userId, text: data.parents[index].userName});
             $('#parent-select').multiSelect('select_all');
         });
-        $.getJSON("http://localhost:8080/api/v1/admin/facilitators", function(data, status){
+        $.getJSON("/api/v1/admin/facilitators", function(data, status){
             $.each(data, function(index){
             $('#parent-select').multiSelect('addOption', { value: data[index].userId, text: data[index].userName});
             });
@@ -213,7 +213,7 @@ function newFamily() {
     $('#parent-select').multiSelect({});
     
 
-    $.getJSON("http://localhost:8080/api/v1/admin/facilitators", function(data, status){
+    $.getJSON("/api/v1/admin/facilitators", function(data, status){
         $.each(data, function(index){
             $('#parent-select').multiSelect('addOption', { value: data[index].userId, text: data[index].userName});
         });
@@ -230,7 +230,7 @@ function lonelyFacilitators() {
         func = doT.template(tmpl);
         document.querySelector("#parents").insertAdjacentHTML('beforeend', func(parents));
     });
-    xhttp.open("GET", "http://localhost:8080/api/v1/admin/facilitators");
+    xhttp.open("GET", "/api/v1/admin/facilitators");
     xhttp.send();
 }
 
@@ -289,7 +289,7 @@ function submitUserEdit() {
                 userList();
             }
         });
-        xhttp.open("PUT", "http://localhost:8080/api/v1/admin/users");
+        xhttp.open("PUT", "/api/v1/admin/users");
         xhttp.send(JSON.stringify({userid:uId, username:newUName,
                     firstname: newFName, lastname:newLName,
                     email:newEmail, phoneNumber:newPhone}));
@@ -341,7 +341,7 @@ function newUser() {
                 userList();
             }
         });
-        xhttp.open("POST", "http://localhost:8080/api/v1/admin/users");
+        xhttp.open("POST", "/api/v1/admin/users");
         xhttp.send(JSON.stringify({userrole:newRole, username:newUName,
                     password:newPassData, firstname: newFName, lastname:newLName,
                     email:newEmail, phoneNumber:newPhone, bonusHours:bHours, bonusNote:bNote}));
@@ -365,7 +365,7 @@ function listClasses() {
             btns[i].addEventListener("click", loadEditClass);
         }
      });
-    xhttp.open("GET", "http://localhost:8080/api/v1/admin/classes");
+    xhttp.open("GET", "/api/v1/admin/classes");
     xhttp.send();
 }
 
@@ -447,7 +447,7 @@ function addClassRoom() {
         document.querySelector("#cancel").addEventListener('click', listClasses);
         document.querySelector("#submit").addEventListener('click', submitNewClass);
     });
-    xhttp.open("GET", `http://localhost:8080/api/v1/admin/teachers`);
+    xhttp.open("GET", `/api/v1/admin/teachers`);
     xhttp.send();
 }
 
@@ -476,6 +476,6 @@ function submitNewClass() {
         alert('SUCCESS: Class created.');
         listClasses();
     });
-    xhttp.open("POST", "http://localhost:8080/api/v1/admin/classes");
+    xhttp.open("POST", "/api/v1/admin/classes");
     xhttp.send(JSON.stringify(newClass));
 }
