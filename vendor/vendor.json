@@ -1,0 +1,85 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "IkPM2QLv9urri7S49wzroQx9oXA=",
+			"path": "github.com/gorilla/context",
+			"revision": "08b5f424b9271eedf6f9f0ce86cb9396ed337a42",
+			"revisionTime": "2016-08-17T18:46:32Z"
+		},
+		{
+			"checksumSHA1": "CVss9W01Rrm2VlhhjW0z5D35Xo8=",
+			"path": "github.com/gorilla/mux",
+			"revision": "4dbd923b0c9e99ff63ad54b0e9705ff92d3cdb06",
+			"revisionTime": "2018-03-14T16:31:26Z"
+		},
+		{
+			"checksumSHA1": "GKB96ojS6AY/uBnfLWqZBsxTBY4=",
+			"path": "github.com/gorilla/securecookie",
+			"revision": "e59506cc896acb7f7bf732d4fdf5e25f7ccd8983",
+			"revisionTime": "2017-02-24T19:38:04Z"
+		},
+		{
+			"checksumSHA1": "ZThbYFEWbSYnJr2L7EdkN2q7msc=",
+			"path": "github.com/gorilla/sessions",
+			"revision": "a2f2a3de9a4a575047f73e3e36bc85ecc3546391",
+			"revisionTime": "2018-03-21T16:38:55Z"
+		},
+		{
+			"checksumSHA1": "ykRglxcHrYQWsN7vKF22OlRRo4Q=",
+			"path": "github.com/jinzhu/now",
+			"revision": "b7dfa9a2450405d4ee01eb238dcb873b3dc5336c",
+			"revisionTime": "2018-03-14T13:20:04Z"
+		},
+		{
+			"checksumSHA1": "DESETAi+uFXk6NygFHJ1SwuvcQY=",
+			"path": "github.com/jmoiron/sqlx",
+			"revision": "cf35089a197953c69420c8d0cecda90809764b1d",
+			"revisionTime": "2018-02-28T18:46:24Z"
+		},
+		{
+			"checksumSHA1": "JxArBxGNRy8PAAM5Rv6gzyuGgu8=",
+			"path": "github.com/jmoiron/sqlx/reflectx",
+			"revision": "cf35089a197953c69420c8d0cecda90809764b1d",
+			"revisionTime": "2018-02-28T18:46:24Z"
+		},
+		{
+			"checksumSHA1": "Upm2HylYMVgYGQhytkkuaEdKuwM=",
+			"path": "github.com/joho/godotenv",
+			"revision": "6bb08516677f8c8274c557fc801bee9ab564ab2c",
+			"revisionTime": "2018-01-15T02:49:21Z"
+		},
+		{
+			"checksumSHA1": "mfUP2KY8h5FfjT0RIaskGCBrAig=",
+			"path": "github.com/lib/pq",
+			"revision": "d34b9ff171c21ad295489235aec8b6626023cd04",
+			"revisionTime": "2018-03-27T07:18:24Z"
+		},
+		{
+			"checksumSHA1": "QPjV8nrnzjkHGgLYwlqYCOSbwH4=",
+			"path": "github.com/lib/pq/oid",
+			"revision": "d34b9ff171c21ad295489235aec8b6626023cd04",
+			"revisionTime": "2018-03-27T07:18:24Z"
+		},
+		{
+			"checksumSHA1": "qMOUgNGUq1BoMG2EoFf2KgjWCp8=",
+			"path": "github.com/lucasb-eyer/go-colorful",
+			"revision": "231272389856c976b7500c4fffcc52ddf06ff4eb",
+			"revisionTime": "2017-09-03T18:42:57Z"
+		},
+		{
+			"checksumSHA1": "oCH3J96RWvO8W4xjix47PModpio=",
+			"path": "golang.org/x/crypto/bcrypt",
+			"revision": "12892e8c234f4fe6f6803f052061de9057903bb2",
+			"revisionTime": "2018-03-28T23:19:55Z"
+		},
+		{
+			"checksumSHA1": "oVPHWesOmZ02vLq2fglGvf+AMgk=",
+			"path": "golang.org/x/crypto/blowfish",
+			"revision": "12892e8c234f4fe6f6803f052061de9057903bb2",
+			"revisionTime": "2018-03-28T23:19:55Z"
+		}
+	],
+	"rootPath": "github.com/csrina/395_Project_2018"
+}

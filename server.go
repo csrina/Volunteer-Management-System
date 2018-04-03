@@ -12,6 +12,7 @@ import (
 
 	"github.com/gorilla/sessions"
 	"github.com/jmoiron/sqlx"
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
@@ -79,25 +80,14 @@ func parseTemplates() error {
 }
 
 func startDb() error {
-	// open config file
-	logger.Println("Reading DB data from config file...")
-
-	configFile, err := os.Open(".config")
+	// open env file
+	logger.Println("Reading DB data from env file...")
+	err := godotenv.Load()
 	if err != nil {
-		panic(err)
+	  log.Fatal("Error loading .env file")
 	}
+	psqlInfo := os.Getenv("DATABASE_URL")
 
-	b := make([]byte, 100)
-	read, err := configFile.Read(b)
-	if err != nil {
-		panic(err)
-	}
-	configFile.Close()
-
-	//pull out connection string
-	//an example of mine is:
-	//dbname=caraway user=postgres host=localhost port=5454 sslmode=disable
-	psqlInfo := string(b[:read])
 	logger.Println("Opening database...")
 	db, err = sqlx.Connect("postgres", psqlInfo)
 	return err
@@ -105,7 +95,14 @@ func startDb() error {
 }
 
 func main() {
-	err := startDb()
+	err := godotenv.Load()
+	if err != nil {
+	  log.Fatal("Error loading .env file")
+	}
+	port := os.Getenv("PORT")
+	logger.Println(port)
+
+	err = startDb()
 	if err != nil {
 		panic(err)
 	}
@@ -125,7 +122,7 @@ func main() {
 	logger.Println("Golang html templates parsed successfully")
 
 	logger.Println("Server running......")
-	err = http.ListenAndServe(Args.ServerPort, r)
+	err = http.ListenAndServe(":"+port, r)
 	if err != nil {
 		log.Fatal("Could not start server")
 	}
