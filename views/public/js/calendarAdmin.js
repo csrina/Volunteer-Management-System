@@ -318,7 +318,7 @@ function loadAddEvent() {
         document.querySelector("#eventForm").innerHTML = func(classes);
         document.querySelector("#submit").addEventListener("click", submitEvent);
     });
-    xhttp.open("GET", "http://localhost:8080/api/v1/admin/classes")
+    xhttp.open("GET", "/api/v1/admin/classes")
     xhttp.send();
 }
 
