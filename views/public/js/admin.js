@@ -145,7 +145,7 @@ function loadEditFamily(e) {
     let familyID = e.srcElement.id.split("_")[1];
     
     
-    $.getJSON(`api/v1/admin/families?f=${familyID}`, function(data, status){
+    $.getJSON(`/api/v1/admin/families?f=${familyID}`, function(data, status){
         let tmpl = document.querySelector("#tmpl_editFamily").innerHTML;
         let func = doT.template(tmpl);
 
