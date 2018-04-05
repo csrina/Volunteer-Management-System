@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,19 +11,20 @@ import (
 )
 
 type roomFull struct {
-	RoomID     int           `json:"roomId" db:"room_id"`
-	RoomName   string        `json:"roomName" db:"room_name"`
-	TeacherID  int           `json:"teacherId" db:"teacher_id"`
-	Children   sql.NullInt64 `json:"children" db:"children"`
-	RoomNumber string        `json:"roomNum" db:"room_num"`
+	RoomID     int    `json:"roomId" db:"room_id"`
+	RoomName   string `json:"roomName" db:"room_name"`
+	TeacherID  int    `json:"teacherId" db:"teacher_id"`
+	Children   int    `json:"children" db:"children"`
+	RoomNumber string `json:"roomNum" db:"room_num"`
 }
 
 type roomDetailed struct {
-	RoomID     int           `json:"roomId" db:"room_id"`
-	RoomName   string        `json:"roomName" db:"room_name"`
-	Teacher    string        `json:"teacher" db:"teacher"`
-	Children   sql.NullInt64 `json:"children" db:"children"`
-	RoomNumber string        `json:"roomNum" db:"room_num"`
+	RoomID     int    `json:"roomId" db:"room_id"`
+	RoomName   string `json:"roomName" db:"room_name"`
+	Teacher    string `json:"teacher" db:"teacher"`
+	TeacherID  int    `json:"teacherId" db:"teacher_id"`
+	Children   int    `json:"children" db:"children"`
+	RoomNumber string `json:"roomNum" db:"room_num"`
 }
 
 type roomShort struct {
@@ -379,20 +379,42 @@ func getFamilyList(w http.ResponseWriter, r *http.Request) {
 }
 
 func getClassInfo(w http.ResponseWriter, r *http.Request) {
-	q := `SELECT room.room_id, room.room_name, users.username AS teacher, room.room_num
+	options := r.URL.Query()
+	classID, err := strconv.Atoi(options.Get("c"))
+
+	if err != nil {
+		q := `SELECT room.room_id, room.room_name, users.username AS teacher, room.room_num
 			FROM room, users
 			WHERE room.teacher_id = users.user_id`
-	classes := []roomDetailed{}
+		classes := []roomDetailed{}
 
-	err := db.Select(&classes, q)
-	if err != nil {
-		logger.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		err := db.Select(&classes, q)
+		if err != nil {
+			logger.Println(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		encoder := json.NewEncoder(w)
+		encoder.Encode(classes)
+	} else {
+		q2 := `SELECT room.room_id, room.room_name, users.username AS teacher, users.user_id AS teacher_id, room.room_num
+				FROM room, users
+				WHERE room.room_id = $1
+				AND room.teacher_id = users.user_id`
+
+		class := []roomDetailed{}
+
+		err := db.Select(&class, q2, classID)
+		if err != nil {
+			logger.Println(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		encoder := json.NewEncoder(w)
+		encoder.Encode(class)
 	}
-
-	encoder := json.NewEncoder(w)
-	encoder.Encode(classes)
 }
 
 func createClass(w http.ResponseWriter, r *http.Request) {
@@ -421,7 +443,7 @@ func updateClass(w http.ResponseWriter, r *http.Request) {
 			SET room_name = $2, teacher_id = $3, room_num = $4
 			WHERE room_id = $1`
 
-	_, err := db.Exec(q, class.RoomName, class.TeacherID, class.RoomNumber)
+	_, err := db.Exec(q, class.RoomID, class.RoomName, class.TeacherID, class.RoomNumber)
 	if err != nil {
 		logger.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
