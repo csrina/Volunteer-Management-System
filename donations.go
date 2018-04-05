@@ -3,12 +3,11 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"math"
 	"net/http"
 	"strconv"
 	"time"
 
-	colorful "github.com/lucasb-eyer/go-colorful"
+	"github.com/lucasb-eyer/go-colorful"
 )
 
 type Donor interface {
@@ -22,16 +21,18 @@ type Donee interface {
 }
 
 /* For adjusting a family/facilitators hours per week, in the given period */
-type DonationPeriod interface {
+type DoneePeriod interface {
 	GetDonee() Donee
 	GetHours() float64
 	SetHours(float64)
 	GetStartDate() time.Time
+	GetStartWeek() time.Time
 	GetEndDate() time.Time
 }
 
+
 // Gets a dataset for the period
-func GenerateCDS(dp DonationPeriod) (cds *ChartDataSet, err error) {
+func GenerateCDS(dp DoneePeriod) (cds *ChartDataSet, err error) {
 	cds = new(ChartDataSet).configureAsHistoricalHours("Donations", colorful.FastWarmColor().Hex(), false, 0.00)
 	q := `SELECT amount, date_sent FROM donation
 			WHERE donee_id = $1
@@ -49,8 +50,8 @@ func GenerateCDS(dp DonationPeriod) (cds *ChartDataSet, err error) {
 }
 
 // Updates the hours (via SetHours() see interface)
-// Assumes GetStart/End returns the period bounds
-func AdjustDailyHours(dp DonationPeriod) error {
+// Assumes GetStartWeek/EndDate returns the week bounds
+func AdjustDailyHours(dp DoneePeriod) error {
 	q := `SELECT COALESCE(SUM(amount), 0) FROM donation 
 			WHERE donee_id = $1
 				AND (
@@ -60,7 +61,7 @@ func AdjustDailyHours(dp DonationPeriod) error {
 				)`
 
 	var total float64
-	err := db.QueryRow(q, dp.GetDonee().GetID(), dp.GetStartDate(), dp.GetEndDate()).Scan(&total)
+	err := db.QueryRow(q, dp.GetDonee().GetID(), dp.GetStartWeek(), dp.GetEndDate()).Scan(&total)
 
 	if err != nil {
 		return err
@@ -134,7 +135,11 @@ func getDonateData(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dd := new(DonationData)
-	dd.HoursAvail = math.Trunc((fd.HoursDone-fd.HoursGoal)*100) / 100
+	dd.HoursAvail, err = fd.GetAvailableHours()
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 
 	q := `SELECT family_name, family_id FROM family`
 	err =  db.Select(&dd.Families, q)

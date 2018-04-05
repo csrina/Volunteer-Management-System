@@ -43,29 +43,52 @@ type familyMonth struct {
 // Data for a family's dashboard or for other repurposing
 type FamilyData struct {
 	family       *Family
-	Start        time.Time `json:"startMoment"`
-	End          time.Time `json:"endMoment"`
-	HoursGoal    float64   `json:"hoursGoal"`   // weekly goal
-	HoursBooked  float64   `json:"hoursBooked"` // hours to booked in
-	HoursDone    float64   `json:"hoursDone"`   // actually completed hrs
+	HoursGoal    float64   				`json:"hoursGoal"`   // weekly goal
+	HoursBooked  float64   				`json:"hoursBooked"` // hours to booked in
+	HoursDone    float64   				`json:"hoursDone"`   // actually completed hrs
 	// Where historical keys are the parent UID
 	History       map[int]*ChartDataSet `json:"history"`       // datasets are facillitators + a donation dataset
 	StartOfPeriod time.Time             `json:"startOfPeriod"` // start date for chart
 	EndOfPeriod   time.Time             `json:"endOfPeriod"`   // end date for chart
+	StartOfWeek   time.Time 			`json:"startMoment"`				  //  start of current week (potentially adjusted to next monday if current time is a weekend)
 }
 
 func (fd *FamilyData) GetDonee() Donee { return fd.family }
-
 func (fd *FamilyData) GetHours() (hours float64) { return fd.HoursDone }
-
-func (fd *FamilyData) SetHours(hours float64) { fd.HoursDone = hours }
-
 func (fd *FamilyData) GetStartDate() time.Time { return fd.StartOfPeriod }
-
+func (fd *FamilyData) GetStartWeek() time.Time { return fd.StartOfWeek }
 func (fd *FamilyData) GetEndDate() time.Time { return fd.EndOfPeriod }
+func (fd *FamilyData) SetHours(hours float64) { fd.HoursDone = hours }
 
 func (fd *FamilyData) setHoursGoal(numKids int) {
 	fd.HoursGoal = getHourGoal(numKids)
+}
+
+/*
+ * Get the hours which can be donated (i.e. hoursDone - hoursGoal), adjusting for weekends.
+ * Unlike the dashboard default (if weekend monday is next monday); Donations defaults to last week,
+ * until monday has arrived. Completed hours differs from Hours Done only if the current time (@ instance access)
+ * falls on a weekend.
+ */
+func (fd *FamilyData) GetAvailableHours() (hours float64, err error) {
+	/* Get all relevant bookings for the last week */
+	sow := time.Now()
+	if fd.StartOfWeek.After(sow) { // today is before the listed monday --> it is therefore a weekend
+		now.Monday() // Make monday beginning of the week (now defaults to sunday for each closure)
+		sow = now.New(sow).BeginningOfWeek() // get last monday
+	} else { // not a weekend
+		sow = fd.StartOfWeek // the familydata sow value is legit
+	}
+	bookings, err := fd.family.getFamilyBookings(sow, fd.EndOfPeriod) // get the bookings for the relevant week
+	if err != nil {
+		logger.Println("Error getting booking data (getavailablehours): ", err)
+		return -1, err
+	}
+	for _, b := range bookings {
+		hours += (b.End.Sub(b.Start).Hours() * float64(b.Modifier))
+	}
+
+	return math.Trunc((hours - fd.HoursGoal) * 1000) / 1000, nil
 }
 
 func (fd *FamilyData) setHoursData(startOfWeek time.Time, today now.Now) error {
@@ -89,8 +112,8 @@ func (fd *FamilyData) setHoursData(startOfWeek time.Time, today now.Now) error {
 		}
 	}
 	err = AdjustDailyHours(fd)
-	fd.HoursBooked = math.Trunc(fd.HoursBooked*100) / 100
-	fd.HoursDone = math.Trunc(fd.HoursDone*100) / 100
+	fd.HoursBooked = math.Trunc(fd.HoursBooked*1000) / 1000
+	fd.HoursDone = math.Trunc(fd.HoursDone*1000) / 1000
 	return err
 }
 
@@ -138,13 +161,14 @@ func (fd *FamilyData) init(fam *Family, today time.Time) error {
 	} else if today.Weekday() == time.Saturday {
 		today = today.AddDate(0, 0, 2) // move to monday
 	}
+
 	now.Monday()                                           // first day of week
 	nowToday := now.New(today)                             // We use this to determine start of week, so it should be the adjusted today
-	startOfWeek := nowToday.BeginningOfWeek()              // if weekend, this is next week's monday
+	fd.StartOfWeek = nowToday.BeginningOfWeek()             // if weekend, this is next week's monday
 	fd.EndOfPeriod = nowToday.EndOfWeek()                  // set end of period
-	fd.StartOfPeriod = today.AddDate(0, -PERIOD_LENGTH, 0) // Go back 4 months --> set startperiod
+	fd.StartOfPeriod = today.AddDate(0, -(PERIOD_LENGTH), 0) // Go back 4 months --> set startperiod
 	// create the history
-	err := fd.setHoursData(startOfWeek, *realToday)
+	err := fd.setHoursData(fd.StartOfWeek, *realToday)
 	if err != nil {
 		return err
 	}
