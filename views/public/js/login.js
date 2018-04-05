@@ -82,8 +82,11 @@ function login() {
             console.log("Login attempt pass");
             // var theDiv = document.querySelector("#errorbox");
             // theDiv.innerHTML= `<div class="alert alert-success" role="alert">Login attempt was a success</div>`
-            if (window.location.pathname.split("/").pop() == "admin") {
+            let role = window.location.pathname.split("/").pop();
+            if (role === "admin") {
                 window.location.href = "/admin/dashboard";
+            } else if (role === "teacher") {
+                window.location.href = "/teacher"
             }
             else {
                 window.location = "/dashboard";
@@ -97,7 +100,6 @@ function login() {
     for (let i = 0; i < pass.length; i++) {
         data.push(pass.charCodeAt(i));
     }
-
     xmlhttp.send(JSON.stringify({ username: name, password: data }));
 
 }

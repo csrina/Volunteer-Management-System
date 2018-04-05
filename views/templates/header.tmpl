@@ -34,8 +34,10 @@
             <script type="text/javascript" src='/views/fc/fullcalendar.js'></script>
             <!-- Shared javascript for all roles -->
             <script type="text/javascript" src='/views/public/js/calendar.js'></script>
-            <!-- Role specific calendar js-->
-            <script type="text/javascript" src='/views/public/js/calendar {{- .Role -}} .js'><%= text/javascript %></script>
+           {{if ne .PageName "dashboard"}}
+                <!-- Role specific calendar js-->
+                <script type="text/javascript" src='/views/public/js/calendar {{- .Role -}} .js'><%= text/javascript %></script>
+           {{end}}
         {{end}}
 
         {{if .MultiSelect }}

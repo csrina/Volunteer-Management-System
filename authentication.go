@@ -23,37 +23,6 @@ type TmpUser struct {
 	UserID   int    `db:"user_id"`
 }
 
-//noinspection GoUnusedParameter
-func loadMainLogin(w http.ResponseWriter, r *http.Request) {
-	s := tmpls.Lookup("mainLogin.tmpl")
-	p := &Page{
-		PageName: "mainLogin",
-		Role:     "",
-		Username: "",
-		Calendar: false,
-	}
-	s.ExecuteTemplate(w, "content", p)
-}
-func loadLogin(w http.ResponseWriter, r *http.Request) {
-	var title string
-	cur := r.URL.Path
-	if strings.Contains(cur, "facilitator") {
-		title = "Facilitator "
-	} else if strings.Contains(cur, "teacher") {
-		title = "Teacher "
-	} else if strings.Contains(cur, "admin") {
-		title = "Admin "
-	}
-	p := &Page{
-		PageName: "login",
-		Role:     title,
-		Username: "",
-		Calendar: false,
-	}
-	s := tmpls.Lookup("login.tmpl")
-	s.ExecuteTemplate(w, "loginForm", p)
-}
-
 func loginHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var u TmpUser
@@ -127,7 +96,6 @@ func auth(w http.ResponseWriter, username string, password []byte, role int) {
 	}
 	w.WriteHeader(http.StatusAccepted)
 	logger.Printf("Password is correct for user %v\n", username)
-
 }
 
 func checkPassword(w http.ResponseWriter, r *http.Request) {

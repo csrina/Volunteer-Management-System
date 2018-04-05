@@ -433,7 +433,11 @@ func updateClass(w http.ResponseWriter, r *http.Request) {
 func loadAdminDash(w http.ResponseWriter, r *http.Request) {
 	pg, err := loadPage("admindashboard", r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusForbidden)
+		if _, ok := err.(*ClientSafeError); ok {
+			http.Error(w, err.Error(), http.StatusBadGateway)
+		} else {
+			http.Error(w, "Something funny happened, sorry. Please try again ", http.StatusInternalServerError)
+		}
 		return
 	}
 	s := tmpls.Lookup("admindashboard.tmpl")
@@ -444,7 +448,11 @@ func loadAdminDash(w http.ResponseWriter, r *http.Request) {
 func loadAdminUsers(w http.ResponseWriter, r *http.Request) {
 	pg, err := loadPage("adminusers", r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusForbidden)
+		if _, ok := err.(*ClientSafeError); ok {
+			http.Error(w, err.Error(), http.StatusBadGateway)
+		} else {
+			http.Error(w, "Something funny happened, sorry. Please try again ", http.StatusInternalServerError)
+		}
 		return
 	}
 	s := tmpls.Lookup("adminusers.tmpl")
@@ -456,7 +464,11 @@ func loadAdminUsers(w http.ResponseWriter, r *http.Request) {
 func loadAdminCalendar(w http.ResponseWriter, r *http.Request) {
 	pg, err := loadPage("calendar", r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusForbidden)
+		if _, ok := err.(*ClientSafeError); ok {
+			http.Error(w, err.Error(), http.StatusBadGateway)
+		} else {
+			http.Error(w, "Something funny happened, sorry. Please try again ", http.StatusInternalServerError)
+		}
 		return
 	}
 	s := tmpls.Lookup("admincalendar.tmpl")
@@ -469,7 +481,11 @@ func loadAdminCalendar(w http.ResponseWriter, r *http.Request) {
 func loadAdminReports(w http.ResponseWriter, r *http.Request) {
 	pg, err := loadPage("adminreports", r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusForbidden)
+		if _, ok := err.(*ClientSafeError); ok {
+			http.Error(w, err.Error(), http.StatusBadGateway)
+		} else {
+			http.Error(w, "Something funny happened, sorry. Please try again ", http.StatusInternalServerError)
+		}
 		return
 	}
 	s := tmpls.Lookup("adminreports.tmpl")
@@ -481,7 +497,11 @@ func loadAdminReports(w http.ResponseWriter, r *http.Request) {
 func loadAdminClasses(w http.ResponseWriter, r *http.Request) {
 	pg, err := loadPage("adminclasses", r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusForbidden)
+		if _, ok := err.(*ClientSafeError); ok {
+			http.Error(w, err.Error(), http.StatusBadGateway)
+		} else {
+			http.Error(w, "Something funny happened, sorry. Please try again ", http.StatusInternalServerError)
+		}
 		return
 	}
 	s := tmpls.Lookup("adminclasses.tmpl")

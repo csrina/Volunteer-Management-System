@@ -344,3 +344,33 @@ func getUsersFID(userID int) (int, error) {
 	}
 	return FID, nil
 }
+
+func getTaughtRooms(r *http.Request) (roomNames []string, err error) {
+	//get username
+	sesh, _ := store.Get(r, "loginSession")
+	uname, ok := sesh.Values["username"].(string)
+	if !ok {
+		return nil, &ClientSafeError{Msg: "Invalid User Token, please re-login", Code: http.StatusNetworkAuthenticationRequired}
+	}
+	//get teaches rooms
+	roomNames, err = userNameTeachesRooms(uname)
+	return
+}
+
+/*
+ * Get the room a teacher teaches by username
+ */
+func userNameTeachesRooms(userName string) (roomNames []string, err error) {
+	q := `SELECT room.room_name FROM room NATURAL JOIN users
+				WHERE room.teacher_id = users.user_id
+						AND users.username = $1`
+
+	err = db.Select(&roomNames, q, userName)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			err = &ClientSafeError{Msg: "Teacher not assigned a room", Code: http.StatusBadRequest};
+		}
+		logger.Println(err);
+	}
+	return
+}
