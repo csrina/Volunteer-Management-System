@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"math"
 	"net/http"
 	"sort"
@@ -71,15 +70,18 @@ func (fd *FamilyData) setHoursGoal(numKids int) {
  * falls on a weekend.
  */
 func (fd *FamilyData) GetAvailableHours() (hours float64, err error) {
-	/* Get all relevant bookings for the last week */
+	/* Get all relevant bookings for the last week (or this week if !weekend) */
+	today := time.Now()
 	sow := time.Now()
-	if fd.StartOfWeek.After(sow) { // today is before the listed monday --> it is therefore a weekend
-		now.Monday() // Make monday beginning of the week (now defaults to sunday for each closure)
-		sow = now.New(sow).BeginningOfWeek() // get last monday
-	} else { // not a weekend
-		sow = fd.StartOfWeek // the familydata sow value is legit
+	if fd.StartOfWeek.Before(today) {
+		return math.Trunc((fd.HoursDone-fd.HoursGoal) * 1000) / 1000, nil // use this weeks data
 	}
-	bookings, err := fd.family.getFamilyBookings(sow, fd.EndOfPeriod) // get the bookings for the relevant week
+	// today is before the listed monday --> it is therefore a weekend
+	now.Monday() // Make monday beginning of the week (now defaults to sunday for each closure)
+	sow = now.New(today).BeginningOfWeek() // get last monday
+
+	/* Get hours from bookings completed */
+	bookings, err := fd.family.getFamilyBookings(sow, today) // get the bookings for the relevant week
 	if err != nil {
 		logger.Println("Error getting booking data (getavailablehours): ", err)
 		return -1, err
@@ -87,6 +89,15 @@ func (fd *FamilyData) GetAvailableHours() (hours float64, err error) {
 	for _, b := range bookings {
 		hours += (b.End.Sub(b.Start).Hours() * float64(b.Modifier))
 	}
+
+	/* Account for donations */
+	donations, err := fd.family.getShortDonations(sow, today)
+	logger.Println(donations)
+	if err != nil {
+		return math.Trunc((hours - fd.HoursGoal) * 1000) / 1000, nil
+	}
+	hours += donations.netAmount(fd.family.ID)
+	logger.Println(hours)
 
 	return math.Trunc((hours - fd.HoursGoal) * 1000) / 1000, nil
 }
@@ -111,7 +122,14 @@ func (fd *FamilyData) setHoursData(startOfWeek time.Time, today now.Now) error {
 			fd.HoursBooked += duration // Time is after today, but before week end --> booked hours
 		}
 	}
-	err = AdjustDailyHours(fd)
+
+	donations, err := fd.family.getShortDonations(startOfWeek, fd.EndOfPeriod)
+	if err != nil {
+		logger.Println(err)
+		return err
+	}
+
+	fd.HoursDone += donations.netAmount(fd.family.ID)
 	fd.HoursBooked = math.Trunc(fd.HoursBooked*1000) / 1000
 	fd.HoursDone = math.Trunc(fd.HoursDone*1000) / 1000
 	return err
@@ -205,7 +223,7 @@ func (f *Family) getFamilyBookings(start time.Time, end time.Time) ([]Booking, e
 }
 
 // Get donations between start and end two-tailed inclusive (where the family may be either the donor, or donee
-func (f *Family) getDonations(start, end time.Time) (gifts Donations, err error) {
+func (f *Family) getShortDonations(start, end time.Time) (gifts ShortDonations, err error) {
 	q := `SELECT * FROM donation 
 			WHERE (donation.donor_id = $1 OR donation.donee_id = $1)
 			AND (
@@ -219,10 +237,10 @@ func (f *Family) getDonations(start, end time.Time) (gifts Donations, err error)
 		if err == sql.ErrNoRows {
 			return gifts, nil
 		} else {
-			return // []nil, error
+			return nil, err
 		}
 	}
-	return // gift, err
+	return gifts, nil
 }
 
 func (donor *Family) GetID() int {
@@ -250,7 +268,7 @@ func getFamilyViaRequest(r *http.Request) (*Family, error) {
 	username, ok := sesh.Values["username"].(string)
 	if !ok {
 		logger.Println("Invalid user token: ", username)
-		return nil, errors.New("invalid token")
+		return nil, &ClientSafeError{Msg:"invalid token"}
 	}
 
 	q := `SELECT family_id, family_name, children 
@@ -262,7 +280,7 @@ func getFamilyViaRequest(r *http.Request) (*Family, error) {
 	err := db.QueryRow(q, username).Scan(&fdata.ID, &fdata.Name, &fdata.Children)
 	if err != nil {
 		logger.Println(err)
-		return nil, errors.New("could not retrieve family information")
+		return nil, &ClientSafeError{Msg:"could not retrieve family information"}
 	}
 
 	var uids []int
@@ -283,6 +301,16 @@ func getFamilyViaRequest(r *http.Request) (*Family, error) {
 		fdata.Parents = append(fdata.Parents, u)
 	}
 	return fdata, nil
+}
+
+func GetFamilyByID(ID int) (f *Family, err error) {
+	f = new(Family)
+	q := `SELECT * FROM family WHERE family_id = $1`
+	err = db.QueryRow(q, ID).Scan(&f.ID, &f.Name, &f.Children)
+	if err != nil {
+		logger.Println(err)
+	}
+	return f, err
 }
 
 /*

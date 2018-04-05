@@ -3,8 +3,8 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/lucasb-eyer/go-colorful"
@@ -30,7 +30,6 @@ type DoneePeriod interface {
 	GetEndDate() time.Time
 }
 
-
 // Gets a dataset for the period
 func GenerateCDS(dp DoneePeriod) (cds *ChartDataSet, err error) {
 	cds = new(ChartDataSet).configureAsHistoricalHours("Donations", colorful.FastWarmColor().Hex(), false, 0.00)
@@ -49,35 +48,30 @@ func GenerateCDS(dp DoneePeriod) (cds *ChartDataSet, err error) {
 	return
 }
 
-// Updates the hours (via SetHours() see interface)
-// Assumes GetStartWeek/EndDate returns the week bounds
-func AdjustDailyHours(dp DoneePeriod) error {
-	q := `SELECT COALESCE(SUM(amount), 0) FROM donation 
-			WHERE donee_id = $1
-				AND (
-					(date_sent >= $2 AND date_sent <= $3)
-					OR
-					(date_sent >= $3 AND date_sent <= $2)
-				)`
-
-	var total float64
-	err := db.QueryRow(q, dp.GetDonee().GetID(), dp.GetStartWeek(), dp.GetEndDate()).Scan(&total)
-
-	if err != nil {
-		return err
-	}
-	if total > 0 {
-		dp.SetHours(dp.GetHours() + total)
-	}
-	return nil
-}
-
 type Donations []Donation
+type ShortDonations []DonationShort
+
 
 /* Get the total net amount for all of the donations in this slice */
-func (gifts Donations) netAmount() (netAmount float64) {
+func (gifts ShortDonations) netAmount(ID int) (netAmount float64) {
 	for _, g := range gifts {
-		netAmount += g.Amount
+		if g.Recipient == ID {
+			netAmount += g.Amount
+		} else if g.Sender == ID {
+			netAmount -= g.Amount
+		}
+	}
+	return netAmount
+}
+
+/* Get the total net amount for all of the donations in this slice */
+func (gifts Donations) netAmount(ID int) (netAmount float64) {
+	for _, g := range gifts {
+		if g.Recipient.GetID() == ID {
+			netAmount += g.Amount
+		} else if g.Sender.GetID() == ID {
+			netAmount -= g.Amount
+		}
 	}
 	return netAmount
 }
@@ -87,21 +81,33 @@ func (gifts Donations) netAmount() (netAmount float64) {
  */
 type Donation struct {
 	ID        int       `db:"donation_id" json:"id"`
-	Sender    Donor     `db:"donor_id" json:"donor"`
-	Recipient Donor     `db:"donee_id" json:"donee"`
+	Sender    Donor     `json:"donor"`
+	Recipient Donor     `json:"donee"`
 	Amount    float64   `db:"amount" json:"amount"`
 	Date      time.Time `db:"date_sent" json:"date"`
 }
 
-func (d *Donation) isLegal() (legal bool, err error) {
-	// check Donation.DAte for weekend --> if yes, modify to use last week's hoursDone
-	// else use the current week hoursDone
-	// We have the hours now
-	// hoursDone < donation amount ===> bail
-	// donor id OR donee id invalid ==> bail
+type DonationShort struct {
+	ID        int       `db:"donation_id" json:"id"`
+	Sender    int     	`db:"donor_id" json:"donor"`
+	Recipient int     	`db:"donee_id" json:"donee"`
+	Amount    float64   `db:"amount" json:"amount"`
+	Date      time.Time `db:"date_sent" json:"date"`
+}
 
-	legal = true
-	return
+/* FOR FAMILY DONORS ONLY AT THIS TIME -- IF USERS SATISFY THE INTERFACES NEED TO UPDATE THIS */
+func (d *Donation) isLegal() (legal bool, err error) {
+	if d.Sender.GetID() == d.Recipient.GetID() {
+		return false, &ClientSafeError{Msg: "Cannot send donation to yourself!"};
+	}
+	family, err := GetFamilyByID(d.Sender.GetID())
+	if err != nil {
+		return false, err
+	}
+	fd := new(FamilyData)
+	fd.init(family, time.Now())
+	hrs, err := fd.GetAvailableHours()
+	return hrs > fd.HoursGoal, err
 }
 
 // save donation in db, update with returned id
@@ -109,7 +115,7 @@ func (d *Donation) save() error {
 	q := `INSERT INTO donation (donor_id, donee_id, amount)
 				VALUES ($1, $2, $3) RETURNING donation_id, date_sent`
 
-	return db.QueryRow(q, strconv.Itoa(d.Sender.GetID()), strconv.Itoa(d.Recipient.GetID()), d.Amount).Scan(&d.ID, &d.Date)
+	return db.QueryRow(q, d.Sender.GetID(), d.Recipient.GetID(), d.Amount).Scan(&d.ID, &d.Date)
 }
 
 type DonationData struct {
@@ -142,7 +148,7 @@ func getDonateData(w http.ResponseWriter, r *http.Request) {
 	}
 
 	q := `SELECT family_name, family_id FROM family`
-	err =  db.Select(&dd.Families, q)
+	err = db.Select(&dd.Families, q)
 	if err != nil {
 		logger.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -154,27 +160,74 @@ func getDonateData(w http.ResponseWriter, r *http.Request) {
 }
 
 func donatePostHandler(w http.ResponseWriter, r *http.Request) {
-	body, err := r.GetBody()
-	if err != nil {
-		logger.Println(err)
-		http.Error(w, "Improperly formatted request body", http.StatusBadRequest)
-	}
-	dec := json.NewDecoder(body)
-	donation := new(Donation)
-	err = dec.Decode(donation)
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Couldn't parse request", http.StatusBadRequest)
+		return
 	}
+	donMap := make(map[string]interface{})
+	err = json.Unmarshal(body, &donMap)
+	if err != nil {
+		logger.Println(err)
+		http.Error(w, "Couldn't unmarshal request", http.StatusBadRequest)
+		return
+	}
+
+	donation := new(Donation)
+
+	/* Build donation from mapped values */
+	donation.Sender, err = getFamilyViaRequest(r)
+	if err != nil {
+		if csErr, ok := err.(*ClientSafeError); ok {
+			http.Error(w, csErr.Error(), http.StatusBadRequest)
+		} else {
+			http.Error(w, "Couldn't find donor family", http.StatusBadRequest)
+		}
+		return
+	}
+
+	if doneeID, ok := donMap["donee"].(float64); ok {
+		donation.Recipient, err = GetFamilyByID(int(doneeID))
+		if err != nil {
+			if csErr, ok := err.(*ClientSafeError); ok {
+				http.Error(w, csErr.Error(), http.StatusBadRequest)
+			} else {
+				http.Error(w, "Couldn't find donee family", http.StatusBadRequest)
+			}
+			return
+		}
+	} else {
+		http.Error(w, "Donee ID invalid -- expected number", http.StatusBadRequest)
+		return
+	}
+
+	if amt, ok := donMap["amount"].(float64); ok {
+		donation.Amount = amt;
+	} else {
+		http.Error(w, "Amount invalid type -- amount must be a number", http.StatusBadRequest)
+		return
+	}
+
 	// ensure donor family has the funds
 	ok, err := donation.isLegal()
 	if err != nil {
-		http.Error(w, "Couldn't complete donation", http.StatusBadRequest)
+		if _, ok := err.(*ClientSafeError); ok {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		} else {
+			http.Error(w, "Couldn't complete donation", http.StatusBadRequest)
+		}
 		return
 	} else if !ok {
 		http.Error(w, "Insufficient hours to meet donation requirement", http.StatusBadRequest)
 		return
 	}
-	donation.save()
+
+	err = donation.save()
+	if err != nil {
+		logger.Println(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 	enc := json.NewEncoder(w)
 	enc.SetEscapeHTML(true)
 	enc.Encode(donation) // send back with id for toaster
