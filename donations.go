@@ -1,15 +1,84 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
+	"math"
 	"net/http"
 	"strconv"
 	"time"
+
+	colorful "github.com/lucasb-eyer/go-colorful"
 )
 
 type Donor interface {
 	GiveCharity(donee *Family, amount float64) (*Donation, error)
 	GetID() int
+}
+
+/* May be useful to have recipient interface which may differ? */
+type Donee interface {
+	GetID() int
+}
+
+/* For adjusting a family/facilitators hours per week, in the given period */
+type DonationPeriod interface {
+	GetDonee() Donee
+	GetHours() float64
+	SetHours(float64)
+	GetStartDate() time.Time
+	GetEndDate() time.Time
+}
+
+// Gets a dataset for the period
+func GenerateCDS(dp DonationPeriod) (cds *ChartDataSet, err error) {
+	cds = new(ChartDataSet).configureAsHistoricalHours("Donations", colorful.FastWarmColor().Hex(), false, 0.00)
+	q := `SELECT amount, date_sent FROM donation
+			WHERE donee_id = $1
+				AND (
+					(date_sent >= $2 AND date_sent <= $3)
+					OR
+					(date_sent >= $3 AND date_sent <= $2)
+				)
+			GROUP BY date_sent, amount`
+	err = db.Select(&cds.Data, q, dp.GetDonee().GetID(), dp.GetStartDate(), dp.GetEndDate())
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	return
+}
+
+// Updates the hours (via SetHours() see interface)
+// Assumes GetStart/End returns the period bounds
+func AdjustDailyHours(dp DonationPeriod) error {
+	q := `SELECT COALESCE(SUM(amount), 0) FROM donation 
+			WHERE donee_id = $1
+				AND (
+					(date_sent >= $2 AND date_sent <= $3)
+					OR
+					(date_sent >= $3 AND date_sent <= $2)
+				)`
+
+	var total float64
+	err := db.QueryRow(q, dp.GetDonee().GetID(), dp.GetStartDate(), dp.GetEndDate()).Scan(&total)
+
+	if err != nil {
+		return err
+	}
+	if total > 0 {
+		dp.SetHours(dp.GetHours() + total)
+	}
+	return nil
+}
+
+type Donations []Donation
+
+/* Get the total net amount for all of the donations in this slice */
+func (gifts Donations) netAmount() (netAmount float64) {
+	for _, g := range gifts {
+		netAmount += g.Amount
+	}
+	return netAmount
 }
 
 /*
@@ -29,6 +98,8 @@ func (d *Donation) isLegal() (legal bool, err error) {
 	// We have the hours now
 	// hoursDone < donation amount ===> bail
 	// donor id OR donee id invalid ==> bail
+
+	legal = true
 	return
 }
 
@@ -40,14 +111,41 @@ func (d *Donation) save() error {
 	return db.QueryRow(q, strconv.Itoa(d.Sender.GetID()), strconv.Itoa(d.Recipient.GetID()), d.Amount).Scan(&d.ID, &d.Date)
 }
 
-type Donations []Donation
+type DonationData struct {
+	Families   []Family `json:"families"`
+	HoursAvail float64  `json:"hoursAvail"`
+}
 
-/* Get the total net amount for all of the donations in this slice */
-func (gifts Donations) netAmount() (netAmount float64) {
-	for _, g := range gifts {
-		netAmount += g.Amount
+func getDonateData(w http.ResponseWriter, r *http.Request) {
+	family, err := getFamilyViaRequest(r)
+	if err != nil {
+		logger.Println("Failed to retrieve family")
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
-	return netAmount
+
+	fd := new(FamilyData)
+	err = fd.init(family, time.Now()) // initialize dashboard for family
+	if err != nil {
+		logger.Println("Failed to initialize family data")
+		logger.Println("Family: ", family)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	dd := new(DonationData)
+	dd.HoursAvail = math.Trunc((fd.HoursDone-fd.HoursGoal)*100) / 100
+
+	q := `SELECT family_name, family_id FROM family`
+	err =  db.Select(&dd.Families, q)
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	enc := json.NewEncoder(w)
+	enc.SetEscapeHTML(true)
+	enc.Encode(*dd)
 }
 
 func donatePostHandler(w http.ResponseWriter, r *http.Request) {

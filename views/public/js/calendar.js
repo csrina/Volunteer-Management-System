@@ -5,6 +5,10 @@ function isVisibleEvent(event) {
     return $("#" + event.room + "btn").attr("data-value") == "on";
 }
 
+function clearFilterButtons() {
+    $("#filterButtons").html();
+}
+
 // Add a filter with the given text value
 function addFilterButton(buttonText) {
     if ($("#" + buttonText + "btn").length != 0) {

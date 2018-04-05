@@ -1,7 +1,7 @@
 {{define "nav"}}
     <header>
         <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
-            <a class="navbar-brand" {{if eq .Role "Admin"}}href="/admin/dashboard"{{else}}href="/dashboard"{{end}}>Caraway Volunteering</a>
+            <a class="navbar-brand" {{if eq .Role "Admin"}}href="/admin/dashboard"{{else if eq .Role "Teacher"}}href="/teacher"{{else}}href="/dashboard"{{end}}>Caraway Volunteering</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor02" aria-controls="navbarColor02" aria-expanded="false" aria-label="Toggle navigation" style="">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -11,18 +11,20 @@
                 <ul class="navbar-nav mr-auto">
 				
 				
-				
+             {{if ne .Role "Teacher"}}
                     <li class="nav-item {{if or (eq .PageName "dashboard") (eq .PageName "admindashboard")}}active{{end}}">
                         <a class="nav-link" {{if eq .Role "Admin"}}href="/admin/dashboard"{{else}}href="/dashboard"{{end}}>Dashboard</a>
                     </li>
                     <li class="nav-item {{if eq .PageName "calendar"}}active{{end}}">
                         <a class="nav-link" {{if eq .Role "Admin"}}href="/admin/calendar" {{else}}href="/calendar"{{end}} >Calendar</a>
                     </li>
+
                     {{if eq .Role "Facilitator"}}
                     <li class="nav-item {{if eq .PageName "donate"}}active{{end}}">
                         <a class="nav-link" href="/donate">Donate</a>
                     </li>
                     {{end}}
+
 					{{if eq .Role "Admin"}}
 					<li id="usersBtn" class="nav-item {{if eq .PageName "adminusers"}}active{{end}}">
 						<a class="nav-link" href="/admin/users">Users</a>
@@ -34,12 +36,16 @@
 						<a class="nav-link" href="/admin/classes">Classes</a>
 					</li>
 					{{end}}
-                    <li class="nav-item {{if eq .PageName "password"}}active{{end}}">
-                        <a class="nav-link" href="/change_password">Change Password</a>
-                    </li>
-					
-					
-					
+			{{end}}
+			{{if eq .Role "Teacher"}}
+                <li class="nav-item active">
+                    <a class="nav-link" href="/teacher">Schedule</a>
+                </li>
+            {{end}}
+
+                 <li class="nav-item {{if eq .PageName "password"}}active{{end}}">
+                     <a class="nav-link" href="/change_password">Change Password</a>
+                 </li>
 					
                 </ul>
 				

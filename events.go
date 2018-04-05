@@ -9,9 +9,8 @@ import (
 	"net/http"
 	"time"
 
-	"strings"
-
 	"github.com/gorilla/mux"
+	"strings"
 )
 
 type Response struct {
@@ -73,6 +72,25 @@ func eventPostHandler(w http.ResponseWriter, r *http.Request) {
 
 /* not implemented yet */
 func teacherPostHandler(w http.ResponseWriter, r *http.Request, dest string) {
+	e, err := EventFromJSON(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	var response *Response
+	switch dest {
+	case "update":
+		// check for room_name
+		response, err = e.update()
+	default:
+		err = errors.New("invalid target")
+	}
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	response.send(w)
 	return
 }
 
@@ -80,13 +98,13 @@ func teacherPostHandler(w http.ResponseWriter, r *http.Request, dest string) {
  * Handles posts which are not bookings (ergo, must be admin.)
  */
 func adminPostHandler(w http.ResponseWriter, r *http.Request, dest string) {
-	var response *Response
 	e, err := EventFromJSON(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
+	var response *Response
 	switch dest {
 	case "add":
 		response, err = e.add()
@@ -246,9 +264,6 @@ func listEvents(r *http.Request) ([]*Event, error) {
 		return nil, errors.New("date(s) couldn't be resolved")
 	}
 	logger.Println("Start Date: " + start + "\tEnd Date: " + end)
-	if strings.ContainsAny(start, ";") || strings.ContainsAny(end, ";") {
-		return nil, errors.New("';' in date, scary")
-	}
 	/* Get time blocks in range */
 	blocks, err1 := getBlocksWithMoments(start, end)
 	if err1 != nil {
@@ -288,6 +303,22 @@ func getEvents(w http.ResponseWriter, r *http.Request) {
 		//context.Set(r, "error", http.StatusBadRequest)
 		return
 	}
+
+	if role, _ := getRoleNum(r); role == TEACHER {
+		roomsTaught, err := getTaughtRooms(r);
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+		}
+		for _, e := range evs {
+			for _, rm := range roomsTaught {
+				if rm == e.Room {
+					e.Booked = true; // set flag (we repurpose the booked flag to mean 'teaches'
+					break;
+				}
+			}
+		}
+	}
+
 	serveEventJSON(w, evs)
 }
 
@@ -427,6 +458,6 @@ func (e *Event) updateColourCode() {
 	case "yellow":
 		e.Colour = YELLOW
 	default:
-		e.Colour = e.Room
+		e.Colour = strings.Split(e.Room, " ")[0]; // take only first string to avoid breaking the world
 	}
 }

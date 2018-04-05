@@ -21,10 +21,8 @@ function requestBooking() {
         contentType:'json',
         data: booking_json,
         dataType:'json',
-        success: bookingRequestSuccess(data),
-        error: function(xhr, ajaxOptions, thrownError) {
-           showToaster("error", "Booking request failed: " + xhr.responseText);
-        }
+        success: (data =>  bookingRequestSuccess(data)),
+        error: (xhr => makeToast("error", "Booking request failed: " + xhr.responseText))
     });
 }
 
@@ -84,6 +82,9 @@ $(document).ready(function() {
             }
             return renderFiltered(event);
         },
+        loading: ((isLoading, view) => {
+            if (isLoading) { clearFilterButtons(); }
+        }),
         eventOverlap: function(stillEvent, movingEvent) {
             return stillEvent.color === movingEvent.color;
         },

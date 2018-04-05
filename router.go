@@ -95,11 +95,12 @@ func createRouter() (*mux.Router, error) {
 
 	r.Use(checkSession)
 
-	//load dashboard and calendar pages
+	//load facilitator/teacher pages
 	r.HandleFunc("/dashboard", loadDashboard)
 	r.HandleFunc("/calendar", loadCalendar)
 	r.HandleFunc("/donate", loadDonate)
 	r.HandleFunc("/change_password", loadPassword)
+	r.HandleFunc("/teacher", loadTeacher)
 
 	return r, nil
 }
@@ -130,11 +131,15 @@ func apiRoutes(r *mux.Router) {
 	s.HandleFunc("/admin/families", createFamily).Methods("POST")
 	s.HandleFunc("/admin/families", updateFamily).Methods("PUT")
 	s.HandleFunc("/admin/dashboard", defaultReport).Methods("GET")
+
 	s.HandleFunc("/dashboard", getDashData).Methods("GET")
+	s.HandleFunc("/donate", getDonateData).Methods("GET")
+
 
 	s.HandleFunc("/passwords", checkPassword).Methods("POST")
 	s.HandleFunc("/passwords", updatePassword).Methods("PUT")
 	s.HandleFunc("/charts", monthlyReport).Methods("GET")
+
 
 	/* Events JSON routes for scheduler system */
 	s.HandleFunc("/events/{target}", getEvents).Methods("GET")
@@ -150,56 +155,6 @@ func apiRoutes(r *mux.Router) {
 func baseRoute(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Base route to Caraway API, redirecting to main page")
 	http.Redirect(w, r, "/login", http.StatusPermanentRedirect)
-}
-
-func loadDashboard(w http.ResponseWriter, r *http.Request) {
-	pg, err := loadPage("dashboard", r) // load page
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusForbidden)
-		return
-	}
-	s := tmpls.Lookup("dashboard.tmpl")
-	// dependency flags for dashboard
-	pg.Calendar = true
-	pg.Chart = true
-	pg.Dashboard = true
-	pg.Toaster = true
-	s.ExecuteTemplate(w, "dashboard", pg) // include page struct
-}
-
-func loadPassword(w http.ResponseWriter, r *http.Request) {
-	pg, err := loadPage("password", r) // load page
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusForbidden)
-		return
-	}
-	pg.Toaster = true
-	s := tmpls.Lookup("password.tmpl")
-	s.ExecuteTemplate(w, "password", pg) // include page struct
-}
-
-func loadDonate(w http.ResponseWriter, r *http.Request) {
-	pg, err := loadPage("donate", r) // load page
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusForbidden)
-		return
-	}
-	s := tmpls.Lookup("donate.tmpl")
-	s.ExecuteTemplate(w, "donate", pg) // include page struct
-}
-
-func loadCalendar(w http.ResponseWriter, r *http.Request) {
-	pg, err := loadPage("calendar", r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusForbidden)
-		return
-	}
-	s := tmpls.Lookup("calendar.tmpl")
-	// calendar dependency flag
-	pg.Calendar = true
-	pg.Toaster = true
-	logger.Println(pg)
-	logger.Println(s.ExecuteTemplate(w, "calendar", pg))
 }
 
 func handleLogout(w http.ResponseWriter, r *http.Request) {

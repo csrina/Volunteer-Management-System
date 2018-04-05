@@ -174,7 +174,6 @@ $(document).ready(function() {
         eventRender: function(event, element, view) {
             element.find('.fc-list-item-title').append("  " + event.bookingCount + "/3")
             element.find('.fc-list-item-title').append('<i class="fas fa-thumbtack"></i><br/>');
-
         },
         // DOM-Event handling for Calendar Eventblocks (why do js people suck at naming)
         eventOverlap: false,

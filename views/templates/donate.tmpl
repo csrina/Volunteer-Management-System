@@ -3,8 +3,40 @@
 {{template "header" .}}
 
 <main>
-    <h2>Donate hours</h2>
-    <p> not yet implemented</p>
+    <div class="container-fluid">
+        <div class="row text-center">
+            <div class="col-lg-6 text-center">
+                <div class="card text-center mb-3">
+                    <h2 class="card-header">Hours Available</h2>
+                    <div class="card-body">
+                        <label id="hoursAvail-text" class="text-info"></label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="card text-center mb-3">
+                <div id="doneeSelectFG" class="form-group">
+                    <label for="DoneeSelect">Choose Donee</label>
+                    <select class="form-control" id="DoneeSelect">
+                    </select>
+                </div>
+                <div id="amountFG" class="form-group">
+                    <br>
+                    <label class="form-control-label" for="AmountField">Enter amount</label>
+                    <input type="text" value="0.00" class="form-control" id="AmountField">
+                    <div class="input-group-append">
+                        <span class="input-group-text">Hours</span>
+                    </div>
+                    <div id="AmountValidFB" style="visibility: hidden;" class="valid-feedback"></div>
+                    <div id="AmountInvalidFB" style="visibility: hidden;" class="invalid-feedback"></div>
+                </div>
+                <br>
+                <button id="submit" type="button" class="btn btn-primary" onclick="sendDonation()">Send Donation</button>
+            </div>
+        </div>
+    </div>
+
 </main>
     
 {{template "footer"}}

@@ -1,0 +1,49 @@
+{{define "teacher"}}
+
+{{template "header" .}}
+
+<main>
+    <!-- Event Details Modal -->
+    <div class="modal fade" id="eventDetailsModal" tabindex="-1" role="dialog" aria-labelledby="eventDetailsModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="eventModalTitle"></h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <h5 id="modalWhereLabel" class="text-muted">Where:</h5>
+                    <h5 id="modalEventRoom"></h5>
+                    <h5 id="modalTimeLabel" class="text-muted">When:</h5>
+                    <h5 id="modalEventTime"></h5>
+                    <h5 id="modalValueLabel" class="text-muted">Value:</h5>
+                    <h5 id="modalDescLabel" class="text-muted">Description:</h5><br>
+                    <p id="eventNote"></p><br>
+                    <h5 class="text-left text-muted">Attending:</h5><br>
+                    <div class="text-center" id="eventBookings"></div>
+                </div>
+                <div class="modal-footer">
+                    <p aria-hidden="true" style="visibility: hidden" id="modalEventData"></p>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+  <div class="container-fluid">
+      <div class="col-xs-2 float-left" id="filterList">
+          <div class="btn-group text-center" data-toggle="buttons" id="filterButtons"></div>
+      </div>
+      <div class="col-lg-8">
+          <div class="card text-center" id="wdgt-container">
+              <h2>Upcoming Schedule</h2>
+              <div id="calendar"></div>
+          </div>
+      </div>
+  </div>
+</main>
+    
+{{template "footer"}}
+    
+{{end}}
