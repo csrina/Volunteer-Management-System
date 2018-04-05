@@ -10,8 +10,7 @@ import (
 	"database/sql"
 
 	"github.com/jinzhu/now"
-	colorful "github.com/lucasb-eyer/go-colorful"
-	"strconv"
+	"github.com/lucasb-eyer/go-colorful"
 )
 
 /*
@@ -43,18 +42,27 @@ type familyMonth struct {
 
 // Data for a family's dashboard or for other repurposing
 type FamilyData struct {
-	family *Family
+	family       *Family
 	Start        time.Time `json:"startMoment"`
 	End          time.Time `json:"endMoment"`
-	HoursGoal    float64   `json:"hoursGoal"`	// weekly goal
+	HoursGoal    float64   `json:"hoursGoal"`   // weekly goal
 	HoursBooked  float64   `json:"hoursBooked"` // hours to booked in
-	HoursDone    float64   `json:"hoursDone"` // actually completed hrs
-	NetDonations float64   `json"donatedHours"` // net gain/loss for week
+	HoursDone    float64   `json:"hoursDone"`   // actually completed hrs
 	// Where historical keys are the parent UID
-	History       map[int]*ChartDataSet `json:"history"`       // each dataset is a facilitator in the family
+	History       map[int]*ChartDataSet `json:"history"`       // datasets are facillitators + a donation dataset
 	StartOfPeriod time.Time             `json:"startOfPeriod"` // start date for chart
 	EndOfPeriod   time.Time             `json:"endOfPeriod"`   // end date for chart
 }
+
+func (fd *FamilyData) GetDonee() Donee { return fd.family }
+
+func (fd *FamilyData) GetHours() (hours float64) { return fd.HoursDone }
+
+func (fd *FamilyData) SetHours(hours float64) { fd.HoursDone = hours }
+
+func (fd *FamilyData) GetStartDate() time.Time { return fd.StartOfPeriod }
+
+func (fd *FamilyData) GetEndDate() time.Time { return fd.EndOfPeriod }
 
 func (fd *FamilyData) setHoursGoal(numKids int) {
 	fd.HoursGoal = getHourGoal(numKids)
@@ -80,9 +88,10 @@ func (fd *FamilyData) setHoursData(startOfWeek time.Time, today now.Now) error {
 			fd.HoursBooked += duration // Time is after today, but before week end --> booked hours
 		}
 	}
+	err = AdjustDailyHours(fd)
 	fd.HoursBooked = math.Trunc(fd.HoursBooked*100) / 100
-	fd.HoursDone = math.Trunc(fd.HoursDone*100)/100
-	return nil
+	fd.HoursDone = math.Trunc(fd.HoursDone*100) / 100
+	return err
 }
 
 // Add 0 values to correct charting behaviour inbetween gaps of data
@@ -121,6 +130,7 @@ func (fd *FamilyData) init(fam *Family, today time.Time) error {
 	for _, prnt := range fam.Parents {
 		fd.History[prnt.UserID] = new(ChartDataSet) // create datasets for each parent
 	}
+
 	/* Parse start/end for history retrieval */
 	realToday := now.New(today)         // need this incase we alter today value to account for weekend viewing
 	if today.Weekday() == time.Sunday { // weekend days must be shifted to monday
@@ -203,11 +213,7 @@ func (donor *Family) GiveCharity(donee *Family, amount float64) (*Donation, erro
 	d.Sender = donor
 	d.Recipient = donee
 	d.Amount = amount
-
-	q := `INSERT INTO donation (donor_id, donee_id, amount)
-				VALUES ($1, $2, $3) RETURNING donation_id, date_sent`
-
-	err := db.QueryRow(q, strconv.Itoa(donor.ID), strconv.Itoa(donee.ID), amount).Scan(&d.ID, &d.Date)
+	err := d.save()
 	return d, err
 }
 
@@ -368,9 +374,9 @@ func userNameTeachesRooms(userName string) (roomNames []string, err error) {
 	err = db.Select(&roomNames, q, userName)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			err = &ClientSafeError{Msg: "Teacher not assigned a room", Code: http.StatusBadRequest};
+			err = &ClientSafeError{Msg: "Teacher not assigned a room", Code: http.StatusBadRequest}
 		}
-		logger.Println(err);
+		logger.Println(err)
 	}
 	return
 }

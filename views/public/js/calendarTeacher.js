@@ -134,12 +134,8 @@ function editEventDetails(btn) {
         }
         event.note = temp;
     } else if (field == "modifier") {
-        temp = parseFloat(prompt("Enter the new multiplier value: "));
-        if (isNaN(temp)) {
-            makeToast("error", "Modifier must be a number!");
-            return
-        }
-        event.modifier = temp;
+        makeToast("warning", "Only admins may modify this, sorry.");
+        return;
     } else {
         makeToast("error", "An unpredicted error occurred");
         return
