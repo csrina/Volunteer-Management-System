@@ -21,15 +21,16 @@ function requestBooking() {
         contentType:'json',
         data: booking_json,
         dataType:'json',
-        success: (data =>  bookingRequestSuccess(data)),
-        error: (xhr => makeToast("error", "Booking request failed: " + xhr.responseText))
+        success: (data => { bookingRequestSuccess(data, event.id); }),
+        error: (xhr => { makeToast("error", "Booking request failed: " + xhr.responseText); })
     });
 }
 
-function bookingRequestSuccess(data) {  // We expect the server to return json data with a msg field
+function bookingRequestSuccess(data, id) {  // We expect the server to return json data with a msg field
     // noinspection Annotator
-    showToaster("success", data.msg);
-    event = $('#calendar').fullCalendar('clientEvents', event.id)[0];
+    makeToast("success", data.msg);
+    let event = $('#calendar').fullCalendar('clientEvents', id)[0];
+    console.log(event);
     $('#modalConfirm').removeClass((event.booked) ? "btn-warning" : "btn-success");
     event.booked = !event.booked;
     if (event.booked === true) {
@@ -75,11 +76,13 @@ $(document).ready(function() {
             fctime.css("font-size", "1em");
             fctitle.prepend("<br/>");
             fctitle.css("font-size", "1.0em");
+
             if (event.booked) {
                 fctime.append('<br><i class="fas fa-thumbtack"></i><br>');
             } else {
                 fctime.append('<br>' + event.bookingCount + "/3");
             }
+
             return renderFiltered(event);
         },
         loading: ((isLoading, view) => {

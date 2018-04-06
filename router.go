@@ -134,7 +134,7 @@ func apiRoutes(r *mux.Router) {
 
 	s.HandleFunc("/dashboard", getDashData).Methods("GET")
 	s.HandleFunc("/donate", getDonateData).Methods("GET")
-
+	s.HandleFunc("/donate", donatePostHandler).Methods("POST")
 
 	s.HandleFunc("/passwords", checkPassword).Methods("POST")
 	s.HandleFunc("/passwords", updatePassword).Methods("PUT")

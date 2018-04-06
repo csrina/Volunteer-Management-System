@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"math"
 	"net/http"
 	"sort"
@@ -43,29 +42,64 @@ type familyMonth struct {
 // Data for a family's dashboard or for other repurposing
 type FamilyData struct {
 	family       *Family
-	Start        time.Time `json:"startMoment"`
-	End          time.Time `json:"endMoment"`
-	HoursGoal    float64   `json:"hoursGoal"`   // weekly goal
-	HoursBooked  float64   `json:"hoursBooked"` // hours to booked in
-	HoursDone    float64   `json:"hoursDone"`   // actually completed hrs
+	HoursGoal    float64   				`json:"hoursGoal"`   // weekly goal
+	HoursBooked  float64   				`json:"hoursBooked"` // hours to booked in
+	HoursDone    float64   				`json:"hoursDone"`   // actually completed hrs
 	// Where historical keys are the parent UID
 	History       map[int]*ChartDataSet `json:"history"`       // datasets are facillitators + a donation dataset
 	StartOfPeriod time.Time             `json:"startOfPeriod"` // start date for chart
 	EndOfPeriod   time.Time             `json:"endOfPeriod"`   // end date for chart
+	StartOfWeek   time.Time 			`json:"startMoment"`				  //  start of current week (potentially adjusted to next monday if current time is a weekend)
 }
 
 func (fd *FamilyData) GetDonee() Donee { return fd.family }
-
 func (fd *FamilyData) GetHours() (hours float64) { return fd.HoursDone }
-
-func (fd *FamilyData) SetHours(hours float64) { fd.HoursDone = hours }
-
 func (fd *FamilyData) GetStartDate() time.Time { return fd.StartOfPeriod }
-
+func (fd *FamilyData) GetStartWeek() time.Time { return fd.StartOfWeek }
 func (fd *FamilyData) GetEndDate() time.Time { return fd.EndOfPeriod }
+func (fd *FamilyData) SetHours(hours float64) { fd.HoursDone = hours }
 
 func (fd *FamilyData) setHoursGoal(numKids int) {
 	fd.HoursGoal = getHourGoal(numKids)
+}
+
+/*
+ * Get the hours which can be donated (i.e. hoursDone - hoursGoal), adjusting for weekends.
+ * Unlike the dashboard default (if weekend monday is next monday); Donations defaults to last week,
+ * until monday has arrived. Completed hours differs from Hours Done only if the current time (@ instance access)
+ * falls on a weekend.
+ */
+func (fd *FamilyData) GetAvailableHours() (hours float64, err error) {
+	/* Get all relevant bookings for the last week (or this week if !weekend) */
+	today := time.Now()
+	sow := time.Now()
+	if fd.StartOfWeek.Before(today) {
+		return math.Trunc((fd.HoursDone-fd.HoursGoal) * 1000) / 1000, nil // use this weeks data
+	}
+	// today is before the listed monday --> it is therefore a weekend
+	now.Monday() // Make monday beginning of the week (now defaults to sunday for each closure)
+	sow = now.New(today).BeginningOfWeek() // get last monday
+
+	/* Get hours from bookings completed */
+	bookings, err := fd.family.getFamilyBookings(sow, today) // get the bookings for the relevant week
+	if err != nil {
+		logger.Println("Error getting booking data (getavailablehours): ", err)
+		return -1, err
+	}
+	for _, b := range bookings {
+		hours += (b.End.Sub(b.Start).Hours() * float64(b.Modifier))
+	}
+
+	/* Account for donations */
+	donations, err := fd.family.getShortDonations(sow, today)
+	logger.Println(donations)
+	if err != nil {
+		return math.Trunc((hours - fd.HoursGoal) * 1000) / 1000, nil
+	}
+	hours += donations.netAmount(fd.family.ID)
+	logger.Println(hours)
+
+	return math.Trunc((hours - fd.HoursGoal) * 1000) / 1000, nil
 }
 
 func (fd *FamilyData) setHoursData(startOfWeek time.Time, today now.Now) error {
@@ -88,9 +122,16 @@ func (fd *FamilyData) setHoursData(startOfWeek time.Time, today now.Now) error {
 			fd.HoursBooked += duration // Time is after today, but before week end --> booked hours
 		}
 	}
-	err = AdjustDailyHours(fd)
-	fd.HoursBooked = math.Trunc(fd.HoursBooked*100) / 100
-	fd.HoursDone = math.Trunc(fd.HoursDone*100) / 100
+
+	donations, err := fd.family.getShortDonations(startOfWeek, fd.EndOfPeriod)
+	if err != nil {
+		logger.Println(err)
+		return err
+	}
+
+	fd.HoursDone += donations.netAmount(fd.family.ID)
+	fd.HoursBooked = math.Trunc(fd.HoursBooked*1000) / 1000
+	fd.HoursDone = math.Trunc(fd.HoursDone*1000) / 1000
 	return err
 }
 
@@ -138,13 +179,14 @@ func (fd *FamilyData) init(fam *Family, today time.Time) error {
 	} else if today.Weekday() == time.Saturday {
 		today = today.AddDate(0, 0, 2) // move to monday
 	}
+
 	now.Monday()                                           // first day of week
 	nowToday := now.New(today)                             // We use this to determine start of week, so it should be the adjusted today
-	startOfWeek := nowToday.BeginningOfWeek()              // if weekend, this is next week's monday
+	fd.StartOfWeek = nowToday.BeginningOfWeek()             // if weekend, this is next week's monday
 	fd.EndOfPeriod = nowToday.EndOfWeek()                  // set end of period
-	fd.StartOfPeriod = today.AddDate(0, -PERIOD_LENGTH, 0) // Go back 4 months --> set startperiod
+	fd.StartOfPeriod = today.AddDate(0, -(PERIOD_LENGTH), 0) // Go back 4 months --> set startperiod
 	// create the history
-	err := fd.setHoursData(startOfWeek, *realToday)
+	err := fd.setHoursData(fd.StartOfWeek, *realToday)
 	if err != nil {
 		return err
 	}
@@ -181,7 +223,7 @@ func (f *Family) getFamilyBookings(start time.Time, end time.Time) ([]Booking, e
 }
 
 // Get donations between start and end two-tailed inclusive (where the family may be either the donor, or donee
-func (f *Family) getDonations(start, end time.Time) (gifts Donations, err error) {
+func (f *Family) getShortDonations(start, end time.Time) (gifts ShortDonations, err error) {
 	q := `SELECT * FROM donation 
 			WHERE (donation.donor_id = $1 OR donation.donee_id = $1)
 			AND (
@@ -195,10 +237,10 @@ func (f *Family) getDonations(start, end time.Time) (gifts Donations, err error)
 		if err == sql.ErrNoRows {
 			return gifts, nil
 		} else {
-			return // []nil, error
+			return nil, err
 		}
 	}
-	return // gift, err
+	return gifts, nil
 }
 
 func (donor *Family) GetID() int {
@@ -226,7 +268,7 @@ func getFamilyViaRequest(r *http.Request) (*Family, error) {
 	username, ok := sesh.Values["username"].(string)
 	if !ok {
 		logger.Println("Invalid user token: ", username)
-		return nil, errors.New("invalid token")
+		return nil, &ClientSafeError{Msg:"invalid token"}
 	}
 
 	q := `SELECT family_id, family_name, children 
@@ -238,7 +280,7 @@ func getFamilyViaRequest(r *http.Request) (*Family, error) {
 	err := db.QueryRow(q, username).Scan(&fdata.ID, &fdata.Name, &fdata.Children)
 	if err != nil {
 		logger.Println(err)
-		return nil, errors.New("could not retrieve family information")
+		return nil, &ClientSafeError{Msg:"could not retrieve family information"}
 	}
 
 	var uids []int
@@ -259,6 +301,16 @@ func getFamilyViaRequest(r *http.Request) (*Family, error) {
 		fdata.Parents = append(fdata.Parents, u)
 	}
 	return fdata, nil
+}
+
+func GetFamilyByID(ID int) (f *Family, err error) {
+	f = new(Family)
+	q := `SELECT * FROM family WHERE family_id = $1`
+	err = db.QueryRow(q, ID).Scan(&f.ID, &f.Name, &f.Children)
+	if err != nil {
+		logger.Println(err)
+	}
+	return f, err
 }
 
 /*

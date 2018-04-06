@@ -341,6 +341,7 @@ function submitEvent() {
     });
     let event = {}
     event.title = $("#bTitle").val();
+    event.title = ((event.title === "" || !event.title) ? "Facilitation" : event.title);
     event.start = moment(document.querySelector("#start").value).format();
     event.end = moment(document.querySelector("#end").value).format();
     event.roomId = parseInt(document.querySelector("#room").value);
@@ -359,7 +360,9 @@ function submitEvent() {
             event.id = data.id;
             event.color = data.color;
             event.bookingCount = 0;
+            event.title = ((data.title) ? data.title : "Facilitation");
             $('#calendar').fullCalendar('renderEvent', event); // render event on calendar
+            makeToast("success", "Created new event, ID: " + event.id + "!");
         },
         error: function (xhr, ajaxOptions, thrownError) {
             makeToast("error", "Request failed: " + xhr.responseText);

@@ -18,13 +18,14 @@
             <div class="card text-center mb-3">
                 <div id="doneeSelectFG" class="form-group">
                     <label for="DoneeSelect">Choose Donee</label>
-                    <select class="form-control" id="DoneeSelect">
+                    <select class="form-control" name="DoneeSelect" id="DoneeSelect" required>
+                        <option value="" selected>Choose A Donee Family</option>
                     </select>
                 </div>
                 <div id="amountFG" class="form-group">
                     <br>
                     <label class="form-control-label" for="AmountField">Enter amount</label>
-                    <input type="text" value="0.00" class="form-control" id="AmountField">
+                    <input type="number" placeholder="0" step="0.1" min="0" class="form-control" id="AmountField" required>
                     <div class="input-group-append">
                         <span class="input-group-text">Hours</span>
                     </div>

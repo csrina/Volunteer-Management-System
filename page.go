@@ -188,6 +188,7 @@ func loadDonate(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	pg.Toaster = true
 	s := tmpls.Lookup("donate.tmpl")
 	s.ExecuteTemplate(w, "donate", pg) // include page struct
 }
