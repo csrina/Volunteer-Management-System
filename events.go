@@ -94,6 +94,41 @@ func teacherPostHandler(w http.ResponseWriter, r *http.Request, dest string) {
 	return
 }
 
+
+// For handling template build/destroy/whateverelse POSTS
+func schedulePostHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		return
+	}
+	role, err := getRoleNum(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if role != ADMIN {
+		http.Error(w, "You must be an admin to do this action (your auth cookie may have expired)", http.StatusForbidden)
+		return
+	}
+
+	var response *Response
+	dest := mux.Vars(r)["target"] // Determine POST destination from URL
+	switch dest {
+	case "build":
+		// THIS CASE IS WHAT NEEDS THE BUILD ROUTE --- DUH
+		// Client sends json request, encoded data is an array of events from the templating/builder
+		// events have additional nested object: the interval specification (weekly [every n weeks] or monthly [every n months, on the [days (e.g. 2,3 -> second and third of month])
+		// json object also has a 'period' field -> { "start", "end" } where both are moment.js objects ---- start inclusive, end exclusive
+		http.Error(w, "Not implemented yet", http.StatusBadGateway)
+		return
+	case "destroy":
+		// If theres time, maybe a takedown mode I dunno
+		http.Error(w, "Not implemented yet", http.StatusBadGateway)
+		return
+	default:
+		http.Error(w, "Invalid destination specified", http.StatusBadGateway)
+	}
+}
+
 /*
  * Handles posts which are not bookings (ergo, must be admin.)
  */

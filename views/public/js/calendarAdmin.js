@@ -258,7 +258,7 @@ $(document).ready(function() {
             center: 'prev, title, next',
             right: 'agendaWeek, month'
         },
-        agendaEventMinHeight: 100,
+        agendaEventMinHeight: 90,
         defaultView: "agendaWeek",
         contentHeight: 'auto',
         events: "/api/v1/events/scheduler",    // link to events (bookings + blocks feed)
@@ -337,7 +337,7 @@ function submitEvent() {
             makeToast("error", 'Could not create event.');
             return;
         }
-        //loadAddEvent();
+        //loadChangeTemplateEvent();
     });
     let event = {}
     event.title = $("#bTitle").val();
