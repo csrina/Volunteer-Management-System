@@ -1,16 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"math"
 	"net/http"
 	"sort"
-	"strconv"
 	"time"
 
 	"database/sql"
 
-	"github.com/gorilla/mux"
 	"github.com/jinzhu/now"
 	"github.com/lucasb-eyer/go-colorful"
 )
@@ -434,60 +431,4 @@ func userNameTeachesRooms(userName string) (roomNames []string, err error) {
 		logger.Println(err)
 	}
 	return
-}
-
-func deleteUser(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-
-	idVal, err := strconv.Atoi(vars["user_id"])
-	fmt.Println(idVal)
-	if err != nil {
-		http.Error(w, "Bad UserID", http.StatusBadRequest)
-		logger.Println(err)
-		return
-	}
-
-	tx, err := db.Begin()
-	if err != nil {
-		http.Error(w, "Error connecting to Database", http.StatusInternalServerError)
-		logger.Println(err)
-		return
-	}
-
-	q := `DELETE FROM donation WHERE donor_id = ($1)
-			OR donee_id = ($1)`
-
-	_, err = tx.Exec(q, idVal)
-	if err != nil {
-		http.Error(w, "Error deleting user (donations)", http.StatusInternalServerError)
-		logger.Println(err)
-		return
-	}
-
-	q = `DELETE FROM booking WHERE user_id = ($1)`
-
-	_, err = tx.Exec(q, idVal)
-	if err != nil {
-		http.Error(w, "Error deleting user (bookings)", http.StatusInternalServerError)
-		logger.Println(err)
-		return
-	}
-
-	q = `DELETE FROM users WHERE user_id = ($1)`
-
-	_, err = tx.Exec(q, idVal)
-	if err != nil {
-		http.Error(w, "Error deleting user (users)", http.StatusInternalServerError)
-		logger.Println(err)
-		return
-	}
-
-	tx.Commit()
-
-	w.WriteHeader(http.StatusOK)
-
-}
-
-func deleteFamily(w http.ResponseWriter, r *http.Request) {
-
 }

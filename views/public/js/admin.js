@@ -185,8 +185,10 @@ function loadEditFamily(e) {
 
         document.querySelector("#displayData").innerHTML = func(data);
         document.querySelector("#cancel").addEventListener('click', familyList);
-        document.querySelector("#submit").addEventListener('click', submitEditFamily);
-        
+		document.querySelector("#submit").addEventListener('click', submitEditFamily);
+		document.querySelector("#delete").addEventListener('click',
+		deleteFamily);
+
         $('#parent-select').multiSelect({
             selectableHeader: "<div class='parent-select'>Available Facilitators</div>",
             selectionHeader: "<div class='parent-select'>Family Members</div>"
@@ -202,6 +204,37 @@ function loadEditFamily(e) {
             });
         });
     });
+}
+
+function deleteFamilyWarning(e) {
+	let surname = document.querySelector("#famName").value;
+
+	let check = prompt(`WARNING!\n\nARE YOU SURE YOU WANT TO DELETE FAMILY: ${surname}?\n\nTHIS WILL DELETE ALL RECORDS ASSOSCIATED WITH THIS FAMILY, INCLUDING ANY PREVIOUS BOOKING RECORDS\n\nTo delete please type the family name below.`, "");
+	
+	return (check === surname);
+
+}
+
+function deleteFamily(e) {
+	let famID = document.querySelector("#famId").value;
+	let surname = document.querySelector("#famName").value;
+	if (!deleteFamilyWarning()) { 
+		makeToast("error", "Names did not match");
+		return;
+	}
+	$.ajax({
+		type: 'DELETE',
+		url: `/api/v1/admin/families/${famID}`,
+		dataType: 'text',
+		contentType: 'text',
+		success: function(data) {
+			makeToast("success","Family succesfully deleted.");
+			userList();
+		},
+		error: function(data) {
+			makeToast("error", data.responseText)
+		}
+	});
 }
 
 //Not a big fan of the way this "removes" family members
@@ -292,10 +325,6 @@ function submitNewFamily() {
             alert(`ERROR: Could not create family (${xhr.status})`);
         }
     });
-}
-
-function familyInfo() {
-
 }
 
 function submitUserEdit() {  
