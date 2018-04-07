@@ -103,10 +103,44 @@ function loadEditUser(e) {
         let func = doT.template(tmpl);
         document.querySelector("#displayData").innerHTML = func(userInfo);
         document.querySelector("#cancel").addEventListener('click', userList);
-        document.querySelector("#submit").addEventListener('click', submitUserEdit);
+		document.querySelector("#submit").addEventListener('click', submitUserEdit);
+		document.querySelector("#delete").addEventListener('click',
+		deleteUser);
     });
     xhttp.open("GET", `/api/v1/admin/users?u=${userID}`);
     xhttp.send();
+}
+
+function deleteWarning(e) {
+	let username = document.querySelector("#uName").value;
+
+	let check = prompt(`WARNING!\n\nARE YOU SURE YOU WANT TO DELETE USER: ${username}?\n\nTHIS WILL DELETE ALL RECORDS ASSOSCIATED WITH THIS USER, INCLUDING DONATIONS AND ANY PREVIOUS BOOKING RECORDS\n\nTo delete please type the username below.`, "")
+	
+	return (check === username)
+
+}
+
+function deleteUser(e) {
+	
+	let userID = document.querySelector("#IDNum").value;
+	let username = document.querySelector("#uName").value;
+	if (!deleteWarning()) { 
+		makeToast("error", "Names did not match");
+		return;
+	}
+	$.ajax({
+		type: 'DELETE',
+		url: `/api/v1/admin/users/${userID}`,
+		dataType: 'text',
+		contentType: 'text',
+		success: function(data) {
+			makeToast("success","User succesfully deleted.");
+			userList();
+		},
+		error: function(data) {
+			makeToast("error", "Internal server error, could not delete user.")
+		}
+	});
 }
 
 function loadEditPassword(e) {

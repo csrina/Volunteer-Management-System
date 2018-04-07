@@ -480,6 +480,7 @@ func loadAdminUsers(w http.ResponseWriter, r *http.Request) {
 	s := tmpls.Lookup("adminusers.tmpl")
 	pg.DotJS = true
 	pg.MultiSelect = true
+	pg.Toaster = true
 	s.ExecuteTemplate(w, "adminusers", pg)
 }
 

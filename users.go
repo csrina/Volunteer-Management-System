@@ -1,13 +1,16 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"net/http"
 	"sort"
+	"strconv"
 	"time"
 
 	"database/sql"
 
+	"github.com/gorilla/mux"
 	"github.com/jinzhu/now"
 	"github.com/lucasb-eyer/go-colorful"
 )
@@ -41,23 +44,23 @@ type familyMonth struct {
 
 // Data for a family's dashboard or for other repurposing
 type FamilyData struct {
-	family       *Family
-	HoursGoal    float64   				`json:"hoursGoal"`   // weekly goal
-	HoursBooked  float64   				`json:"hoursBooked"` // hours to booked in
-	HoursDone    float64   				`json:"hoursDone"`   // actually completed hrs
+	family      *Family
+	HoursGoal   float64 `json:"hoursGoal"`   // weekly goal
+	HoursBooked float64 `json:"hoursBooked"` // hours to booked in
+	HoursDone   float64 `json:"hoursDone"`   // actually completed hrs
 	// Where historical keys are the parent UID
 	History       map[int]*ChartDataSet `json:"history"`       // datasets are facillitators + a donation dataset
 	StartOfPeriod time.Time             `json:"startOfPeriod"` // start date for chart
 	EndOfPeriod   time.Time             `json:"endOfPeriod"`   // end date for chart
-	StartOfWeek   time.Time 			`json:"startMoment"`				  //  start of current week (potentially adjusted to next monday if current time is a weekend)
+	StartOfWeek   time.Time             `json:"startMoment"`   //  start of current week (potentially adjusted to next monday if current time is a weekend)
 }
 
-func (fd *FamilyData) GetDonee() Donee { return fd.family }
+func (fd *FamilyData) GetDonee() Donee           { return fd.family }
 func (fd *FamilyData) GetHours() (hours float64) { return fd.HoursDone }
-func (fd *FamilyData) GetStartDate() time.Time { return fd.StartOfPeriod }
-func (fd *FamilyData) GetStartWeek() time.Time { return fd.StartOfWeek }
-func (fd *FamilyData) GetEndDate() time.Time { return fd.EndOfPeriod }
-func (fd *FamilyData) SetHours(hours float64) { fd.HoursDone = hours }
+func (fd *FamilyData) GetStartDate() time.Time   { return fd.StartOfPeriod }
+func (fd *FamilyData) GetStartWeek() time.Time   { return fd.StartOfWeek }
+func (fd *FamilyData) GetEndDate() time.Time     { return fd.EndOfPeriod }
+func (fd *FamilyData) SetHours(hours float64)    { fd.HoursDone = hours }
 
 func (fd *FamilyData) setHoursGoal(numKids int) {
 	fd.HoursGoal = getHourGoal(numKids)
@@ -74,10 +77,10 @@ func (fd *FamilyData) GetAvailableHours() (hours float64, err error) {
 	today := time.Now()
 	sow := time.Now()
 	if fd.StartOfWeek.Before(today) {
-		return math.Trunc((fd.HoursDone-fd.HoursGoal) * 1000) / 1000, nil // use this weeks data
+		return math.Trunc((fd.HoursDone-fd.HoursGoal)*1000) / 1000, nil // use this weeks data
 	}
 	// today is before the listed monday --> it is therefore a weekend
-	now.Monday() // Make monday beginning of the week (now defaults to sunday for each closure)
+	now.Monday()                           // Make monday beginning of the week (now defaults to sunday for each closure)
 	sow = now.New(today).BeginningOfWeek() // get last monday
 
 	/* Get hours from bookings completed */
@@ -94,12 +97,12 @@ func (fd *FamilyData) GetAvailableHours() (hours float64, err error) {
 	donations, err := fd.family.getShortDonations(sow, today)
 	logger.Println(donations)
 	if err != nil {
-		return math.Trunc((hours - fd.HoursGoal) * 1000) / 1000, nil
+		return math.Trunc((hours-fd.HoursGoal)*1000) / 1000, nil
 	}
 	hours += donations.netAmount(fd.family.ID)
 	logger.Println(hours)
 
-	return math.Trunc((hours - fd.HoursGoal) * 1000) / 1000, nil
+	return math.Trunc((hours-fd.HoursGoal)*1000) / 1000, nil
 }
 
 func (fd *FamilyData) setHoursData(startOfWeek time.Time, today now.Now) error {
@@ -180,10 +183,10 @@ func (fd *FamilyData) init(fam *Family, today time.Time) error {
 		today = today.AddDate(0, 0, 2) // move to monday
 	}
 
-	now.Monday()                                           // first day of week
-	nowToday := now.New(today)                             // We use this to determine start of week, so it should be the adjusted today
-	fd.StartOfWeek = nowToday.BeginningOfWeek()             // if weekend, this is next week's monday
-	fd.EndOfPeriod = nowToday.EndOfWeek()                  // set end of period
+	now.Monday()                                             // first day of week
+	nowToday := now.New(today)                               // We use this to determine start of week, so it should be the adjusted today
+	fd.StartOfWeek = nowToday.BeginningOfWeek()              // if weekend, this is next week's monday
+	fd.EndOfPeriod = nowToday.EndOfWeek()                    // set end of period
 	fd.StartOfPeriod = today.AddDate(0, -(PERIOD_LENGTH), 0) // Go back 4 months --> set startperiod
 	// create the history
 	err := fd.setHoursData(fd.StartOfWeek, *realToday)
@@ -268,7 +271,7 @@ func getFamilyViaRequest(r *http.Request) (*Family, error) {
 	username, ok := sesh.Values["username"].(string)
 	if !ok {
 		logger.Println("Invalid user token: ", username)
-		return nil, &ClientSafeError{Msg:"invalid token"}
+		return nil, &ClientSafeError{Msg: "invalid token"}
 	}
 
 	q := `SELECT family_id, family_name, children 
@@ -280,7 +283,7 @@ func getFamilyViaRequest(r *http.Request) (*Family, error) {
 	err := db.QueryRow(q, username).Scan(&fdata.ID, &fdata.Name, &fdata.Children)
 	if err != nil {
 		logger.Println(err)
-		return nil, &ClientSafeError{Msg:"could not retrieve family information"}
+		return nil, &ClientSafeError{Msg: "could not retrieve family information"}
 	}
 
 	var uids []int
@@ -431,4 +434,60 @@ func userNameTeachesRooms(userName string) (roomNames []string, err error) {
 		logger.Println(err)
 	}
 	return
+}
+
+func deleteUser(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	idVal, err := strconv.Atoi(vars["user_id"])
+	fmt.Println(idVal)
+	if err != nil {
+		http.Error(w, "Bad UserID", http.StatusBadRequest)
+		logger.Println(err)
+		return
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		http.Error(w, "Error connecting to Database", http.StatusInternalServerError)
+		logger.Println(err)
+		return
+	}
+
+	q := `DELETE FROM donation WHERE donor_id = ($1)
+			OR donee_id = ($1)`
+
+	_, err = tx.Exec(q, idVal)
+	if err != nil {
+		http.Error(w, "Error deleting user (donations)", http.StatusInternalServerError)
+		logger.Println(err)
+		return
+	}
+
+	q = `DELETE FROM booking WHERE user_id = ($1)`
+
+	_, err = tx.Exec(q, idVal)
+	if err != nil {
+		http.Error(w, "Error deleting user (bookings)", http.StatusInternalServerError)
+		logger.Println(err)
+		return
+	}
+
+	q = `DELETE FROM users WHERE user_id = ($1)`
+
+	_, err = tx.Exec(q, idVal)
+	if err != nil {
+		http.Error(w, "Error deleting user (users)", http.StatusInternalServerError)
+		logger.Println(err)
+		return
+	}
+
+	tx.Commit()
+
+	w.WriteHeader(http.StatusOK)
+
+}
+
+func deleteFamily(w http.ResponseWriter, r *http.Request) {
+
 }
