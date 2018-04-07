@@ -565,6 +565,7 @@ func loadAdminDash(w http.ResponseWriter, r *http.Request) {
 	}
 	s := tmpls.Lookup("admindashboard.tmpl")
 	pg.DotJS = true
+	pg.Toaster = true
 	s.ExecuteTemplate(w, "admindashboard", pg)
 }
 
@@ -615,6 +616,7 @@ func loadAdminReports(w http.ResponseWriter, r *http.Request) {
 	s := tmpls.Lookup("adminreports.tmpl")
 	pg.DotJS = true
 	pg.Chart = true
+	pg.Toaster = true
 	s.ExecuteTemplate(w, "adminreports", pg)
 }
 
@@ -630,5 +632,6 @@ func loadAdminClasses(w http.ResponseWriter, r *http.Request) {
 	}
 	s := tmpls.Lookup("adminclasses.tmpl")
 	pg.DotJS = true
+	pg.Toaster = true
 	s.ExecuteTemplate(w, "adminclasses", pg)
 }
