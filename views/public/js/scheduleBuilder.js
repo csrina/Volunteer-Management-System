@@ -178,7 +178,12 @@ $(document).ready(function() {
 
     // page is now ready, initialize the calendar...
     $('#calendar').fullCalendar({
-        weekends: false,
+        weekends: true,
+        header: {
+          left: "",
+          center: "",
+          right: ""
+        },
         views: {
             agendaFourDay: {
                 type: 'agenda',
@@ -220,6 +225,7 @@ $(document).ready(function() {
                 $('#calendar').fullCalendar('renderEvent', evCopy); // add copy of event (but on sunday again) to event array
             }
         },
+        hiddenDays: [6],
         businessHours: {
             // days of week. an array of zero-based day of week integers (0=Sunday)
             dow: [0, 1, 2, 3, 4, 5], // Monday - Thursday
