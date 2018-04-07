@@ -1,6 +1,12 @@
 // Callback function for drag/drops and resizes of existing events
 // Note: We dont want this to be populated if we aren't admin.
 // post-demo will refactor this out into templates populated differently based on the role of the user
+//
+// TODO:
+// Maybe make color change a dropdown select from combobox doohickey like familyname in donate / various things in admin stuff
+// include max bookings change button (and to  calendarAdmin.js)
+// include repeat interval editing abilities
+// Change how date is displayed to only show the day/time (exclude the month/year)
 function showModal(btn) {
     let event = $('#calendar').fullCalendar('clientEvents', btn.getAttribute("data-id"))[0]; // get event from returned array
     // Make open/closing button tags which allows us to insert  the current data as the btton text
@@ -52,40 +58,6 @@ function showModal(btn) {
     $('#eventDetailsModal').modal('show'); // spawn our modal
 }
 
-function storeChangesToEvent(event, delta, revertFunc, jsEvent, ui, view) {
-    // Extract block data required for updating on server
-    let temp = {
-        id: event.id,
-        start: event.start.format(),
-        end:   event.end.format(),
-        title: event.title,
-        note:  event.note,
-        modifier: event.modifier,
-    };
-
-    if (!temp.start.endsWith("Z")) { temp.start = temp.start + "Z"; }
-    if (!temp.end.endsWith("Z")) { temp.end = temp.end + "Z"; }
-
-    let event_json = JSON.stringify(temp);
-    // Make ajax post request with updated event data
-    $.ajax({
-        url: '/api/v1/events/update',
-        type: 'POST',
-        contentType:'json',
-        data: event_json,
-        dataType:'json',
-        success: function(data) {
-            makeToast("success", data.msg);
-        },
-        error: function(xhr, ajaxOptions, thrownError) {
-            if (!!revertFunc) {
-                revertFunc();
-            }
-            makeToast("error", "Request failed: " + xhr.responseText);
-        }
-    });
-}
-
 function updateEventRefreshModal(event, btn) {
     $('#calendar').fullCalendar('updateEvent', event);
     $('#eventDetailsModal').one('hidden.bs.modal', function(e) {
@@ -134,7 +106,6 @@ function editEventDetails(btn) {
         makeToast("error", "An unpredicted error occurred");
         return
     }
-    storeChangesToEvent(event);
     updateEventRefreshModal(event, btn)
 }
 
@@ -145,23 +116,6 @@ function removeEvent(btn) {
     if (!yn) {
         return false; // event should not be deleted
     }
-    let event_json = JSON.stringify({
-        id:    event.id,
-    });
-    // Make ajax post request with updated event data
-    $.ajax({
-        url: '/api/v1/events/delete',
-        type: 'POST',
-        contentType:'json',
-        data: event_json,
-        dataType:'json',
-        success: function(data) {
-            makeToast("success", data.msg);
-        },
-        error: function(xhr, ajaxOptions, thrownError) {
-            makeToast("error", "Request failed: " + xhr.responseText);
-        }
-    });
     // remove event from calendar
     $('#calendar').fullCalendar('removeEvents', event.id);
 }
@@ -242,6 +196,16 @@ $(document).ready(function() {
     loadChangeTemplateEvent();
 });
 
+
+/* Needs to have all possible fields (so does add event on normal page though too I suppose --> e.g. maxBookings)
+ * -- For this mode needs additional interval selection --- see blocks.go : IntervalData:
+ *      WEEKLY/MONTHLY ==> 0/1 ; Delta ; Minot(Sub) Delta
+ * ---  All events need this interval info
+ *
+ *
+ *  Sync to the event held in the sunday position (maybe give it ID = -1 or something for easy lookup?
+ *   -- onchange hhandler w/e
+ */
 function loadChangeTemplateEvent() {
     let xhttp = new XMLHttpRequest();
     xhttp.addEventListener("loadend", () => {
@@ -284,54 +248,6 @@ function submitTemplateForApplication() {
             makeToast("success", data.msg);
         },
         error: function(xhr, ajaxOptions, thrownError) {
-            makeToast("error", "Request failed: " + xhr.responseText);
-        }
-    });
-}
-
-function submitEvent() {
-    if (document.querySelector("#start").value == ""
-        || document.querySelector("#end").value == ""
-        || document.querySelector("#room").value == ""
-        || document.querySelector("#modifier").value == "") {
-        alert('Please fill out all options');
-        return;
-    }
-
-    let xhttp = new XMLHttpRequest();
-    xhttp.addEventListener("loadend", () => {
-        if (xhttp.status > 300) {
-            makeToast("error", 'Could not create event.');
-            return;
-        }
-        //loadChangeTemplateEvent();
-    });
-    let event = {}
-    event.title = $("#bTitle").val();
-    event.title = ((event.title === "" || !event.title) ? "Facilitation" : event.title);
-    event.start = moment(document.querySelector("#start").value).format();
-    event.end = moment(document.querySelector("#end").value).format();
-    event.roomId = parseInt(document.querySelector("#room").value);
-    event.room = $("#room option:selected").text();
-    event.modifier = parseInt(document.querySelector("#modifier").value);
-    event.note = document.querySelector("#note").value;
-    eventJson = JSON.stringify(event);
-    // Make ajax POST request with booking request or request bookign delete if already booked
-    $.ajax({
-        url: '/api/v1/events/add',
-        type: 'POST',
-        contentType: 'json',
-        data: eventJson,
-        dataType: 'json',
-        success: function (data) {
-            event.id = data.id;
-            event.color = data.color;
-            event.bookingCount = 0;
-            event.title = ((data.title) ? data.title : "Facilitation");
-            $('#calendar').fullCalendar('renderEvent', event); // render event on calendar
-            makeToast("success", "Created new event, ID: " + event.id + "!");
-        },
-        error: function (xhr, ajaxOptions, thrownError) {
             makeToast("error", "Request failed: " + xhr.responseText);
         }
     });
