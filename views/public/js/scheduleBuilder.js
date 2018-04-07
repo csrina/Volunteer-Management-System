@@ -253,13 +253,20 @@ function loadChangeTemplateEvent() {
 }
 
 function submitTemplateForApplication() {
-    // Get all events on calendar that aren't on sunday (template day) --> stringify for transmission to server
+
     let events = JSON.stringify(
         $("#calendar").fullCalendar(
             'clientEvents',
             (ev => { return ev.day() != 0; })
         )
     );
+
+    // Get all events on calendar that aren't on sunday (template day) --> stringify for transmission to server
+    let sendData =  {
+        periodStart:    $("#periodStart"),
+        periodEnd:      $("#periodEnd"),
+        events:         events,
+    };
 
     $.ajax({
         url: '/api/v1/schedule/build',

@@ -197,7 +197,8 @@ $(document).ready(function() {
         editable: false,                 // Need to use templating engine to change bool based on user's rolego ,
         eventRender: function(event, element, view) {
             element.find('.fc-time').css("font-size", "1em")
-                .append("   " + event.bookingCount + "/3<br>");
+                .append('    ' + event.bookingCount + "/" +
+                            ((!!event.capacity) ? event.capacity.toString() : "/3"));
             let fcTitle = element.find('.fc-title')
                                  .css("font-size", "1.2em")
                                  .append("<br>"); // gets the fcTitle jQuery elem

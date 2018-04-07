@@ -94,41 +94,6 @@ func teacherPostHandler(w http.ResponseWriter, r *http.Request, dest string) {
 	return
 }
 
-
-// For handling template build/destroy/whateverelse POSTS
-func schedulePostHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		return
-	}
-	role, err := getRoleNum(r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	if role != ADMIN {
-		http.Error(w, "You must be an admin to do this action (your auth cookie may have expired)", http.StatusForbidden)
-		return
-	}
-
-	var response *Response
-	dest := mux.Vars(r)["target"] // Determine POST destination from URL
-	switch dest {
-	case "build":
-		// THIS CASE IS WHAT NEEDS THE BUILD ROUTE --- DUH
-		// Client sends json request, encoded data is an array of events from the templating/builder
-		// events have additional nested object: the interval specification (weekly [every n weeks] or monthly [every n months, on the [days (e.g. 2,3 -> second and third of month])
-		// json object also has a 'period' field -> { "start", "end" } where both are moment.js objects ---- start inclusive, end exclusive
-		http.Error(w, "Not implemented yet", http.StatusBadGateway)
-		return
-	case "destroy":
-		// If theres time, maybe a takedown mode I dunno
-		http.Error(w, "Not implemented yet", http.StatusBadGateway)
-		return
-	default:
-		http.Error(w, "Invalid destination specified", http.StatusBadGateway)
-	}
-}
-
 /*
  * Handles posts which are not bookings (ergo, must be admin.)
  */
@@ -186,6 +151,7 @@ type Event struct {
 	Room   string    `db:"room_name" json:"room"` // fullCalendar will make blocks colour of room
 	Colour string    `json:"color"`               // color code for event rendering (corresponds to the room name)
 	// booking ids for lookup
+	Capacity     int         `json:"capacity"`
 	BookingCount int         `json:"bookingCount"`
 	Booked       bool        `json:"booked"`
 	Bookings     []UserShort `json:"bookings"` // we store their actual names in the username field
@@ -237,6 +203,7 @@ func (e *Event) update() (*Response, error) {
 	tb.Note = e.Note
 	tb.Title = e.Title
 	tb.Modifier = e.Modifier
+	tb.Capacity = e.Capacity
 
 	err = tb.update()
 	if err != nil {
@@ -284,6 +251,7 @@ func (e *Event) getTimeBlock() *TimeBlock {
 		e.Title = "Facilitation"
 	}
 	tb.Title = e.Title
+	tb.Capacity = e.Capacity
 
 	return tb
 }
@@ -393,6 +361,7 @@ func NewEvent(b *TimeBlock) *Event {
 		Note:     b.Note,
 		Title:    b.Title,
 		Modifier: b.Modifier,
+		Capacity: b.Capacity,
 	}
 	err := e.initBookings()
 	if err != nil {
@@ -496,3 +465,4 @@ func (e *Event) updateColourCode() {
 		e.Colour = strings.Split(e.Room, " ")[0]; // take only first string to avoid breaking the world
 	}
 }
+
