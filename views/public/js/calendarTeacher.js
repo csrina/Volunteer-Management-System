@@ -198,7 +198,7 @@ $(document).ready(function() {
         eventRender: function(event, element, view) {
             element.find('.fc-time').css("font-size", "1em")
                 .append('    ' + event.bookingCount + "/" +
-                            ((!!event.capacity) ? event.capacity.toString() : "/3"));
+                            ((!!event.capacity) ? event.capacity.toString() : "3"));
             let fcTitle = element.find('.fc-title')
                                  .css("font-size", "1.2em")
                                  .append("<br>"); // gets the fcTitle jQuery elem

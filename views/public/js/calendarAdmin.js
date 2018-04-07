@@ -268,7 +268,7 @@ $(document).ready(function() {
         eventRender: function(event, element, view) {
             element.find('.fc-time').css("font-size", "1em")
                     .append('     ' + event.bookingCount + "/" +
-                                 ((!!event.capacity) ? event.capacity.toString() : "/3"));
+                                 ((!!event.capacity) ? event.capacity.toString() : "3"));
             element.find('.fc-title').css("font-size", "1.2em").append("<br>")
                     .append("<button type='button' class='btn btn-outline-primary border-0 btn-sm' data-id='" + event.id + "' onclick='showModal(this)'><i class='far fa-edit fa-lg'></i></button>    ")
                     .append("<br><button type='button' class='btn btn-outline-primary border-0 btn-sm' data-id='" + event.id + "' onclick='removeEvent(this)'><i class='fas fa-times-circle fa-lg'></i></button>    ");

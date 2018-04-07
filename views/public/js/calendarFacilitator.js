@@ -81,7 +81,7 @@ $(document).ready(function() {
                 fctime.append('<br><i class="fas fa-thumbtack"></i><br>');
             } else {
                 fctime.append('<br>' + event.bookingCount + "/" +
-                    ((!!event.capacity) ? event.capacity.toString() : "/3"));
+                    ((!!event.capacity) ? event.capacity.toString() : "3"));
             }
 
             return renderFiltered(event);

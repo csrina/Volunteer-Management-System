@@ -34,7 +34,7 @@
             <script type="text/javascript" src='/views/fc/fullcalendar.js'></script>
             <!-- Shared javascript for all roles -->
             <script type="text/javascript" src='/views/public/js/calendar.js'></script>
-           {{if ne .PageName "dashboard"}}
+           {{if and (ne .PageName "builder") (ne .PageName "dashboard")}}
                 <!-- Role specific calendar js-->
                 <script type="text/javascript" src='/views/public/js/calendar {{- .Role -}} .js'><%= text/javascript %></script>
            {{end}}
@@ -67,6 +67,8 @@
             <script type="text/javascript" src="/views/public/js/change_pwd.js"></script>
         {{else if eq .PageName "donate"}}
             <script type="text/javascript" src="/views/public/js/donate.js"></script>
+        {{else if eq .PageName "builder"}}
+            <script type="text/javascript" src="/views/public/js/scheduleBuilder.js"></script>
         {{end}}
 
         <script src="/views/public/js/login.js" type="text/javascript"></script>
