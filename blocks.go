@@ -177,15 +177,16 @@ type BuilderEvent struct {
 }
 
 // Advance by major delta (e.g. next month)
-func (be *BuilderEvent) Increment() (be *BuilderEvent) {
+func (be *BuilderEvent) Increment() (*BuilderEvent) {
 	switch be.Interval.Repeats {
 	case WEEKLY:
 		be.Start = be.Start.AddDate(0, 0, 7 * be.Interval.Delta)
 		be.End = be.End.AddDate(0, 0, 7 * be.Interval.Delta)
 	case MONTHLY:
-		be.Start = be.Start.Add(0, be.IntervalDelta, 0)
-		be.End = be.End.Add(0, be.IntervalDelta, 0)
+		be.Start = be.Start.AddDate(0, be.Interval.Delta, 0)
+		be.End = be.End.AddDate(0, be.Interval.Delta, 0)
 	}
+	return be
 }
 
 /*
@@ -232,7 +233,8 @@ func buildRequestHandler(w http.ResponseWriter, r *http.Request) {
 	/* Read the json */
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		return nil, err
+		logger.Println("buildReqHandler errored: ", err)
+		return
 	}
 
 	builderData := new(ScheduleBuilderData)

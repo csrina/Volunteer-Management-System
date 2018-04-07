@@ -111,6 +111,7 @@ func adminRoutes(r *mux.Router) {
 	a.HandleFunc("/users", loadAdminUsers)
 	a.HandleFunc("/reports", loadAdminReports)
 	a.HandleFunc("/calendar", loadAdminCalendar)
+	a.HandleFunc("/builder", loadAdminScheduleBuilder)
 	a.HandleFunc("/classes", loadAdminClasses)
 }
 
