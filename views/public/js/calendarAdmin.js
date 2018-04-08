@@ -53,12 +53,6 @@ function showModal(btn) {
             + "<span class='fas fa-minus-circle fa-lg'></span></button>";
     }
     $('#eventBookings').html(bookingsHTML); // set event bookings with the html built in the loop
-
-    // set color & text of submit button
-    $('#modalConfirm').html("Submit")
-        .removeClass("btn-primary")
-        .addClass("btn-success");
-
     $('#eventDetailsModal').modal('show'); // spawn our modal
 }
 

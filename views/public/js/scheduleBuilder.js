@@ -35,23 +35,26 @@ function showModal(btn) {
     $('#modalEventTime').html(event.start.format("ddd, hh:mm") + " - " + event.end.format("hh:mm"))
     $('#modalEventCapacity').html("<h5 class='text-muted'>Capacity:</h5>" + editCapacityButton);
 
+    if (event.interval.repeatType === WEEKLY) {
+        $('#monthyTypeRadio').attr("checked", "false");
+        $('#weeklyTypeRadio').attr("checked", "true");
+    } else if (event.interval.repeatType === MONTHLY) {
+        $('#monthlyTypeRadio').attr("checked", "true");
+        $('#weeklyTypeRadio').attr("checked", "false");
+    }
 
     let hourlyValue = moment.duration(event.end.diff(event.start)).asHours() * event.modifier;
     $('#modalValueLabel').append("<button type='button' class='btn btn-outline-secondary border-0 mpb-1' "
         + "data-fieldName='modifier' onclick='editEventDetails(this)' data-id='"
         + event.id + "'>" + "modifier: " + event.modifier + closeEditButton).append("<h5 id='modalEventValue' class='text-primary'>" + hourlyValue + "</h5>");
     $('#eventNote').html(openEditNoteButton + "<p class='text-muted'>" + event.note + closeEditButton + "</p>");
-
-    // set color & text of submit button
-    $('#modalConfirm').html("Submit")
-        .removeClass("btn-primary")
-        .addClass("btn-success");
-
     $('#eventDetailsModal').modal('show'); // spawn our modal
 }
 
+// TODO: make radio reset and not stay set to previous selection (does not reflect event setting on modal load)
 function updateEventRefreshModal(event, btn) {
     $('#calendar').fullCalendar('updateEvent', event);
+
     $('#eventDetailsModal').one('hidden.bs.modal', function(e) {
         showModal(btn);
     }) .modal('hide');
