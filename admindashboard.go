@@ -599,9 +599,9 @@ func loadAdminCalendar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s := tmpls.Lookup("admincalendar.tmpl")
-	pg.Calendar = true
-	pg.DotJS = true
-	pg.Toaster = true
+	pg.Calendar 	 = true
+	pg.DotJS 		 = true
+	pg.Toaster 		 = true
 	s.ExecuteTemplate(w, "admincalendar", pg)
 }
 
@@ -650,8 +650,8 @@ func loadAdminScheduleBuilder(w http.ResponseWriter, r *http.Request) {
 	}
 	s := tmpls.Lookup("admincalendar.tmpl")
 	// calendar dependency flag
-	pg.Calendar = true
-	pg.Toaster = true
-	pg.DotJS = true
+	pg.Calendar 	 = true
+	pg.DotJS 		 = true
+	pg.Toaster 		 = true
 	s.ExecuteTemplate(w, "admincalendar", pg)
 }

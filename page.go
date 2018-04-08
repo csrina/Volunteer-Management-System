@@ -17,12 +17,12 @@ type Page struct {
 	Messages []Message
 
 	/* Dependency flags for templates */
-	Calendar    bool // page has calendar --> set flag to true
-	Chart       bool // page requires chart.js
-	Dashboard   bool //is it the dahsboard?
-	DotJS       bool
-	Toaster     bool
-	MultiSelect bool // page requires multiselectc css and js
+	Calendar    	bool // page has calendar --> set flag to true
+	Chart       	bool // page requires chart.js
+	Dashboard   	bool //is it the dahsboard?
+	DotJS      		bool
+	Toaster     	bool
+	MultiSelect 	bool // page requires multiselectc css and js
 }
 
 /*

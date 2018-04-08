@@ -4,60 +4,35 @@ const MONTHLY = 1;
 // Note: We dont want this to be populated if we aren't admin.
 // post-demo will refactor this out into templates populated differently based on the role of the user
 //
-// TODO:
-// Maybe make color change a dropdown select from combobox doohickey like familyname in donate / various things in admin stuff
-// include max bookings change button (and to  calendarAdmin.js)
-// include repeat interval editing abilities
-// Change how date is displayed to only show the day/time (exclude the month/year)
+// TODO: convert to form which works on a submit
 function showModal(btn) {
     let event = $('#calendar').fullCalendar('clientEvents', btn.getAttribute("data-id"))[0]; // get event from returned array
-    // Make open/closing button tags which allows us to insert  the current data as the btton text
-    let openEditNoteButton = "<button type='button' class='btn btn-outline-secondary border-0 mpb-1' "
-        + "data-fieldName='note' onclick='editEventDetails(this)' data-id='"
-        + event.id + "'>";
-    // Need another prefix tag for title
-    let openEditTitleButton = "<button type='button' class='btn btn-outline-secondary border-0 mpb-1' "
-        + "data-fieldName='title' onclick='editEventDetails(this)' data-id='"
-        + event.id + "'>";
 
-    let closeEditButton = " <span class='far fa-edit fa-lg'></span></button>"; // close the edit button
-
-    let editCapacityButton = "<button id='capacityButton' type='button' class='btn btn-outline-secondary border-0' "
-        + "data-fieldName='capacity' onclick='editEventDetails(this)' data-id='"
-        + event.id + "'>" + event.capacity + closeEditButton;
-
-    // use the open/close button strings to create edit buttons containing the data to be altered
-    $('#eventModalTitle').html(openEditTitleButton + "<h5>" + event.title + closeEditButton + "</h5>");
-    $('#modalEventRoom').html("<button type='button' class='btn btn-outline-secondary border-0 mpb-1' onclick='editEventDetails(this)' " +
-        "data-id='" + event.id + "' data-fieldName='room'" + "'>" + event.room + " Room <span class='far fa-edit fa-lg'></span></button></button>")
-        .css("color", event.color);
-
-    $('#modalEventTime').html(event.start.format("ddd, hh:mm") + " - " + event.end.format("hh:mm"))
-    $('#modalEventCapacity').html("<h5 class='text-muted'>Capacity:</h5>" + editCapacityButton);
-
-    if (event.interval.repeatType === WEEKLY) {
-        $('#monthyTypeRadio').attr("checked", "false");
-        $('#weeklyTypeRadio').attr("checked", "true");
-    } else if (event.interval.repeatType === MONTHLY) {
-        $('#monthlyTypeRadio').attr("checked", "true");
-        $('#weeklyTypeRadio').attr("checked", "false");
-    }
-
-    let hourlyValue = moment.duration(event.end.diff(event.start)).asHours() * event.modifier;
-    $('#modalValueLabel').append("<button type='button' class='btn btn-outline-secondary border-0 mpb-1' "
-        + "data-fieldName='modifier' onclick='editEventDetails(this)' data-id='"
-        + event.id + "'>" + "modifier: " + event.modifier + closeEditButton).append("<h5 id='modalEventValue' class='text-primary'>" + hourlyValue + "</h5>");
-    $('#eventNote').html(openEditNoteButton + "<p class='text-muted'>" + event.note + closeEditButton + "</p>");
     $('#eventDetailsModal').modal('show'); // spawn our modal
 }
 
-// TODO: make radio reset and not stay set to previous selection (does not reflect event setting on modal load)
 function updateEventRefreshModal(event, btn) {
     $('#calendar').fullCalendar('updateEvent', event);
 
     $('#eventDetailsModal').one('hidden.bs.modal', function(e) {
         showModal(btn);
     }) .modal('hide');
+}
+
+function resetModalForm(btn) {
+    let event = $('#calendar').fullCalendar('clientEvents',
+        document.getElementById("modalBody").getAttribute("data-id"))[0];
+    $('#eventDetailsModal').modal("hide");
+
+
+}
+
+function saveChangesToEvent(btn) {
+    let event = $('#calendar').fullCalendar('clientEvents',
+                    document.getElementById("modalBody").getAttribute("data-id"))[0];
+
+    // save changes to event here
+    resetModalForm();
 }
 
 function editEventDetails(btn) {
@@ -321,15 +296,13 @@ function submitTemplateForApplication() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    document.querySelector('select[name="primaryDeltaSelect"]').onchange=primaryDeltaChangeHandler;
+    // bind modal form submit event handler
+    $("#modalEventFormParent").submit((jsEvent) => {
+        console.log($(this).serializeArray());
+    });
+
+    document.querySelector('input[name="repeatTypeRadios"]').onclick=updateFormForRepeatType;
 });
-
-
-
-// Update primary interval on select change
-function primaryDeltaChangeHandler(jsEvent) {
-    jsEvent.target.setAttribute("value", jsEvent.target.value);
-}
 
 function updateEventIntervalData(event) {
     updateRepeatType();
@@ -338,8 +311,15 @@ function updateEventIntervalData(event) {
     event.interval.secondaryDeltas.forEach(i => parseInt(i));
 }
 
-// Change event interval repeat type on radio click
-function updateRepeatType() {
-    let calEvent = $("#calendar").fullCalendar('clientEvents', $("#capacityButton").attr("data-id"))[0];
-    calEvent.interval.repeatType = parseInt(document.querySelector('input[name="repeatTypeRadios"]:checked').value);
+// When repeat type is clicked, change the form display if needed
+function updateFormForRepeatType() {
+     let value = parseInt(document.querySelector('input[name="repeatTypeRadios"]:checked').value);
+     switch(value) {
+     case MONTHLY:
+         $('#subIntervalFields').css("visibility", "visible");
+         break;
+     default:
+         $('#subIntervalFields').css("visibility", "hidden");
+         break;
+     }
 }

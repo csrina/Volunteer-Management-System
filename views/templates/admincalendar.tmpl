@@ -29,7 +29,7 @@
                 </select>
                 <br>
                 <p>Modifier</p>
-                <input id="modifier"type="number" value="1" name="Modifier" class="form-control form-control-sm">
+                <input id="modifier" type="number" value="1" name="Modifier" class="form-control form-control-sm">
                 <br>
                 <p>Note</p>
                 <input id="note" type="text" placeholder="Insert a note for facilitators..." class="form-control form-control-sm">
@@ -38,14 +38,13 @@
             </fieldset>
         </div>
 </script>
-
 <main>
-    <!-- Event Details Modal -->
+{{if ne .PageName "builder"}}
+        <!-- Event Details Modal -->
     <div class="modal fade" id="eventDetailsModal" tabindex="-1" role="dialog" aria-labelledby="eventDetailsModalCenterTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title" id="eventModalTitle"></h4>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -59,46 +58,6 @@
                     <h5 id="modalValueLabel" class="text-muted">Value:</h5>
                     <h5 id="modalDescLabel" class="text-muted">Description:</h5><br>
                     <p id="eventNote"></p><br>
-
-{{if eq .PageName "builder" }}
-                    <fieldset class="form-group">
-                        <legend>Repeat Interval</legend>
-                        <div class="form-check" name="repeatTypeRadios">
-                            <label class="form-check-label">
-                                <input type="radio" class="form-check-input" id="weeklyTypeRadio" name="repeatTypeRadios" value="0">
-                                Weekly repeat interval
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <label class="form-check-label">
-                                <input type="radio" class="form-check-input" name="repeatTypeRadios" value="1" id="monthlyTypeRadio">
-                                Monthly repeat interval
-                            </label>
-                        </div>
-                        <div class="form-group col-xs-2">
-                            <label for="primaryDeltaSelect">Primary Interval (Repeating every...):</label>
-                            <select class="form-control form-control-sm" name="primaryDeltaSelect" id="primaryDeltaSelect">
-                                <option>1</option>
-                                <option>2</option>
-                                <option>3</option>
-                                <option>4</option>
-                            </select>
-                            <label id="intervalPrimaryUnit">Weeks</label>
-                            <p>E.g. Repeat every week/month = 1; every 2nd week/month = 2 <i>etc.</i></p>
-                        </div>
-                        <div class="form-group col-xs-2">
-                            <label for="secondaryDeltaSelect">Secondary Interval (repeating on the Nth day(s)):</label>
-                            <select class="form-control form-control-sm" multiple="multiple" name="secondaryDeltaSelect" id="secondaryDeltaSelect">
-                                <option value="1">1st</option>
-                                <option value="2">2nd</option>
-                                <option value="3">3rd</option>
-                                <option value="4">4th</option>
-                            </select>
-                        </div>
-                        <p>E.g. 2nd and 3rd Monday (event day) of the month<br>
-                        where the month would be repeating based on the primary interval</p>
-                    </fieldset>
-{{end}}
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary text-right" data-dismiss="modal">Close</button>
@@ -106,6 +65,110 @@
             </div>
         </div>
     </div>
+{{end}}
+{{if eq .PageName "builder" }}
+        <!-- Event Details Modal -->
+        <div class="modal fade" id="eventDetailsModal" tabindex="-1" role="dialog" aria-labelledby="eventDetailsModalCenterTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5>Edit Event Details</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div id="modalBody" data-id="" class="modal-body">
+                        <div class="col-xs-10">
+                            <form class="bg-secondary" id="modalEventFormParent">
+                                <fieldset>
+                                    <div class="form-group">
+
+                                        <label id="eventModalTitle" for="modalTitleInput">Title</label>
+                                        <input type="text" name="modalTitleInput" class="form-control" id="modalTitleInput"></input>
+
+                                        <label id="modalRoomLabel" for="modalRoomInput">Where</label>
+                                        <input id="modalRoomInput" name="modalRoomInput" class="form-control" type="color"></input>
+
+                                        <div class="form-group">
+                                            <label id="modalTimeLabel">When</label>
+                                            <label id="modalStartLabel" for="modalTimeStartInput">Start Time</label>
+                                            <input type="time"  id="modalTimeStartInput" name="modalTimeStartInput" class="form-control"></input>
+                                            <label id="modalStartLabel" for="modalTimeEndInput">End Time</label>
+                                            <input type="time"  id="modalTimeEndInput" name="modalTimeEndInput" class="form-control"></input>
+                                        </div>
+
+                                        <label id="modalCapacityLabel">Capacity</label>
+                                        <input type="number" step="1" min="0" class="form-control" id="modalCapacityInput" name="modalCapacityInput"></input>
+
+                                        <label id="modalValueLabel">Value</label>
+                                        <input type="number" step="0.25" min="0" id="modalValueInput" name="modalValueInput" class="form-control"></input>
+
+                                        <label id="modalDescLabel" for="modalNoteInput">Description</label>
+                                        <input type="text" id="modalNoteInput" name="modalNoteInput" class="form-control"></input>
+                                    </div>
+                                </fieldset>
+                                <fieldset class="form-group">
+                                    <legend>Repeat Interval</legend>
+                                    <div class="form-check" name="repeatTypeRadios">
+                                        <label class="form-check-label">
+                                            <input type="radio" class="form-check-input" id="weeklyTypeRadio" name="repeatTypeRadios" value="0" onclick='updateFormForRepeatType()' checked="">
+                                            Weekly repeat interval
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <label class="form-check-label">
+                                            <input type="radio" class="form-check-input" name="repeatTypeRadios" onclick='updateFormForRepeatType()' value="1" id="monthlyTypeRadio">
+                                            Monthly repeat interval
+                                        </label>
+                                    </div>
+                                    <div class="form-group col-xs-2">
+                                        <label for="primaryDeltaSelect">Primary Interval (Repeating every...):</label>
+                                        <select class="form-control" name="primaryDeltaSelect" id="primaryDeltaSelect">
+                                            <option value="1">Every Week/Month</option>
+                                            <option value="2">Every 2 Weeks/Months</option>
+                                            <option value="3">Every 3 Weeks/Months</option>
+                                            <option value="4">Every 4 Weeks/Months</option>
+                                        </select>
+                                    </div>
+                                </fieldset>
+                                <fieldset id="subIntervalFields" class="form-group" style="visibility: hidden;">
+                                    <legend>Month sub-interval(s)</legend>
+                                    <div class="form-check">
+                                        <label class="form-check-label">
+                                            <input class="form-check-input" id="firstCheckbox" type="checkbox" value="1" checked="">
+                                            First Week
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <label class="form-check-label">
+                                            <input class="form-check-input" id="secondCheckbox" type="checkbox" value="2" disabled="">
+                                            Second week
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <label class="form-check-label">
+                                            <input class="form-check-input" id="firstCheckbox" type="checkbox" value="3" checked="">
+                                            Third week
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <label class="form-check-label">
+                                            <input class="form-check-input" id="firstCheckbox" type="checkbox" value="4" checked="">
+                                            Fourth week
+                                        </label>
+                                    </div>
+                                </fieldset>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary text-left" onclick="resetModalForm(this)" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-success text-right" onclick="saveChangesToEvent(this)" data-dismiss="modal">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+{{end}}
     <div class="main-container">
         <div class="container-fluid">
             <div class="row">
