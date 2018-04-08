@@ -38,11 +38,11 @@
     </div>
     <div class="row">
         Password </td>
-            <td class="table-default"> <input id="pass1" type="password" class="form-control form-control-sm"></td>
+            <td class="table-default"> <input id="pass1" type="password" name="Password" class="form-control form-control-sm"></td>
         </tr>
         <tr class="table-default">
             <td class="table-default">  Confirm Password </td>
-            <td class="table-default"> <input id="pass2" type="password" class="form-control form-control-sm"></td>
+            <td class="table-default"> <input id="pass2" type="password" name="Password" class="form-control form-control-sm"></td>
         </tr>
         <tr class="table-default">
         <td class="table-default"> <button id="Submit" type="button" class="btn btn-primary">Submit</button></td>
@@ -75,7 +75,7 @@
 <script id="tmpl_newFamily" type="x-dot-template">    
     <div class="form-group">
         <p>Family Name</p>
-        <input id="famName" type="text" class="form-control form-control-sm">
+        <input id="famName" type="text" name="Family Name" class="form-control form-control-sm">
         <br>
         <p>Children</p>
         <input id="children" type="number" value="0" class="form-control form-control-sm">
@@ -95,7 +95,7 @@
         <input id="famId" type="text" value="{{`{{=it.familyId}}`}}" class="form-control form-control-sm" readonly>
         <br>
         <p>Family Name</p>
-        <input id="famName" type="text" value="{{`{{=it.familyName}}`}}" class="form-control form-control-sm">
+        <input id="famName" type="text" name="Family Name" value="{{`{{=it.familyName}}`}}" class="form-control form-control-sm">
         <br>
         <p>Children</p>
         <input id="children" type="number" value="{{`{{=it.children}}`}}" class="form-control form-control-sm">
@@ -106,6 +106,7 @@
         <br>
         <button id="submit" type="button" class="btn btn-primary">Submit</button>
         <button id="cancel" type="button" class="btn btn-primary">Cancel</button>
+		<button id="delete" type="button" class="btn btn-danger float-right">Delete</button>
     </div>
 </script>
     
@@ -116,28 +117,29 @@
         <input id="IDNum" value="{{`{{=it.userId}}`}}" class="form-control form-control-sm" readonly>
         <br>
         <p>Username</p>
-        <input id="uName" value="{{`{{=it.userName}}`}}" class="form-control form-control-sm" readonly>
+        <input id="uName" value="{{`{{=it.userName}}`}}" name="Username" class="form-control form-control-sm" readonly>
         <br>
         <p>First Name</p>
-        <input id="fName" type="text" value="{{`{{=it.firstName}}`}}" class="form-control form-control-sm">
+        <input id="fName" type="text" value="{{`{{=it.firstName}}`}}" name="First Name" class="form-control form-control-sm">
         <br>
         <p>Last Name</p>
-        <input id="lName" type="text" value="{{`{{=it.lastName}}`}}" class="form-control form-control-sm">
+        <input id="lName" type="text" value="{{`{{=it.lastName}}`}}" name="Last Name" class="form-control form-control-sm">
         <br>
         <p>Email</p>
-        <input id="email" type="email" value="{{`{{=it.email}}`}}" class="form-control form-control-sm">
+        <input id="email" type="email" value="{{`{{=it.email}}`}}" name="Email" class="form-control form-control-sm">
         <br>
         <p>Phone #</p>
-        <input id="phoneNum" type="tel" value="{{`{{=it.phoneNumber}}`}}" class="form-control form-control-sm">
+        <input id="phoneNum" type="tel" value="{{`{{=it.phoneNumber}}`}}" name="Phone Number" class="form-control form-control-sm">
         <br>
         <p>Bonus Hours</p>
         <input id="bonusHours" type="number" value="{{`{{=it.bonusHours}}`}}" class="form-control form-control-sm">
         <br>
         <p>Bonus Note</p>
-        <input id="bonusNote" type="text" value="{{`{{=it.bonusNote}}`}}" class="form-control form-control-sm">
+        <input id="bonusNote" type="text" value="{{`{{=it.bonusNote}}`}}" name="Bonus note" class="form-control form-control-sm">
         <br>
         <button id="submit" type="button" class="btn btn-primary">Submit</button>
         <button id="cancel" type="button" class="btn btn-primary">Cancel</button>
+		<button id="delete" type="button" class="btn btn-danger float-right">Delete</button>
     </div>
 </script>
 
@@ -150,28 +152,28 @@
         </select>
         <br>
         <p>First Name</p>
-        <input id="fName" type="text" class="form-control form-control-sm">
+        <input id="fName" type="text" name="First Name" class="form-control form-control-sm">
         <br>
         <p>Last Name</p>
-        <input id="lName" type="text" class="form-control form-control-sm">
+        <input id="lName" type="text" name="Last Name" class="form-control form-control-sm">
         <br>
         <p>Email</p>
-        <input id="email" type="email" class="form-control form-control-sm">
+        <input id="email" type="email" name="Email" class="form-control form-control-sm">
         <br>
         <p>Phone #</p>
-        <input id="phoneNum" type="tel" class="form-control form-control-sm">
+        <input id="phoneNum" type="tel" name="Phone Number" class="form-control form-control-sm">
         <br>
         <p>Bonus Hours</p>
         <input id="bonusHours" type="number" value="0" class="form-control form-control-sm">
         <br>
         <p>Bonus Note</p>
-        <input id="bonusNote" type="text" placeholder="Reason for bonus hours" class="form-control form-control-sm">
+        <input id="bonusNote" type="text" name="Bonus Note" placeholder="Reason for bonus hours" class="form-control form-control-sm">
         <br>
         <p>Password</p>
-        <input id="pass1" type="password" class="form-control form-control-sm">
+        <input id="pass1" type="password" name="Password" class="form-control form-control-sm">
         <br>
         <p>Confirm Password</p>
-        <input id="pass2" type="password" class="form-control form-control-sm">
+        <input id="pass2" type="password" name="Password" class="form-control form-control-sm">
         <br>
         <button id="submit" type="button" class="btn btn-primary">Submit</button>
         <button id="cancel" type="button" class="btn btn-primary">Cancel</button>
@@ -183,10 +185,8 @@
         <div class="row">
             <button type="button" onClick="familyList()" class="btn btn-primary">Edit Family</button>
             <button type="button" onClick="newFamily()" class="btn btn-primary">Add Family</button>
-            <button type="button" onClick="familyInfo()" class="btn btn-primary">View Families</button>
             <button type="button" onClick="userList()" class="btn btn-primary">Edit User</button>
             <button type="button" onClick="newUser()" class="btn btn-primary">Add User</button>
-            <button type="button" onClick="userInfo()" class="btn btn-primary">View Users</button>
             <br>
         </div>
         <div class="row">

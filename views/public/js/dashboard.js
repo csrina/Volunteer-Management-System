@@ -33,6 +33,16 @@ function makeToast(type, msg) {
     Command: toastr[type](msg);
 }
 
+function dissmissMsg(msgid) {
+    $.ajax({
+        url: '/api/v1/message/' + msgid,
+        type: 'PUT',
+        error: function(xhr, ajaxOptions, thrownError) {
+            makeToast("error", "Request failed: " + xhr.responseText);
+        }
+    })
+}
+
 // This function will send a booking removal request to the server
 function requestRemoval(event) {
     let promptStr = "Are you sure you want to remove yourself from:\n";

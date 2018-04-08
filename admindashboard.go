@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -124,7 +125,6 @@ func createFamily(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-//TODO: update all users in recieved list
 func updateFamily(w http.ResponseWriter, r *http.Request) {
 	family := familyFull{}
 	decoder := json.NewDecoder(r.Body)
@@ -252,6 +252,7 @@ func getUserList(w http.ResponseWriter, r *http.Request) {
 
 		encoder := json.NewEncoder(w)
 		encoder.Encode(userList)
+		w.WriteHeader(http.StatusOK)
 	} else {
 		q := `SELECT user_id, user_role, last_name, first_name, username, email, phone_number, bonus_hours, bonus_note
 				FROM users
@@ -267,6 +268,7 @@ func getUserList(w http.ResponseWriter, r *http.Request) {
 
 		encoder := json.NewEncoder(w)
 		encoder.Encode(user)
+		w.WriteHeader(http.StatusOK)
 	}
 }
 
@@ -452,3 +454,204 @@ func updateClass(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+func deleteUser(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	idVal, err := strconv.Atoi(vars["user_id"])
+	fmt.Println(idVal)
+	if err != nil {
+		http.Error(w, "Bad UserID", http.StatusBadRequest)
+		logger.Println(err)
+		return
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		http.Error(w, "Error connecting to Database", http.StatusInternalServerError)
+		logger.Println(err)
+		return
+	}
+
+	q := `DELETE FROM donation WHERE donor_id = ($1)
+			OR donee_id = ($1)`
+
+	_, err = tx.Exec(q, idVal)
+	if err != nil {
+		http.Error(w, "Error deleting donation records", http.StatusInternalServerError)
+		logger.Println(err)
+		return
+	}
+
+	q = `DELETE FROM booking WHERE user_id = ($1)`
+
+	_, err = tx.Exec(q, idVal)
+	if err != nil {
+		http.Error(w, "Error deleting user bookings", http.StatusInternalServerError)
+		logger.Println(err)
+		return
+	}
+
+	q = `DELETE FROM users WHERE user_id = ($1)`
+
+	_, err = tx.Exec(q, idVal)
+	if err != nil {
+		http.Error(w, "Error deleting user", http.StatusInternalServerError)
+		logger.Println(err)
+		return
+	}
+
+	tx.Commit()
+
+	w.WriteHeader(http.StatusOK)
+
+}
+
+func deleteFamily(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	idVal, err := strconv.Atoi(vars["family_id"])
+	fmt.Println(idVal)
+	if err != nil {
+		http.Error(w, "Bad UserID", http.StatusBadRequest)
+		logger.Println(err)
+		return
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		http.Error(w, "Error connecting to Database", http.StatusInternalServerError)
+		logger.Println(err)
+		return
+	}
+
+	q := `UPDATE users SET family_id = NULL WHERE family_id = ($1)`
+
+	_, err = tx.Exec(q, idVal)
+	if err != nil {
+		http.Error(w, "Error removing parents", http.StatusInternalServerError)
+		logger.Println(err)
+		return
+	}
+
+	q = `DELETE FROM booking WHERE family_id = ($1)`
+
+	_, err = tx.Exec(q, idVal)
+	if err != nil {
+		http.Error(w, "Error deleting bookings", http.StatusInternalServerError)
+		logger.Println(err)
+		return
+	}
+
+	q = `DELETE FROM family WHERE family_id = ($1)`
+
+	_, err = tx.Exec(q, idVal)
+	if err != nil {
+		http.Error(w, "Error deleting family", http.StatusInternalServerError)
+		logger.Println(err)
+		return
+	}
+	tx.Commit()
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func loadAdminDash(w http.ResponseWriter, r *http.Request) {
+	pg, err := loadPage("admindashboard", r)
+	if err != nil {
+		if _, ok := err.(*ClientSafeError); ok {
+			http.Error(w, err.Error(), http.StatusBadGateway)
+		} else {
+			http.Error(w, "Something funny happened, sorry. Please try again ", http.StatusInternalServerError)
+		}
+		return
+	}
+	s := tmpls.Lookup("admindashboard.tmpl")
+	pg.DotJS = true
+	pg.Toaster = true
+	s.ExecuteTemplate(w, "admindashboard", pg)
+}
+
+func loadAdminUsers(w http.ResponseWriter, r *http.Request) {
+	pg, err := loadPage("adminusers", r)
+	if err != nil {
+		if _, ok := err.(*ClientSafeError); ok {
+			http.Error(w, err.Error(), http.StatusBadGateway)
+		} else {
+			http.Error(w, "Something funny happened, sorry. Please try again ", http.StatusInternalServerError)
+		}
+		return
+	}
+	s := tmpls.Lookup("adminusers.tmpl")
+	pg.DotJS = true
+	pg.MultiSelect = true
+	pg.Toaster = true
+	s.ExecuteTemplate(w, "adminusers", pg)
+}
+
+func loadAdminCalendar(w http.ResponseWriter, r *http.Request) {
+	pg, err := loadPage("calendar", r)
+	if err != nil {
+		if _, ok := err.(*ClientSafeError); ok {
+			http.Error(w, err.Error(), http.StatusBadGateway)
+		} else {
+			http.Error(w, "Something funny happened, sorry. Please try again ", http.StatusInternalServerError)
+		}
+		return
+	}
+	s := tmpls.Lookup("admincalendar.tmpl")
+	pg.Calendar = true
+	pg.DotJS = true
+	pg.Toaster = true
+	s.ExecuteTemplate(w, "admincalendar", pg)
+}
+
+func loadAdminReports(w http.ResponseWriter, r *http.Request) {
+	pg, err := loadPage("adminreports", r)
+	if err != nil {
+		if _, ok := err.(*ClientSafeError); ok {
+			http.Error(w, err.Error(), http.StatusBadGateway)
+		} else {
+			http.Error(w, "Something funny happened, sorry. Please try again ", http.StatusInternalServerError)
+		}
+		return
+	}
+	s := tmpls.Lookup("adminreports.tmpl")
+	pg.DotJS = true
+	pg.Chart = true
+	pg.Toaster = true
+	s.ExecuteTemplate(w, "adminreports", pg)
+}
+
+func loadAdminClasses(w http.ResponseWriter, r *http.Request) {
+	pg, err := loadPage("adminclasses", r)
+	if err != nil {
+		if _, ok := err.(*ClientSafeError); ok {
+			http.Error(w, err.Error(), http.StatusBadGateway)
+		} else {
+			http.Error(w, "Something funny happened, sorry. Please try again ", http.StatusInternalServerError)
+		}
+		return
+	}
+	s := tmpls.Lookup("adminclasses.tmpl")
+	pg.DotJS = true
+	pg.Toaster = true
+	s.ExecuteTemplate(w, "adminclasses", pg)
+}
+
+func loadAdminScheduleBuilder(w http.ResponseWriter, r *http.Request) {
+	pg, err := loadPage("builder", r)
+	if err != nil {
+		if _, ok := err.(*ClientSafeError); ok {
+			http.Error(w, err.Error(), http.StatusBadGateway)
+		} else {
+			http.Error(w, "Something funny happened, sorry. Please try again ", http.StatusInternalServerError)
+		}
+		return
+	}
+	s := tmpls.Lookup("admincalendar.tmpl")
+	// calendar dependency flag
+	pg.Calendar = true
+	pg.Toaster = true
+	pg.DotJS = true
+	s.ExecuteTemplate(w, "admincalendar", pg)
+}

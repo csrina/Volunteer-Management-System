@@ -9,8 +9,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/mux"
 	"strings"
+
+	"github.com/gorilla/mux"
 )
 
 type Response struct {
@@ -168,19 +169,6 @@ func (e *Event) delete() (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	// delete any bookings associated --> send notifications when possible!
-	bookings, err := tb.bookings()
-	if err != nil {
-		return nil, err
-	}
-	// delete bookings
-	for _, b := range bookings {
-		err = b.deleteBooking()
-		if err != nil {
-			logger.Println(err)
-			continue
-		}
-	}
 	err = tb.delete()
 	if err != nil {
 		return nil, err
@@ -195,6 +183,7 @@ func (e *Event) delete() (*Response, error) {
 func (e *Event) update() (*Response, error) {
 	tb, err := getTimeBlockByID(e.ID)
 	if err != nil {
+		logger.Println(err)
 		return nil, err
 	}
 
@@ -308,15 +297,15 @@ func getEvents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if role, _ := getRoleNum(r); role == TEACHER {
-		roomsTaught, err := getTaughtRooms(r);
+		roomsTaught, err := getTaughtRooms(r)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 		}
 		for _, e := range evs {
 			for _, rm := range roomsTaught {
 				if rm == e.Room {
-					e.Booked = true; // set flag (we repurpose the booked flag to mean 'teaches'
-					break;
+					e.Booked = true // set flag (we repurpose the booked flag to mean 'teaches'
+					break
 				}
 			}
 		}
@@ -462,7 +451,7 @@ func (e *Event) updateColourCode() {
 	case "yellow":
 		e.Colour = YELLOW
 	default:
-		e.Colour = strings.Split(e.Room, " ")[0]; // take only first string to avoid breaking the world
+		e.Colour = strings.Split(e.Room, " ")[0] // take only first string to avoid breaking the world
 	}
 }
 
