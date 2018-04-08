@@ -93,9 +93,6 @@ function storeChangesToEvent(event, delta, revertFunc, jsEvent, ui, view) {
     });
 }
 
-
-
-
 function updateEventRefreshModal(event, btn) {
     $('#calendar').fullCalendar('updateEvent', event);
     $('#eventDetailsModal').one('hidden.bs.modal', function(e) {

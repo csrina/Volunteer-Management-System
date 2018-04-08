@@ -1,15 +1,3 @@
-function fieldCheck(input) {
-	if (input.value == "" ) {
-		makeToast('error', `${input.name} cannot be empty`)
-		input.classList.add('alert');
-		input.classList.add('alert-danger');
-		return true;
-	}
-
-	input.classList.remove('alert');
-	input.classList.remove('alert-danger');
-	return false;
-}
 
 // Callback function for drag/drops and resizes of existing events
 // Note: We dont want this to be populated if we aren't admin.
@@ -33,8 +21,11 @@ function showModal(btn) {
 
     // use the open/close button strings to create edit buttons containing the data to be altered
     $('#eventModalTitle').html(openEditTitleButton + "<h5>" + event.title + closeEditButton + "</h5>");
-    $('#modalEventRoom').html(event.room + " Room").css("color", event.color);
-    $('#modalEventTime').html(event.start.format("ddd, hhA") + " - " + event.end.format("hA"))
+    $('#modalEventRoom').html("<button type='button' class='btn btn-outline-secondary border-0 mpb-1' onclick='editEventDetails(this)' " +
+        "data-id='" + event.id + "' data-fieldName='room'" + "'>" + event.room + " Room <span class='far fa-edit fa-lg'></span></button></button>")
+        .css("color", event.color);
+
+    $('#modalEventTime').html(event.start.format("ddd, hh:mm") + " - " + event.end.format("hh:mm"))
     $('#modalEventCapacity').html("<h5> Capacity   " + event.capacity + editCapacityButton + "</h5>");
 
     let hourlyValue = moment.duration(event.end.diff(event.start)).asHours() * event.modifier;
@@ -207,7 +198,15 @@ function editEventDetails(btn) {
             makeToast("warning", "The new title is a number, is that a typo?");
         }
         event.title = temp;
-    } else if (field === "note") {
+    } else if (field === "room") {
+        temp = prompt("Enter the new room name (expecting a color): ")
+        if (temp !== null || temp !== "" || temp !== undefined) {
+            event.room = temp;
+            event.color = temp;
+        } else {
+            makeToast("error", "Must be a valid colour");
+        }
+    }  else if (field === "note") {
         temp = prompt("Enter the new description: ");
         if (temp === null) {
             return;
@@ -285,6 +284,7 @@ $(document).ready(function() {
             center: 'prev, title, next',
             right: 'agendaWeek, month'
         },
+        snapDuration: "00:05:00",
         agendaEventMinHeight: 90,
         defaultView: "agendaWeek",
         contentHeight: 'auto',
@@ -295,7 +295,7 @@ $(document).ready(function() {
         eventRender: function(event, element, view) {
             event.capacity = ((!!event.capacity) ? event.capacity : "3");
             element.find('.fc-time').css("font-size", "1rem")
-                    .append('     ' + event.bookingCount.toString() + "/" + event.capacity.toString());
+                    .append('   -   ' + event.bookingCount.toString() + "/" + event.capacity.toString());
             element.find('.fc-title').css("font-size", "1rem").append("<br>")
                     .append("<button type='button' class='btn btn-outline-primary m-1 border-0 btn-sm' data-id='" + event.id + "' onclick='showModal(this)'><i class='far fa-edit fa-lg'></i></button>")
                     .append("<br><button type='button' class='btn btn-outline-primary border-0 btn-sm' data-id='" + event.id + "' onclick='removeEvent(this)'><i class='fas fa-times-circle fa-lg'></i></button>");

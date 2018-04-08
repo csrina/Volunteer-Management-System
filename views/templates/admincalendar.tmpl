@@ -56,11 +56,49 @@
                     <h5 id="modalValueLabel" class="text-muted">Value:</h5>
                     <h5 id="modalDescLabel" class="text-muted">Description:</h5><br>
                     <p id="eventNote"></p><br>
-                    <h5 class="text-left text-muted">Attending:</h5><br>
-                    <div class="text-center" id="eventBookings"></div>
+
+{{if eq .PageName "builder" }}
+                    <fieldset class="form-group">
+                        <legend>Repeat Interval</legend>
+                        <div class="form-check" name="repeatTypeRadios">
+                            <label class="form-check-label">
+                                <input type="radio" class="form-check-input" id="repeatTypeRadios" name="repeatTypeRadios" value="0">
+                                Weekly repeat interval
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <label class="form-check-label">
+                                <input type="radio" class="form-check-input" name="repeatTypeRadios" value="1" id="repeatTypeRadios">
+                                Monthly repeat interval
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label for="primaryDeltaSelect">Primary Interval (Repeating every...):</label>
+                            <select class="form-control" name="primaryDeltaSelect" id="primaryDeltaSelect">
+                                <option>1</option>
+                                <option>2</option>
+                                <option>3</option>
+                                <option>4</option>
+                            </select>
+                            <label id="intervalPrimaryUnit">Weeks</label>
+                            <p>E.g. Repeat every week/month = 1; every 2nd week/month = 2 <i>etc.</i></p>
+                        </div>
+                        <div class="form-group">
+                            <label for="secondaryDeltaSelect">Secondary Interval (repeating on the Nth day(s)):</label>
+                            <select class="form-control" multiple="multiple" name="secondaryDeltaSelect" id="secondaryDeltaSelect">
+                                <option value="1">1st</option>
+                                <option value="2">2nd</option>
+                                <option value="3">3rd</option>
+                                <option value="4">4th</option>
+                            </select>
+                        </div>
+                        <p>E.g. 2nd and 3rd Monday (event day) of the month<br>
+                        where the month would be repeating based on the primary interval</p>
+                    </fieldset>
+{{end}}
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary text-right" data-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -82,6 +120,9 @@
                     </div>
                 </div>
             </div>
+            {{if eq .PageName "builder"}}
+                <button type="button" id="submitAndApplyTemplateButton" class="btn btn-block btn-success" onclick="submitTemplateForApplication()">Submit and Build Schedule From Template</button>
+            {{end}}
         </div>
     </div>
 </main>

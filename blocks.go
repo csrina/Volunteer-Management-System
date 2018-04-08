@@ -346,10 +346,10 @@ const (
 )
 
 type IntervalData struct {
-	Repeats int // See constant declarations above
-	Delta   int // e.g. 2 ==> every 2nd week/month, 1 == every week/month, 3 == every 3rd week/month
+	Repeats int			`json:"repeatType"` // See constant declarations above
+	Delta   int 		`json:"primaryDelta"`// e.g. 2 ==> every 2nd week/month, 1 == every week/month, 3 == every 3rd week/month
 	// SubDelta may b eused for monthly repeaters
-	SubDeltas []int // E.g. Every 2nd monday (on a 2nd month Delta) --> 2nd monday of every 2nd month;; is a slice to allow for things like (1, 3) --> 1st and 3rd Day of DeltaREpeatingMonth
+	secondaryDeltas []int `json:"secondaryDeltas"`// E.g. Every 2nd monday (on a 2nd month Delta) --> 2nd monday of every 2nd month;; is a slice to allow for things like (1, 3) --> 1st and 3rd Day of DeltaREpeatingMonth
 }
 
 /*
@@ -458,7 +458,7 @@ func BuildSchedule(evs []BuilderEvent, sop, eop time.Time) {
 		for be.Start.Before(eop) { // event in range --> add it to calendar and increment
 			switch be.Interval.Repeats {
 			case MONTHLY:
-				for _, i := range be.Interval.SubDeltas { // For each sub delta value --> add events to calendar for the month
+				for _, i := range be.Interval.secondaryDeltas { // For each sub delta value --> add events to calendar for the month
 					subEv := be
 					subEv.Start.AddDate(0, 0, 7 * i)         // add subDelta to start/end
 					subEv.End.AddDate(0, 0, 7 * i)
