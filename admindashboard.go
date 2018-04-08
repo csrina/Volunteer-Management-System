@@ -252,6 +252,7 @@ func getUserList(w http.ResponseWriter, r *http.Request) {
 
 		encoder := json.NewEncoder(w)
 		encoder.Encode(userList)
+		w.WriteHeader(http.StatusOK)
 	} else {
 		q := `SELECT user_id, user_role, last_name, first_name, username, email, phone_number, bonus_hours, bonus_note
 				FROM users
@@ -267,6 +268,7 @@ func getUserList(w http.ResponseWriter, r *http.Request) {
 
 		encoder := json.NewEncoder(w)
 		encoder.Encode(user)
+		w.WriteHeader(http.StatusOK)
 	}
 }
 
