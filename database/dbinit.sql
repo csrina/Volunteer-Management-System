@@ -22,6 +22,17 @@ CREATE TABLE users (
     bonus_note 	    TEXT
 );
 
+CREATE TABLE notifications (
+    msg_id          SERIAL      PRIMARY Key,
+    msg             text
+);
+
+create Table notify (
+    user_id         int         REFERENCES users (user_id),
+    msg_id          int         REFERENCES notifications (msg_id),
+    viewed          boolean     DEFAULT false
+);
+
 CREATE TABLE room (
     room_id         SERIAL      PRIMARY KEY,
     room_name       TEXT        UNIQUE,

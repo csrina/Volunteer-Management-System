@@ -45,9 +45,9 @@ func init() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		logger = log.New(f, "status: ", log.LstdFlags)
+		logger = log.New(f, "status: ", log.LstdFlags|log.Lshortfile)
 	} else {
-		logger = log.New(os.Stderr, "status: ", log.LstdFlags)
+		logger = log.New(os.Stderr, "status: ", log.LstdFlags|log.Lshortfile)
 	}
 
 	store.Options = &sessions.Options{
@@ -84,7 +84,7 @@ func startDb() error {
 	logger.Println("Reading DB data from env file...")
 	err := godotenv.Load()
 	if err != nil {
-	  log.Fatal("Error loading .env file")
+		log.Fatal("Error loading .env file")
 	}
 	psqlInfo := os.Getenv("DATABASE_URL")
 
@@ -97,7 +97,7 @@ func startDb() error {
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-	  log.Fatal("Error loading .env file")
+		log.Fatal("Error loading .env file")
 	}
 	port := os.Getenv("PORT")
 	logger.Println(port)

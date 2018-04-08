@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
 // For charting
@@ -14,6 +16,7 @@ type DurationPoint struct {
 
 /* for sorting duration points by time */
 type DurationPoints []DurationPoint
+
 func (s DurationPoints) Less(i, j int) bool { return s[i].X.Before(s[j].X) }
 func (s DurationPoints) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s DurationPoints) Len() int           { return len(s) }
@@ -64,6 +67,39 @@ func (c *ChartDataSet) addDurationPoint(p DurationPoint) *ChartDataSet {
 		c.Data = append(c.Data, p)
 	}
 	return c
+}
+
+func markMessagRead(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	msgID := vars["id"]
+
+	session, err := store.Get(r, "loginSession")
+	if err != nil {
+		//http.Error(w, err.Error(), http.StatusInternalServerError)
+		session.Values["username"] = nil
+		session.Save(r, w)
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+
+	// Retrieve our struct and type-assert it
+	uname, ok := session.Values["username"].(string)
+	if !ok {
+		logger.Printf("error occured while retriving sesion value")
+		return
+	}
+
+	q := `UPDATE notify
+			SET viewed = 't'
+			from users
+			where msg_id = $1 AND users.user_id = notify.user_id AND users.username = $2;`
+	_, err = db.Exec(q, msgID, uname)
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 - Could not dismiss alert\n"))
+		return
+	}
 }
 
 /* Replacement for dashboardData
