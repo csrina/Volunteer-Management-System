@@ -420,9 +420,14 @@ func buildRequestHandler(w http.ResponseWriter, r *http.Request) {
 		logger.Println("buildReqHandler errored: ", err)
 		return
 	}
-
 	builderData := new(ScheduleBuilderData)
-	json.Unmarshal(body, builderData)
+	var bdInterface interface{}
+	json.Unmarshal(body, &bdInterface)
+
+	logger.Println("Data recieved for building: ",  bdInterface)
+
+	return
+
 	bdRoomMap := make(map[string][]BuilderEvent)
 	for _, e := range builderData.events {
 		// only days are relevant coming from the builder (set the year/month to the start of the period

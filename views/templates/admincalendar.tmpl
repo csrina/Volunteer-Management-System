@@ -75,7 +75,7 @@
                                 Monthly repeat interval
                             </label>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group col-xs-2">
                             <label for="primaryDeltaSelect">Primary Interval (Repeating every...):</label>
                             <select class="form-control form-control-sm" name="primaryDeltaSelect" id="primaryDeltaSelect">
                                 <option>1</option>
@@ -86,7 +86,7 @@
                             <label id="intervalPrimaryUnit">Weeks</label>
                             <p>E.g. Repeat every week/month = 1; every 2nd week/month = 2 <i>etc.</i></p>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group col-xs-2">
                             <label for="secondaryDeltaSelect">Secondary Interval (repeating on the Nth day(s)):</label>
                             <select class="form-control form-control-sm" multiple="multiple" name="secondaryDeltaSelect" id="secondaryDeltaSelect">
                                 <option value="1">1st</option>
@@ -117,6 +117,14 @@
                              <button type="button" id="builderToggle" class="btn btn-block btn-info" style="font-size: 1.2rem;" onclick='location.href={{if eq .PageName "calendar"}}"/admin/builder"{{else}}"/admin/calendar"{{end}};'>{{if eq .PageName "builder"}}Back to Schedule{{else}}Enter Builder Mode{{end}}</button>
                         </div>
                          <div class="mt-2" id="filterList" style="text-align: left;" >
+                         {{if eq .PageName "builder"}}
+                             <fieldset>
+                                 <label style="font-size: 1rem;" for="startPeriodInput">Period Start</label>
+                                 <input id="startPeriod" class="form-control form-control-sm" type="date" name="startPeriodInput"></input>
+                                 <label for="endPeriodInput" style="font-size: 1rem;">Period End</label>
+                                 <input id="endPeriod" class="form-control form-control-sm" type="date" name="endPeriodInput"></input>
+                             </fieldset>
+                         {{end}}
                             <div class="btn-group" data-toggle="buttons" id="filterButtons"></div>
                         </div>
                         <div id="calendar"></div>

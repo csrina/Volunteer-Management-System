@@ -277,19 +277,39 @@ function submitTemplateForApplication() {
             (ev => { return ev.start.day() != 0; })
     );
 
-    console.log(events);
-    // Get all events on calendar that aren't on sunday (template day) --> stringify for transmission to server
-    let sendData =  {
-        periodStart:    $("#periodStart"),
-        periodEnd:      $("#periodEnd"),
-        events:         events,
-    };
+    let normalizedEvents = [];
+    events.forEach( ev => {
+        ev2 = {
+            id: ev.id,
+            title: ev.title,
+            start: ev.start,
+            end: ev.end,
+            capacity: ev.capacity,
+            modifier: ev.modifier,
+            note: ev.note,
+            room: ev.room,
+            color: ev.color,
+            interval: ev.interval
+        };
+        normalizedEvents.push(ev2);
+    });
 
+    let stPeriod = moment($("#periodStart").val());
+    stPeriod.startOf("day");
+    let endPeriod = moment($("#periodEnd").val());
+    endPeriod.endOf("day");
+    // Get all events on calendar that aren't on sunday (template day) --> stringify for transmission to server
+    let sendData = JSON.stringify({
+        periodStart:    stPeriod,
+        periodEnd:      endPeriod,
+        events:         normalizedEvents,
+    });
+    console.log(sendData);
     $.ajax({
         url: '/api/v1/schedule/build',
         type: 'POST',
         contentType:'json',
-        data: events,
+        data: sendData,
         dataType:'json',
         success: function(data) {
             makeToast("success", data.msg);
@@ -302,31 +322,24 @@ function submitTemplateForApplication() {
 
 document.addEventListener("DOMContentLoaded", () => {
     document.querySelector('select[name="primaryDeltaSelect"]').onchange=primaryDeltaChangeHandler;
-    document.querySelector('select[name="secondaryDeltaSelect"]').onchange=secondaryDeltaChangeHandler;
-    $('input[name="repeatTypeRadios"]').click(() => {
-        updateRepeatType();
-    });
 });
+
+
+
+// Update primary interval on select change
+function primaryDeltaChangeHandler(jsEvent) {
+    jsEvent.target.setAttribute("value", jsEvent.target.value);
+}
+
+function updateEventIntervalData(event) {
+    updateRepeatType();
+    calEvent.interval.primaryDelta = parseInt(jsEvent.target.value); // update value onchange
+    event.interval.secondaryDeltas = $("#secondaryDeltaSelect").val(); // returns array of selected values
+    event.interval.secondaryDeltas.forEach(i => parseInt(i));
+}
 
 // Change event interval repeat type on radio click
 function updateRepeatType() {
     let calEvent = $("#calendar").fullCalendar('clientEvents', $("#capacityButton").attr("data-id"))[0];
     calEvent.interval.repeatType = parseInt(document.querySelector('input[name="repeatTypeRadios"]:checked').value);
-}
-
-// Update primary interval on select change
-function primaryDeltaChangeHandler(jsEvent) {
-    jsEvent.target.setAttribute("value", jsEvent.target.value);
-    // get reference to calendar event being edited
-    let calEvent = $("#calendar").fullCalendar('clientEvents', $("#capacityButton").attr("data-id"))[0];
-    calEvent.interval.repeatType = parseInt(document.querySelector('input[name="repeatTypeRadios"]:checked').value);
-    calEvent.interval.primaryDelta = parseInt(jsEvent.target.value); // update value onchange
-}
-
-// Create 2' interval array from combobox on change & set the event.interval.2' to it
-function secondaryDeltaChangeHandler(jsEvent) {
-    // get reference to calendar event being edited
-    let calEvent = $("#calendar").fullCalendar('clientEvents', $("#capacityButton").attr("data-id"))[0];
-    calEvent.interval.secondaryDeltas = $("#secondaryDeltaSelect").val(); // returns array of selected values
-    calEvent.interval.secondaryDeltas.forEach(i => parseInt(i));
 }
