@@ -4,11 +4,18 @@ import (
 	"strings"
 )
 
+type Message struct {
+	MsgID int    `db:"msg_id" json:"msgid"`
+	Msg   string `db:"msg" json:"msg"`
+}
+
 type Page struct {
 	PageName string
 	Role     string
 	Username string
 	Room     string // For teachers, potentially others
+	Messages []Message
+
 	/* Dependency flags for templates */
 	Calendar    bool // page has calendar --> set flag to true
 	Chart       bool // page requires chart.js
@@ -42,6 +49,10 @@ func loadPage(pn string, r *http.Request) (*Page, error) {
 	switch role {
 	case FACILITATOR:
 		data.Role = "Facilitator"
+		data.Messages, err = getNotifications(data.Username)
+		if err != nil {
+			return nil, err
+		}
 	case TEACHER:
 		data.Role = "Teacher"
 	case ADMIN:
@@ -53,6 +64,25 @@ func loadPage(pn string, r *http.Request) (*Page, error) {
 	return data, nil
 }
 
+func getNotifications(uname string) ([]Message, error) {
+	var msgs []Message
+	q := `SELECT notify.msg_id, notifications.msg
+			from notify, notifications, users
+			where users.user_id = notify.user_id 
+				AND notify.viewed = 'f' 
+				AND users.username= $1 
+				AND notifications.msg_id = notify.msg_id`
+
+	err := db.Select(&msgs, q, uname)
+	if err != nil {
+		logger.Println(err)
+		return msgs, err
+	}
+
+	return msgs, nil
+
+}
+
 /* Retrieves the role of the requesting party */
 func getRoleNum(r *http.Request) (int, error) {
 	sesh, err := store.Get(r, "loginSession")
@@ -61,7 +91,7 @@ func getRoleNum(r *http.Request) (int, error) {
 	}
 	uname, ok := sesh.Values["username"].(string)
 	if !ok {
-		return -1, &ClientSafeError{Msg:"username of session invalid type"}
+		return -1, &ClientSafeError{Msg: "username of session invalid type"}
 	}
 	/* Get and return the role */
 	var role int
@@ -122,6 +152,7 @@ func loadDashboard(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+
 	if role == TEACHER {
 		http.Redirect(w, r, "/teacher", http.StatusFound)
 	} else if role == ADMIN {

@@ -1,11 +1,12 @@
 package main
 
 import (
-	"errors"
+	"fmt"
 	"time"
 
 	"database/sql"
 
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
 
@@ -20,6 +21,13 @@ type TimeBlock struct {
 	Modifier int       `db:"modifier" json:"modifier"`
 	Title    string    `db:"title" json:"title"`
 	Note     string    `db:"note" json:"note"`
+}
+
+type MsgWording struct {
+	Start time.Time `db:"block_start" json:"start"`
+	End   time.Time `db:"block_end" json:"end"`
+	Title string    `db:"title" json:"title"`
+	Room  string    `db:"room_name" json:"roomname"`
 }
 
 func getTimeBlockByID(id int) (*TimeBlock, error) {
@@ -73,40 +81,216 @@ func (tb *TimeBlock) insert() (int, error) {
 
 }
 
+func getOldTimeBlockValues(tx *sqlx.Tx, tid int) (MsgWording, error) {
+	var msg MsgWording
+	q := "select time_block.block_start, time_block.block_end, time_block.title, room.room_name from time_block, room where time_block.block_id = $1 AND room.room_id = time_block.room_id"
+	stmt, err := tx.Preparex(q)
+	if err != nil {
+		logger.Println(err)
+		return msg, err
+	}
+	defer stmt.Close()
+
+	if err := stmt.Get(&msg, tid); err != nil {
+		tx.Rollback()
+		logger.Println(err)
+		return msg, err
+	}
+	return msg, nil
+}
+
+func getUsersInTimeBlockValues(tx *sqlx.Tx, tid int) ([]int, error) {
+	var usrs []int
+	logger.Println(tid)
+	q := "SELECT user_id FROM booking WHERE block_id = $1"
+	stmt, err := tx.Preparex(q)
+	if err != nil {
+		logger.Println(err)
+		return usrs, err
+	}
+	defer stmt.Close()
+
+	if err := stmt.Select(&usrs, tid); err != nil {
+		tx.Rollback()
+		logger.Println(err)
+		return usrs, err
+	}
+	logger.Println(usrs)
+	return usrs, nil
+
+}
+
+func updateTimeBlockQuery(tx *sqlx.Tx, tb *TimeBlock) error {
+	q := "UPDATE time_block SET(block_id, block_start, block_end, room_id, modifier, title, note) = ($1, $2, $3, $4, $5, $6, $7) WHERE (time_block.block_id = $1)"
+	stmt, err := tx.Preparex(q)
+	if err != nil {
+		logger.Println(err)
+		return err
+	}
+	defer stmt.Close()
+
+	if _, err := stmt.Exec(tb.ID, tb.Start, tb.End, tb.Room, tb.Modifier, tb.Title, tb.Note); err != nil {
+		tx.Rollback()
+		logger.Println(err)
+		return err
+	}
+	return nil
+}
+
+func deleteTimeBlockQuery(tx *sqlx.Tx, tid int) error {
+	q := "DELETE FROM time_block WHERE block_id = $1"
+	stmt, err := tx.Preparex(q)
+	if err != nil {
+		logger.Println(err)
+		return err
+	}
+	logger.Println("stmt")
+	defer stmt.Close()
+	logger.Println("stmt")
+	if _, err := stmt.Exec(tid); err != nil {
+		tx.Rollback()
+		logger.Println(err)
+		return err
+	}
+	logger.Println("stmt")
+	return nil
+}
+
+func deleteExistingBookings(tx *sqlx.Tx, tid int) error {
+	q := "DELETE from booking where block_id = $1"
+	stmt, err := tx.Preparex(q)
+	if err != nil {
+		logger.Println(err)
+		return err
+	}
+	logger.Println("stmt")
+	defer stmt.Close()
+	logger.Println("stmt")
+	if _, err := stmt.Exec(tid); err != nil {
+		tx.Rollback()
+		logger.Println(err)
+		return err
+	}
+	logger.Println("stmt")
+	return nil
+}
+
+func createNewMessage(tx *sqlx.Tx, msg MsgWording, change string) (int, error) {
+	var msgID int
+	const layout = "Jan 2, 2006 at 3:04pm"
+
+	q := "INSERT INTO notifications (msg) values ($1) RETURNING msg_id"
+	newMsg := fmt.Sprintf("The event '%v' you were booked on %v-%v in room '%v' has been %v and you have been unbooked.", msg.Title, msg.Start.Format(layout), msg.End.Format(layout), msg.Room, change)
+	stmt, err := tx.Preparex(q)
+	if err != nil {
+		logger.Println(err)
+		return 0, err
+	}
+	defer stmt.Close()
+
+	if err := stmt.Get(&msgID, newMsg); err != nil {
+		tx.Rollback()
+		logger.Println(err)
+		return 0, err
+	}
+	return msgID, nil
+}
+
+func createMessageForUsers(tx *sqlx.Tx, u int, msgID int) error {
+	q := "INSERT INTO notify (user_id, msg_id) values ($1, $2)"
+	stmt, err := tx.Preparex(q)
+	if err != nil {
+		logger.Println(err)
+		return err
+	}
+	defer stmt.Close()
+
+	if _, err := stmt.Exec(u, msgID); err != nil {
+		tx.Rollback()
+		logger.Println(err)
+		return err
+	}
+	return nil
+}
+
 /*
  * Saves the state of the block (tb)
  * to the db. Where tb is an existing block in the db
  */
 func (tb *TimeBlock) update() error {
-	q := `UPDATE time_block
-			SET(block_id, block_start, block_end, room_id, modifier, title, note)
-			= ($1, $2, $3, $4, $5, $6, $7)
-		WHERE (time_block.block_id = $1)`
-
-	_, err := db.Exec(q, tb.ID, tb.Start, tb.End, tb.Room, tb.Modifier, tb.Title, tb.Note)
-	return err
+	return blockChanges(tb, true)
 }
 
 /*
  * Deletes the recieving block's (tb) entry in the db.
  */
 func (tb *TimeBlock) delete() error {
-	q := `DELETE FROM time_block WHERE time_block.block_id = $1`
-	results, err := db.Exec(q, tb.ID)
+
+	return blockChanges(tb, false)
+}
+
+func blockChanges(tb *TimeBlock, isUpdate bool) error {
+	tx, err := db.Beginx()
 	if err != nil {
-		logger.Println(err)
 		return err
 	}
-	count, err := results.RowsAffected()
-	if err != nil {
-		logger.Println(err)
-		return err
-	} else if count != 1 {
-		err = errors.New("time block not deleted")
-		logger.Println(err)
-		return err
+	var msg MsgWording
+	var usrs []int
+	var msgID int
+	change := "updated"
+	if !isUpdate {
+		change = "removed"
 	}
-	return nil
+	{
+		msg, err = getOldTimeBlockValues(tx, tb.ID)
+		if err != nil {
+			return err
+		}
+		logger.Println(msg)
+	}
+	{
+		usrs, err = getUsersInTimeBlockValues(tx, tb.ID)
+		if err != nil {
+			return err
+		}
+	}
+	{
+		err = deleteExistingBookings(tx, tb.ID)
+		if err != nil {
+			return err
+		}
+	}
+	if isUpdate {
+		{
+			err = updateTimeBlockQuery(tx, tb)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		{
+			err = deleteTimeBlockQuery(tx, tb.ID)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	{
+		msgID, err = createNewMessage(tx, msg, change)
+		if err != nil {
+			return err
+		}
+	}
+	for _, u := range usrs {
+		{
+			err = createMessageForUsers(tx, u, msgID)
+			if err != nil {
+				logger.Println(err)
+				return err
+			}
+		}
+	}
+	return tx.Commit()
 }
 
 /*

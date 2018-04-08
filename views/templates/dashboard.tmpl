@@ -10,7 +10,7 @@
       </div>
     </div>
     <div class="row">
-      <div class="col-lg-6">
+      <div class="col-lg-4">
         <div class="card text-center mb-3">
             <h2 class="card-header">Complete</h2>
           <div class="card-body">
@@ -19,7 +19,7 @@
           </div>
         </div>
       </div>
-      <div class="col-lg-6">
+      <div class="col-lg-4">
         <div class="card text-center mb-3">
             <h2 class="card-header">Booked</h2>
             <div class="card-body">
@@ -28,7 +28,34 @@
             </div>
         </div>
       </div>
+
+        <div class="col-lg-4">
+        <div class="card text-center mb-3">
+            <h2 class="card-header">Notifications</h2>
+            <div class="card-body" style="height:200;">
+                <div id="notification_box" style="float:left;overflow-y: auto;height: 175;">
+                    {{range .Messages}}
+                            <div class="alert alert-dark alert-dismissible fade show" role="alert">
+                                <div class="col-10">
+                                      {{.Msg}}
+                                </div>
+                                <div class="pull-right">
+                                      <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick="dissmissMsg({{.MsgID}})">
+                                        <span aria-hidden="true" style="font-size: small;">Dismiss</span>
+                                      </button>
+                                </div>
+                            </div>
+                              
+                    {{end}}
+                </div>
+
+              
+            </div>
+        </div>
+      </div>
     </div>
+
+
       <div class="row">
         <div class="col-lg-6 float-left">
             <div class="card text-center" id="wdgt-container">
