@@ -5,20 +5,20 @@
         <div class="form-group">
             <fieldset>
                 <p>TimeStart</p>
-                <input id="startdate" type="date" class="form-control form-control-sm">
+                <input id="startdate" type="date" name="Start Date" class="form-control form-control-sm">
                 <br>
-				<input id="starttime" type="time" class="form-control form-control-sm">
+				<input id="starttime" type="time" name="Start Time" class="form-control form-control-sm">
 				<br>
                 <p>TimeEnd</p>
-                <input id="enddate" type="date" class="form-control form-control-sm">
+                <input id="enddate" type="date" name="End Date" class="form-control form-control-sm">
                 <br>
-				<input id="endtime" type="time" class="form-control form-control-sm">
+				<input id="endtime" type="time" name="End Time" class="form-control form-control-sm">
 				<br>
                 <p>Block Title</p>
                 <input id="bTitle" type="text" placeholder="'Facilitation' by default" class="form-control form-control-sm">
                 <br>
                 <p>ClassRoom</p>
-                <select class="form-control" id="room">
+                <select class="form-control" name="Room" id="room">
                     <option value="" disabled selected hidden>Select a Classroom</option>
                     {{`{{~it :value:index}}`}}
                         <option value="{{`{{=value.roomId}}`}}">{{`{{=value.roomName}}`}}</option>
@@ -26,7 +26,7 @@
                 </select>
                 <br>
                 <p>Modifier</p>
-                <input id="modifier" type="number" value="1" class="form-control form-control-sm">
+                <input id="modifier"type="number" value="1" name="Modifier" class="form-control form-control-sm">
                 <br>
                 <p>Note</p>
                 <input id="note" type="text" placeholder="Insert a note for facilitators..." class="form-control form-control-sm">

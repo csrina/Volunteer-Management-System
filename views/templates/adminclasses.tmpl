@@ -37,7 +37,7 @@
         <input id="cId" type="text" value="{{`{{=it.roomId}}`}}" class="form-control form-control-sm" readonly>
         <br>
         <p>Classname / Colour</p>
-        <input id="cName" type="text" value="{{`{{=it.roomName}}`}}" class="form-control form-control-sm">
+        <input id="cName" type="text" name="Room Name" value="{{`{{=it.roomName}}`}}" class="form-control form-control-sm">
         <br>
         <p>Teacher</p>
         <select class="form-control" id="cTeacher">
@@ -47,7 +47,7 @@
         </select>
         <br>
         <p>Room #</p>
-        <input id="cNum" type="text" value="{{`{{=it.roomNum}}`}}" class="form-control form-control-sm">
+        <input id="cNum" type="text" name="Room Number" value="{{`{{=it.roomNum}}`}}" class="form-control form-control-sm">
         <br>
         <button id="submit" type="button" class="btn btn-primary">Submit</button>
         <button id="cancel" type="button" class="btn btn-primary">Cancel</button>
@@ -57,7 +57,7 @@
 <script id="tmpl_createClass" type="x-dot-template">
     <div class="form-group">
         <p>Classname / Colour</p>
-        <input id="cName" type="text" class="form-control form-control-sm">
+        <input id="cName" type="text" name="Room Name" class="form-control form-control-sm">
         <br>
         <p>Teacher</p>
         <select class="form-control" id="cTeacher">
@@ -68,7 +68,7 @@
         </select>
         <br>
         <p>Room #</p>
-        <input id="cNum" type="text" class="form-control form-control-sm">
+        <input id="cNum" type="text" name="Room Number" class="form-control form-control-sm">
         <br>
         <button id="submit" type="button" class="btn btn-primary">Submit</button>
         <button id="cancel" type="button" class="btn btn-primary">Cancel</button>

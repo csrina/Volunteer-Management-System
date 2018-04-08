@@ -1,3 +1,16 @@
+function fieldCheck(input) {
+	if (input.value == "" ) {
+		makeToast('error', `${input.name} cannot be empty`)
+		input.classList.add('alert');
+		input.classList.add('alert-danger');
+		return true;
+	}
+
+	input.classList.remove('alert');
+	input.classList.remove('alert-danger');
+	return false;
+}
+
 // Callback function for drag/drops and resizes of existing events
 // Note: We dont want this to be populated if we aren't admin.
 // post-demo will refactor this out into templates populated differently based on the role of the user
@@ -323,15 +336,19 @@ function loadAddEvent() {
 }
 
 function submitEvent() {
-	if (document.querySelector("#startdate").value == ""
-		|| document.querySelector("#starttime").value == ""
-		|| document.querySelector("#enddate").value == ""
-        || document.querySelector("#endtime").value == ""
-        || document.querySelector("#room").value == ""
-        || document.querySelector("#modifier").value == "") {
-        alert('Please fill out all options');
-        return;
-    }
+	
+	let startD = document.querySelector("#startdate");
+	let startT = document.querySelector("#starttime");
+	let endD = document.querySelector("#enddate");
+    let endT = document.querySelector("#endtime");
+    let room = document.querySelector("#room");
+	let mod = document.querySelector("#modifier");
+	
+	if (fieldCheck(startD) || fieldCheck(startT) 
+	|| fieldCheck(endD) || fieldCheck(endT)
+	|| fieldCheck(room) || fieldCheck(mod)) {
+		return;
+	}
 
     let xhttp = new XMLHttpRequest();
     xhttp.addEventListener("loadend", () => {
