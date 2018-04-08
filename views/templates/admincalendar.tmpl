@@ -48,6 +48,8 @@
                     <h5 id="modalEventRoom"></h5>
                     <h5 id="modalTimeLabel" class="text-muted">When:</h5>
                     <h5 id="modalEventTime"></h5>
+                    <h5 id="modalCapacityLabel" class="text-muted">Capacity:</h5>
+                    <h5 id="modalEventCapacity"></h5>
                     <h5 id="modalValueLabel" class="text-muted">Value:</h5>
                     <h5 id="modalDescLabel" class="text-muted">Description:</h5><br>
                     <p id="eventNote"></p><br>
@@ -55,7 +57,6 @@
                     <div class="text-center" id="eventBookings"></div>
                 </div>
                 <div class="modal-footer">
-                    <p aria-hidden="true" style="visibility: hidden" id="modalEventData"></p>
                     <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
                 </div>
             </div>
@@ -63,14 +64,16 @@
     </div>
     <div class="main-container">
         <div class="container">
-            <div class="col-xs-3 float-left" id="eventForm"></div>
-            <div class="col-xs-9">
-                <h2 class="text-center">Upcoming Schedule</h2>
-                <div class="card mp-2" id="wdgt-container">
-                    <div class="mt-2" id="filterList">
-                        <div class="btn-group text-center" data-toggle="buttons" id="filterButtons"></div>
+            <div class="row">
+                <div class="col-xs-2 float-left" id="eventForm"></div>
+                <div class="col-xs-9">
+                    <h2 class="text-center">Upcoming Schedule</h2>
+                    <div class="card mp-2" id="wdgt-container">
+                        <div class="mt-2" id="filterList">
+                            <div class="btn-group text-center" data-toggle="buttons" id="filterButtons"></div>
+                        </div>
+                        <div id="calendar"></div>
                     </div>
-                    <div id="calendar"></div>
                 </div>
             </div>
         </div>

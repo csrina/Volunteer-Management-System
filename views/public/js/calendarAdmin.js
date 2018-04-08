@@ -266,10 +266,10 @@ $(document).ready(function() {
         themeSystem: "bootstrap4",
         editable: true,                 // Need to use templating engine to change bool based on user's rolego ,
         eventRender: function(event, element, view) {
-            element.find('.fc-time').css("font-size", "1em")
+            element.find('.fc-time').css("font-size", "1rem")
                     .append('     ' + event.bookingCount + "/" +
                                  ((!!event.capacity) ? event.capacity.toString() : "3"));
-            element.find('.fc-title').css("font-size", "1.2em").append("<br>")
+            element.find('.fc-title').css("font-size", "1.2rem").append("<br>")
                     .append("<button type='button' class='btn btn-outline-primary border-0 btn-sm' data-id='" + event.id + "' onclick='showModal(this)'><i class='far fa-edit fa-lg'></i></button>    ")
                     .append("<br><button type='button' class='btn btn-outline-primary border-0 btn-sm' data-id='" + event.id + "' onclick='removeEvent(this)'><i class='fas fa-times-circle fa-lg'></i></button>    ");
             return renderFiltered(event);
