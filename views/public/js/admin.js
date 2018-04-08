@@ -140,38 +140,45 @@ function setActiveCategory() {
     document.querySelector(`#${cat}Btn`).setAttribute('class','active');
 }
 
+function download(filename, text) {
+  var element = document.createElement('a');
+  element.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(text));
+  element.setAttribute('download', filename);
+
+  element.style.display = 'none';
+  document.body.appendChild(element);
+
+  element.click();
+
+  document.body.removeChild(element);
+}
+
+
 function exportMonthly() {
     let xhttp = new XMLHttpRequest();
     xhttp.addEventListener("loadend", () => {
-	data = JSON.parse(xhttp.response);
-	let str = [[]];
-	let weeks = ["family"]
-	for (let i=0; i<data[0].weeks.length; i++) {
-	    weeks.push(`week ${i+1}`);
-	}
-	str.push(weeks);
-	for (let i=0; i<data.length; i++) {
-	    let row = []
-	    row.push(data[i].familyName);
-	    for (let j=0; j<data[i].weeks.length; j++) {
-		row.push(data[i].weeks[j].total);
-	    }
-	    str.push(row);
-	}
-
-	if(window.navigator.msSaveOrOpenBlob) {
-	    var fileData = [str];
-	    blobObject = new Blob(fileData);
-	    window.navigator.msSaveOrOpenBlob(blobObject, fileName);
-	} else {
-	    var csvContent = "data:text/csv;charset=utf-8,";
-	    str.forEach(function(rowArray){
-		let str = rowArray.join(",");
-		csvContent += str + "\r\n";
-	    });
-	    var encodedUri = encodeURI(csvContent);
-	    window.open(encodedUri);
-	}
+    	data = JSON.parse(xhttp.response);
+    	let str = [[]];
+    	let weeks = ["family"]
+    	for (let i=0; i<data[0].weeks.length; i++) {
+    	    weeks.push(`week ${i+1}`);
+    	}
+    	str.push(weeks);
+    	for (let i=0; i<data.length; i++) {
+    	    let row = []
+    	    row.push(data[i].familyName);
+    	    for (let j=0; j<data[i].weeks.length; j++) {
+    		row.push(data[i].weeks[j].total);
+    	    }
+    	    str.push(row);
+    	}
+	var csvContent;
+    	str.forEach(function(rowArray){
+    	    let str = rowArray.join(",");
+    	    csvContent += str + "\r\n";
+	});
+		    
+	download("export.csv", csvContent);
     });
     
     xhttp.open("GET", "/api/v1/charts");
