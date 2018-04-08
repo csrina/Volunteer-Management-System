@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -20,12 +21,12 @@ type roomFull struct {
 }
 
 type roomDetailed struct {
-	RoomID     int    `json:"roomId" db:"room_id"`
-	RoomName   string `json:"roomName" db:"room_name"`
-	Teacher    string `json:"teacher" db:"teacher"`
-	TeacherID  int    `json:"teacherId" db:"teacher_id"`
-	Children   int    `json:"children" db:"children"`
-	RoomNumber string `json:"roomNum" db:"room_num"`
+	RoomID     int            `json:"roomId" db:"room_id"`
+	RoomName   string         `json:"roomName" db:"room_name"`
+	Teacher    sql.NullString `json:"teacher" db:"teacher"`
+	TeacherID  sql.NullInt64  `json:"teacherId" db:"teacher_id"`
+	Children   int            `json:"children" db:"children"`
+	RoomNumber string         `json:"roomNum" db:"room_num"`
 }
 
 type roomShort struct {
@@ -385,9 +386,11 @@ func getClassInfo(w http.ResponseWriter, r *http.Request) {
 	classID, err := strconv.Atoi(options.Get("c"))
 
 	if err != nil {
-		q := `SELECT room.room_id, room.room_name, users.username AS teacher, room.room_num
-			FROM room, users
-			WHERE room.teacher_id = users.user_id`
+
+		q := `SELECT room.room_id, room.room_name, 
+				users.username as teacher, room.room_num  
+				FROM room 
+				FULL OUTER JOIN users ON room.teacher_id = users.user_id WHERE room_id IS NOT NULL`
 		classes := []roomDetailed{}
 
 		err := db.Select(&classes, q)
@@ -400,10 +403,16 @@ func getClassInfo(w http.ResponseWriter, r *http.Request) {
 		encoder := json.NewEncoder(w)
 		encoder.Encode(classes)
 	} else {
-		q2 := `SELECT room.room_id, room.room_name, users.username AS teacher, users.user_id AS teacher_id, room.room_num
-				FROM room, users
-				WHERE room.room_id = $1
-				AND room.teacher_id = users.user_id`
+		/*
+			q2 := `SELECT room.room_id, room.room_name, users.username AS teacher, users.user_id AS teacher_id, room.room_num
+					FROM room, users
+					WHERE room.room_id = $1
+					AND room.teacher_id = users.user_id`
+		*/
+		q2 := `SELECT room.room_id, room.room_name, 
+				users.username as teacher, users.user_id AS teacher_id,room.room_num
+				FROM room
+				FULL OUTER JOIN users ON room.teacher_id = users.user_id WHERE room_id = $1`
 
 		class := []roomDetailed{}
 
@@ -424,16 +433,26 @@ func createClass(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	decoder.Decode(&class)
 
-	q := `INSERT INTO room (room_name, teacher_id, room_num)
-			VALUES ($1, $2, $3)`
-
-	_, err := db.Exec(q, class.RoomName, class.TeacherID, class.RoomNumber)
-	if err != nil {
-		logger.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
+	if class.TeacherID == -1 {
+		q := `INSERT INTO room (room_name, room_num)
+				VALUES ($1, $2)`
+		_, err := db.Exec(q, class.RoomName, class.RoomNumber)
+		if err != nil {
+			logger.Println(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+	} else {
+		q := `INSERT INTO room (room_name, teacher_id, room_num)
+		VALUES ($1, $2, $3)`
+		_, err := db.Exec(q, class.RoomName, class.TeacherID, class.RoomNumber)
+		if err != nil {
+			logger.Println(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		w.WriteHeader(http.StatusCreated)
 	}
-	w.WriteHeader(http.StatusCreated)
 }
 
 func updateClass(w http.ResponseWriter, r *http.Request) {
@@ -441,17 +460,29 @@ func updateClass(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	decoder.Decode(&class)
 
-	q := `UPDATE room
-			SET room_name = $2, teacher_id = $3, room_num = $4
-			WHERE room_id = $1`
-
-	_, err := db.Exec(q, class.RoomID, class.RoomName, class.TeacherID, class.RoomNumber)
-	if err != nil {
-		logger.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
+	if class.TeacherID == -1 {
+		q := `UPDATE room
+		SET room_name = $2, teacher_id = NULL, room_num = $3
+		WHERE room_id = $1`
+		_, err := db.Exec(q, class.RoomID, class.RoomName, class.RoomNumber)
+		if err != nil {
+			logger.Println(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		w.WriteHeader(http.StatusCreated)
+	} else {
+		q := `UPDATE room
+		SET room_name = $2, teacher_id = $3, room_num = $4
+		WHERE room_id = $1`
+		_, err := db.Exec(q, class.RoomID, class.RoomName, class.TeacherID, class.RoomNumber)
+		if err != nil {
+			logger.Println(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		w.WriteHeader(http.StatusCreated)
 	}
-	w.WriteHeader(http.StatusCreated)
 }
 
 func deleteUser(w http.ResponseWriter, r *http.Request) {

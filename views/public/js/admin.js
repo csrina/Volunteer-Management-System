@@ -14,9 +14,9 @@ function inputCheck(input) {
 		return true
 	}
 
-	let chars = /^[a-zA-Z]+$/;
+	let chars = /^[a-zA-Z0-9_ ]*$/
 	if (!chars.test(input.value)) {
-		makeToast('error', `${input.name} can only contain letters`)
+		makeToast('error', `${input.name} can only contain letters, numbers, and spaces`)
 		input.classList.add('alert');
 		input.classList.add('alert-danger');
 		return true;
@@ -36,9 +36,9 @@ function roomCheck(input) {
 
 	//regex pulled from: 
 	//https://stackoverflow.com/questions/8292965/regular-expression-for-number-and-dash
-	let chars = /^(\d+-?)+\d+$/
+	let chars = /^[0-9]+$/
 	if (!chars.test(input.value)) {
-		makeToast('error', `${input.name} is not a valid phone number`)
+		makeToast('error', `${input.name} can only contain numbers`)
 		input.classList.add('alert');
 		input.classList.add('alert-danger');
 		return true;
@@ -620,7 +620,7 @@ function newUser() {
 function listClasses() {
     let xhttp = new XMLHttpRequest();
     xhttp.addEventListener("loadend", () => {
-        let classes = JSON.parse(xhttp.response);
+		let classes = JSON.parse(xhttp.response);
         let tmpl = document.querySelector("#tmpl_listClasses").innerHTML;
         let func = doT.template(tmpl);
 		document.querySelector("#displayData").innerHTML = func(classes);
@@ -645,7 +645,7 @@ function loadEditClass(e) {
         contentType: 'json',
         dataType: 'json',
         success: function(data) {
-            console.log(data);
+			console.log(data);
             let tmpl = document.querySelector("#tmpl_editClass").innerHTML;
             let func = doT.template(tmpl);
             //requires data[0] because API is returning a list
