@@ -5,6 +5,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -19,18 +20,11 @@ const (
 )
 
 /* Find start/end contstraints within the month */
-func setWeekConstraint(time time.Time) (start, end time.Time) {
+func setWeekConstraint(time time.Time) (start, end string) {
 	check := now.New(time)
-	if check.BeginningOfWeek().Before(check.BeginningOfMonth()) {
-		start = check.BeginningOfMonth()
-	} else {
-		start = check.BeginningOfWeek()
-	}
-	if check.EndOfWeek().After(check.EndOfMonth()) {
-		end = check.EndOfMonth()
-	} else {
-		end = check.EndOfWeek()
-	}
+	start = check.BeginningOfWeek().Format("Mon Jan 2")
+	end = check.EndOfWeek().Format("Mon Jan 2")
+
 	return start, end
 }
 
@@ -39,6 +33,9 @@ func getHourGoal(children int) float64 {
 		return ONE_CHILD_HOURS_GOAL
 	}
 	return DEFAULT_HOURS_GOAL
+}
+
+type familyReport struct {
 }
 
 func monthlyReport(w http.ResponseWriter, r *http.Request) {
@@ -52,17 +49,21 @@ func monthlyReport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	month := []familyMonth{}
+	month := []monthReport{}
 
 	for i, fam := range families {
 		goal := getHourGoal(fam.Children)
 		start := now.BeginningOfMonth()
 		end := time.Now()
-		month = append(month, familyMonth{})
+		month = append(month, monthReport{})
 		for start.Before(now.EndOfMonth()) {
-			start, end = setWeekConstraint(start)
-			hours := familyHoursBooked(fam.FamilyID, start, end)
-			month[i].Weeks = append(month[i].Weeks, hours-goal)
+			begin, finish := setWeekConstraint(start)
+			hours := familyHoursBooked(fam.FamilyID, begin, finish)
+			month[i].Weeks = append(month[i].Weeks, weekReport{
+				Start: begin,
+				End:   finish,
+				Total: hours - goal,
+			})
 			start = start.AddDate(0, 0, 8)
 		}
 		month[i].FamilyID = fam.FamilyID
@@ -70,6 +71,20 @@ func monthlyReport(w http.ResponseWriter, r *http.Request) {
 	}
 	encoder := json.NewEncoder(w)
 	encoder.Encode(month)
+}
+
+func exportMonthly(w http.ResponseWriter, r *http.Request) {
+	var test []monthReport
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&test)
+	if err != nil {
+		fmt.Printf("%v", err)
+	}
+	fmt.Printf("%v", test)
+}
+
+func exportYearly(w http.ResponseWriter, r *http.Request) {
+
 }
 
 func defaultReport(w http.ResponseWriter, r *http.Request) {

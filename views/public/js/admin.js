@@ -140,50 +140,94 @@ function setActiveCategory() {
     document.querySelector(`#${cat}Btn`).setAttribute('class','active');
 }
 
+function exportMonthly() {
+    let xhttp = new XMLHttpRequest();
+    xhttp.addEventListener("loadend", () => {
+	data = JSON.parse(xhttp.response);
+	let str = [[]];
+	let weeks = ["family"]
+	for (let i=0; i<data[0].weeks.length; i++) {
+	    weeks.push(`week ${i+1}`);
+	}
+	str.push(weeks);
+	for (let i=0; i<data.length; i++) {
+	    let row = []
+	    row.push(data[i].familyName);
+	    for (let j=0; j<data[i].weeks.length; j++) {
+		row.push(data[i].weeks[j].total);
+	    }
+	    str.push(row);
+	}
+
+	if(window.navigator.msSaveOrOpenBlob) {
+	    var fileData = [str];
+	    blobObject = new Blob(fileData);
+	    window.navigator.msSaveOrOpenBlob(blobObject, fileName);
+	} else {
+	    var csvContent = "data:text/csv;charset=utf-8,";
+	    str.forEach(function(rowArray){
+		let str = rowArray.join(",");
+		csvContent += str + "\r\n";
+	    });
+	    var encodedUri = encodeURI(csvContent);
+	    window.open(encodedUri);
+	}
+    });
+    
+    xhttp.open("GET", "/api/v1/charts");
+    xhttp.send();
+}
+
+
 function familyData() {
     let xhttp = new XMLHttpRequest();
     xhttp.addEventListener("loadend", () => {
-	console.log(xhttp.response);
-	let httpData = JSON.parse(xhttp.response);
+    	let httpData = JSON.parse(xhttp.response);
+    	list = []
+    	for (let i=0; i< httpData[0].weeks.length; i++) {
+    	    list.push(httpData[0].weeks[i].start + " - " + httpData[0].weeks[i].end)
+    	}
+    	var ctx = document.getElementById('skills').getContext('2d');
+    	var barData = {
+    	    labels: list,
+    	    datasets: []
+    	};
 	
-	var ctx = document.getElementById('skills').getContext('2d');
-	var barData = {
-	    labels: ['FirstWeek', 'SecondWeek', 'ThirdWeek',
-		     'FourthWeek', 'FifthWeek', 'SixthWeek'],
-	    //labels: ['Week'],
-	    datasets: []
-	};
-	
-	window.myBar = new Chart(ctx, {
-	    type: 'bar',
-	    data: barData,
-	    options: {
-		responsive: true,
-		legend: {
-		    position: 'right',
-		},
-		title: {
-		    display: true,
-		    text: 'Chart.js Horizontal Bar Chart'
-		}
-	    }
-	});
+    	window.myBar = new Chart(ctx, {
+    	    type: 'horizontalBar',
+    	    data: barData,
+    	    options: {
+    		scales: {
+    		    xAxes: [{
+    			ticks : { 
+    			    min: -5,
+    			    max: 5,
+    			    stepSize: 0.5
+    			}
+    		    }]
+    		}
+    	    }
+    	});
 
 
-	var colourList = ["#00FFFF", "#A52A2A", "#7FFF00", "#FF7F50",
-			  "#006400", "#8B008B", "#FFD700", "#808080"]
-	var total = 0;
-	for (let i=0; i<httpData.length;i++) {
-	    let name = httpData[i].familyName;
-	    let hours = httpData[i].weeks;
-	    barData.datasets.push({
-		label: name,
-		backgroundColor: colourList[total%8],
-		borderWidth: 1,
-		data: hours});
-	    total ++;
-	}
-	window.myBar.update();
+    	var colourList = ["#00FFFF", "#A52A2A", "#7FFF00", "#FF7F50",
+    			  "#006400", "#8B008B", "#FFD700", "#808080"]
+    	var total = 0;
+    	for (let i=0; i<httpData.length;i++) {
+    	    let hours = [];
+    	    let name = httpData[i].familyName;
+    	    for (let j=0; j<httpData[i].weeks.length;j++) {
+    		hours.push(httpData[i].weeks[j].total);
+    	    }
+    	    barData.datasets.push({
+    		label: name,
+    		backgroundColor: colourList[total%8],
+    		borderWidth: 1,
+    		data: hours
+    	    });
+    	    total++;
+    	}
+    	window.myBar.update();
     });
     xhttp.open("GET", "/api/v1/charts");
     xhttp.send();
