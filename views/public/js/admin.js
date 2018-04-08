@@ -4,6 +4,136 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 })
 
+function inputCheck(input) {
+	//referenced from https://stackoverflow.com/questions/23556533/how-do-i-make-an-input-field-accept-only-letters-in-javascript
+
+	if (input.value == "" ) {
+		makeToast('error', `${input.name} cannot be empty`)
+		input.classList.add('alert');
+		input.classList.add('alert-danger');
+		return true
+	}
+
+	let chars = /^[a-zA-Z]+$/;
+	if (!chars.test(input.value)) {
+		makeToast('error', `${input.name} can only contain letters`)
+		input.classList.add('alert');
+		input.classList.add('alert-danger');
+		return true;
+	}
+	input.classList.remove('alert');
+	input.classList.remove('alert-danger');
+	return false;
+}
+
+function roomCheck(input) {
+	if (input.value == "" ) {
+		makeToast('error', `${input.name} cannot be empty`)
+		input.classList.add('alert');
+		input.classList.add('alert-danger');
+		return true
+	}
+
+	//regex pulled from: 
+	//https://stackoverflow.com/questions/8292965/regular-expression-for-number-and-dash
+	let chars = /^(\d+-?)+\d+$/
+	if (!chars.test(input.value)) {
+		makeToast('error', `${input.name} is not a valid phone number`)
+		input.classList.add('alert');
+		input.classList.add('alert-danger');
+		return true;
+	}
+
+	input.classList.remove('alert');
+	input.classList.remove('alert-danger');
+	return false
+
+}
+
+function phoneCheck(input) {
+	if (input.value == "" ) {
+		makeToast('error', `${input.name} cannot be empty`)
+		input.classList.add('alert');
+		input.classList.add('alert-danger');
+		return true
+	}
+
+	//posible phone chars referenced from
+	//https://stackoverflow.com/questions/4338267/validate-phone-number-with-javascript
+	let chars = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/im
+
+	if (!chars.test(input.value)) {
+		makeToast('error', `${input.name} is not a valid phone number`)
+		input.classList.add('alert');
+		input.classList.add('alert-danger');
+		return true;
+	}
+	input.classList.remove('alert');
+	input.classList.remove('alert-danger');
+	return false
+}
+
+function emailCheck(input) {
+
+	if (input.value == "" ) {
+		makeToast('error', `${input.name} cannot be empty`)
+		input.classList.add('alert');
+		input.classList.add('alert-danger');
+		return true
+	}	
+
+	//posible email chars referenced from
+	//https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
+	let chars = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i
+
+	if (!chars.test(input.value)) {
+		makeToast('error', `${input.name} is not a valid email address`)
+		input.classList.add('alert');
+		input.classList.add('alert-danger');
+		return true;
+	}
+	input.classList.remove('alert');
+	input.classList.remove('alert-danger');
+	return false
+}
+
+
+function passCheck(pw1, pw2) {
+
+	if (pw1.value == "") {
+		makeToast('error', `${pw1.name} cannot be empty`)
+		pw1.classList.add('alert');
+		pw1.classList.add('alert-danger');
+		pw2.classList.add('alert');
+		pw2.classList.add('alert-danger');
+		return true;
+	}
+
+	if (pw1.value.length < 8) {
+		makeToast('error','Password must be longer than 8 characters');
+		pw1.classList.add('alert');
+		pw1.classList.add('alert-danger');
+		pw2.classList.add('alert');
+		pw2.classList.add('alert-danger');
+        return true;
+	}
+
+    if (pw1.value != pw2.value) {
+		makeToast('error','Passwords do not match');
+		pw2.classList.add('alert');
+		pw2.classList.add('alert-danger');
+		pw1.classList.add('alert');
+		pw1.classList.add('alert-danger');
+        return true;
+	}
+
+	pw1.classList.remove('alert');
+	pw1.classList.remove('alert-danger');
+	pw2.classList.remove('alert');
+	pw2.classList.remove('alert-danger');
+	return false;
+}
+
 //sets active category in top bars
 function setActiveCategory() {
     let cat = window.location.href.split("/").pop();
@@ -103,10 +233,44 @@ function loadEditUser(e) {
         let func = doT.template(tmpl);
         document.querySelector("#displayData").innerHTML = func(userInfo);
         document.querySelector("#cancel").addEventListener('click', userList);
-        document.querySelector("#submit").addEventListener('click', submitUserEdit);
+		document.querySelector("#submit").addEventListener('click', submitUserEdit);
+		document.querySelector("#delete").addEventListener('click',
+		deleteUser);
     });
     xhttp.open("GET", `/api/v1/admin/users?u=${userID}`);
     xhttp.send();
+}
+
+function deleteWarning(e) {
+	let username = document.querySelector("#uName").value;
+
+	let check = prompt(`WARNING!\n\nARE YOU SURE YOU WANT TO DELETE USER: ${username}?\n\nTHIS WILL DELETE ALL RECORDS ASSOSCIATED WITH THIS USER, INCLUDING DONATIONS AND ANY PREVIOUS BOOKING RECORDS\n\nTo delete please type the username below.`, "")
+	
+	return (check === username)
+
+}
+
+function deleteUser(e) {
+	
+	let userID = document.querySelector("#IDNum").value;
+	let username = document.querySelector("#uName").value;
+	if (!deleteWarning()) { 
+		makeToast("error", "Names did not match");
+		return;
+	}
+	$.ajax({
+		type: 'DELETE',
+		url: `/api/v1/admin/users/${userID}`,
+		dataType: 'text',
+		contentType: 'text',
+		success: function(data) {
+			makeToast("success","User succesfully deleted.");
+			userList();
+		},
+		error: function(data) {
+			makeToast("error", "Internal server error, could not delete user.")
+		}
+	});
 }
 
 function loadEditPassword(e) {
@@ -151,8 +315,10 @@ function loadEditFamily(e) {
 
         document.querySelector("#displayData").innerHTML = func(data);
         document.querySelector("#cancel").addEventListener('click', familyList);
-        document.querySelector("#submit").addEventListener('click', submitEditFamily);
-        
+		document.querySelector("#submit").addEventListener('click', submitEditFamily);
+		document.querySelector("#delete").addEventListener('click',
+		deleteFamily);
+
         $('#parent-select').multiSelect({
             selectableHeader: "<div class='parent-select'>Available Facilitators</div>",
             selectionHeader: "<div class='parent-select'>Family Members</div>"
@@ -170,11 +336,42 @@ function loadEditFamily(e) {
     });
 }
 
+function deleteFamilyWarning(e) {
+	let surname = document.querySelector("#famName").value;
+
+	let check = prompt(`WARNING!\n\nARE YOU SURE YOU WANT TO DELETE FAMILY: ${surname}?\n\nTHIS WILL DELETE ALL RECORDS ASSOSCIATED WITH THIS FAMILY, INCLUDING ANY PREVIOUS BOOKING RECORDS\n\nTo delete please type the family name below.`, "");
+	
+	return (check === surname);
+
+}
+
+function deleteFamily(e) {
+	let famID = document.querySelector("#famId").value;
+	let surname = document.querySelector("#famName").value;
+	if (!deleteFamilyWarning()) { 
+		makeToast("error", "Names did not match");
+		return;
+	}
+	$.ajax({
+		type: 'DELETE',
+		url: `/api/v1/admin/families/${famID}`,
+		dataType: 'text',
+		contentType: 'text',
+		success: function(data) {
+			makeToast("success","Family succesfully deleted.");
+			userList();
+		},
+		error: function(data) {
+			makeToast("error", data.responseText)
+		}
+	});
+}
+
 //Not a big fan of the way this "removes" family members
 //Could be more effecicient
 function submitEditFamily() {
     let familyID = parseInt($("#famId").val());
-    let surname = $("#famName").val();
+	let surname = document.querySelector("#famName");
     let numChild = parseInt($("#children").val());
     let dList = new Array();
     let pList = new Array();
@@ -183,9 +380,13 @@ function submitEditFamily() {
     });
     $('#parent-select option:not(:selected)').each(function() {
         dList.push(parseInt($(this).val()));
-    });
+	});
+	
+	if (inputCheck(surname)) {
+		return;
+	}
 
-    let data = {"familyId":familyID, "familyName":surname,
+    let data = {"familyId":familyID, "familyName":surname.value,
                 "children": numChild, "parents":pList, "dropped":dList};
     $.ajax({
         type: 'PUT',
@@ -194,11 +395,11 @@ function submitEditFamily() {
         data: JSON.stringify(data),
         dataType: 'text',
         success: function(data) { 
-            alert('SUCCESS: Family updated');
+            makeToast('success', 'Family updated');
             familyList();
         },
         error: function(xhr) {
-            alert(`ERROR: Could not update family (${xhr.status})`);
+            makeToast(`error`,`Could not update family: (${xhr.status})`);
         }
     });
 }
@@ -235,14 +436,18 @@ function lonelyFacilitators() {
 }
 
 function submitNewFamily() {
-    let surname = $("#famName").val();
-    let numChild = parseInt($("#children").val());
+	let surname = document.querySelector("#famName");
+	let numChild = parseInt($("#children").val());
     let pList = new Array();
     $('#parent-select option:selected').each(function() {
         pList.push(parseInt($(this).val()));
-    });
+	});
+	
+	if (inputCheck(surname)) {
+		return;
+	}
 
-    let data = {"familyName":surname, "children": numChild, "parents":pList};
+    let data = {"familyName":surname.value, "children": numChild, "parents":pList};
 
     $.ajax({
         type: 'POST',
@@ -251,17 +456,13 @@ function submitNewFamily() {
         data: JSON.stringify(data),
         dataType: 'text',
         success: function(data) { 
-            alert('SUCCESS: Family created');
+            makeToast('success', 'Family created');
             familyList();
         },
         error: function(xhr) {
-            alert(`ERROR: Could not create family (${xhr.status})`);
+            makeToast('error', `Could not create family: (${xhr.status})`);
         }
     });
-}
-
-function familyInfo() {
-
 }
 
 function submitUserEdit() {  
@@ -273,26 +474,36 @@ function submitUserEdit() {
             } 
         }
         let uId = parseInt(document.querySelector("#IDNum").innerHTML);
-        let newFName = document.querySelector("#fname").value;
-        let newLName = document.querySelector("#lName").value;
-        let newEmail = document.querySelector("#email").value;
-        let newPhone = document.querySelector("#phoneNum").value; 
-        let newUName = `${newLName.toLowerCase()}_${newFName.toLowerCase()}`;
+        let newFName = document.querySelector("#fname");
+        let newLName = document.querySelector("#lName");
+        let newEmail = document.querySelector("#email");
+        let newPhone = document.querySelector("#phoneNum"); 
+		let newUName = `${newLName.value.toLowerCase()}_${newFName.value.toLowerCase()}`;
+
+		if (bNote.value == null) {
+			bNote.value = "None";
+		}
+		
+		if (inputCheck(newFName) || inputCheck(newLName)
+		|| emailCheck(newEmail) || phoneCheck(newPhone)) {
+			return
+		} 
+
         let xhttp = new XMLHttpRequest();
         xhttp.addEventListener("loadend", () => {
             if (xhttp.status > 300) {
-                alert('ERROR: Could not update user.');
-                return;
-            }
+				makeToast('error',`Could not update user: ${xhttp.responseText}`);
+				return;
+			}
             if (xhttp.status == 200) {
-                alert('SUCCESS: User updated.');
+                makeToast('success','User updated.');
                 userList();
             }
         });
         xhttp.open("PUT", "/api/v1/admin/users");
         xhttp.send(JSON.stringify({userid:uId, username:newUName,
-                    firstname: newFName, lastname:newLName,
-                    email:newEmail, phoneNumber:newPhone}));
+                    firstname: newFName.value, lastname:newLName.value,
+                    email:newEmail.value, phoneNumber:newPhone.value}));
 }
 
 function newUser() {
@@ -301,55 +512,49 @@ function newUser() {
     document.querySelector("#cancel").addEventListener('click', userList);
     document.querySelector("#submit").addEventListener('click', () => {
         
-        let fields = document.querySelectorAll("input");
-        for(let i = 0; i < fields.length; i++) {
-            if (fields[i].value == "" && fields[i].id != "bonusNote") {
-                alert('Please fill out all sections');
-                return;
-            } 
-        }
-        if (document.querySelector("#pass1").value.length < 8) {
-            alert('Password must be longer than 8 characters');
-            return;
-        }
-        if (document.querySelector("#pass1").value != document.querySelector("#pass2").value) {
-            alert('Passwords do not match')
-            return;
-        }
-        let newRole = parseInt(document.querySelector("#role").value);
-        let newFName = document.querySelector("#fname").value;
-        let newLName = document.querySelector("#lName").value;
-        let newEmail = document.querySelector("#email").value;
-        let newPhone = document.querySelector("#phoneNum").value;
-        let newUName = `${newLName}_${newFName}`.toLowerCase();
-        let newPass = document.querySelector("#pass1").value;
-        let bHours = parseInt(document.querySelector("#bonusHours").value);
-        let bNote = document.querySelector("#bonusNote").value;
-        let newPassData = [];
-        for (let i = 0; i < newPass.length; i++) {
-            newPassData.push(newPass.charCodeAt(i));
-        }
 
-        let xhttp = new XMLHttpRequest();
-        xhttp.addEventListener("loadend", () => {
-            if (xhttp.status > 300) {
-                alert('ERROR: Could not create user.');
-                return;
-            }
-            if (xhttp.status == 201) {
-                alert('SUCCESS: User added to system');
-                userList();
-            }
+    let newRole = parseInt(document.querySelector("#role").value);
+    let newFName = document.querySelector("#fname");
+    let newLName = document.querySelector("#lName");
+    let newEmail = document.querySelector("#email");
+    let newPhone = document.querySelector("#phoneNum");
+    let newUName = `${newLName.value}_${newFName.value}`.toLowerCase();
+	let newPass = document.querySelector("#pass1");
+	let passConfirm = document.querySelector("#pass2");
+    let bHours = parseInt(document.querySelector("#bonusHours").value);
+	let bNote = document.querySelector("#bonusNote");
+		
+	if (inputCheck(newFName) || inputCheck(newLName)
+		|| emailCheck(newEmail) || phoneCheck(newPhone)
+		|| passCheck(newPass, passConfirm)) {
+		return;
+	}
+
+	if (bNote.value == null) {
+		bNote.value = "None";
+	}
+
+    let newPassData = [];
+    for (let i = 0; i < newPass.length; i++) {
+        newPassData.push(newPass.charCodeAt(i));
+    }
+
+    let xhttp = new XMLHttpRequest();
+    xhttp.addEventListener("loadend", () => {
+        if (xhttp.status > 300) {
+            makeToast('error',`Could not create user: ${xhttp.responseText}`);
+            return;
+        }
+        if (xhttp.status == 201) {
+            makeToast('success','User added to system');
+            userList();
+        }
         });
         xhttp.open("POST", "/api/v1/admin/users");
         xhttp.send(JSON.stringify({userrole:newRole, username:newUName,
-                    password:newPassData, firstname: newFName, lastname:newLName,
-                    email:newEmail, phoneNumber:newPhone, bonusHours:bHours, bonusNote:bNote}));
+                    password:newPassData, firstname: newFName.value, lastname:newLName.value,
+                    email:newEmail.value, phoneNumber:newPhone.value, bonusHours:bHours, bonusNote:bNote.value}));
     });
-}
-
-function userInfo() {
-
 }
 
 function listClasses() {
@@ -389,7 +594,7 @@ function loadEditClass(e) {
             document.querySelector("#submit").addEventListener('click', submitClassEdit);
         },
         error: function(xhr) {
-            alert(`ERROR: Could not retrieve class info`);
+            makeToast('error',`Internal Server Error: Could not retrieve class info`);
             listClasses();
         },
     });
@@ -397,11 +602,15 @@ function loadEditClass(e) {
 
 function submitClassEdit() {
     let classID = parseInt($("#cId").val());
-    let className = $("#cName").val();
-    let classNum = $("#cNum").val();
-    let classTeacher = parseInt($("#cTeacher").val());
+	let className = document.querySelector("#cName");
+	let classNum = document.querySelector("#cNum");
+	let classTeacher = parseInt($("#cTeacher").val());
+	
+	if (inputCheck(className) || roomCheck(classNum)) {
+		return;
+	}
 
-    let data = {"roomId":classID, "roomName": className, "teacherId": classTeacher,"roomNum":classNum};
+    let data = {"roomId":classID, "roomName": className.value, "teacherId": classTeacher,"roomNum":classNum.value};
     $.ajax({
         type: 'PUT',
         url: '/api/v1/admin/classes',
@@ -409,11 +618,11 @@ function submitClassEdit() {
         data: JSON.stringify(data),
         dataType: 'text',
         success: function(data) { 
-            alert('SUCCESS: Class updated');
+            makeToast("success", "Class updated");
             listClasses();
         },
         error: function(xhr) {
-            alert(`ERROR: Could not update class (${xhr.status})`);
+            makeToast(`error`,`Could not update class (${xhr.status})`);
         }
     });
 }
@@ -430,7 +639,7 @@ function getTeachers() {
             document.querySelector("#cTeacher").insertAdjacentHTML('beforeend',func(data));
         },
         error: function(xhr) {
-            alert(`ERROR: Could not retrieve teachers`);
+			makeToast('error','Internal Server Error: could not retrieve teacher data.');
             classList();
         },
     });
@@ -452,28 +661,23 @@ function addClassRoom() {
 }
 
 function submitNewClass() {
-    let newName = document.querySelector("#cName").value;
+    let newName = document.querySelector("#cName");
     let newTeacher = parseInt(document.querySelector("#cTeacher").value);
-    let newRoomNum = document.querySelector("#cNum").value;
+    let newRoomNum = document.querySelector("#cNum");
 
-    if (newName == "") {
-        alert('Class name cannot be empty');
-        return;
-    }
-    if (newRoomNum == "") {
-        alert('Room number cannot be empty');
-        return;
-    }
-
+	if ((inputCheck(newName) || roomCheck(newRoomNum))) {
+		return;
+	}
+	
     let newClass = {"roomNAme":newName, "teacherId":newTeacher, "roomNum":newRoomNum};
     console.log(newClass);
     let xhttp = new XMLHttpRequest();
     xhttp.addEventListener("loadend", () => {
         if(xhttp.status > 300) {
-            alert('ERROR: Could not create class');
+            makeToast('error', `Could not create class - ${xhttp.responseText}`);
             return;
         }
-        alert('SUCCESS: Class created.');
+		makeToast('success','Class created.');
         listClasses();
     });
     xhttp.open("POST", "/api/v1/admin/classes");
