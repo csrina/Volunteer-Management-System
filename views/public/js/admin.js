@@ -209,37 +209,50 @@ function userList() {
         let userInfo = JSON.parse(xhttp.response);
         let tmpl = document.querySelector("#tmpl_listUsers").innerHTML;
         let func = doT.template(tmpl);
-        document.querySelector("#displayData").innerHTML = func(userInfo);
-
-        let userBtns = document.querySelectorAll("[id*='edit_']");
-        for (let i = 0; i < userBtns.length; i++) {
-            userBtns[i].addEventListener('click', loadEditUser);
-        }
-        let passBtns = document.querySelectorAll("[id*='pass_']");
-        for (let i = 0; i < passBtns.length; i++) {
-            passBtns[i].addEventListener('click', loadEditPassword);
-        }
+		document.querySelector("#displayData").innerHTML = func(userInfo);
+		
+		$(document).ready(function(){
+        	let userBtns = document.querySelectorAll("[id*='edit_']");
+        	for (let i = 0; i < userBtns.length; i++) {
+            	userBtns[i].addEventListener('click', loadEditUser);
+        	}
+        	let passBtns = document.querySelectorAll("[id*='pass_']");
+        	for (let i = 0; i < passBtns.length; i++) {
+            	passBtns[i].addEventListener('click', loadEditPassword);
+			}
+		});
     });
     xhttp.open("GET", `/api/v1/admin/users`);
     xhttp.send();
 }
 
 function loadEditUser(e) {
-    let userID = e.srcElement.id.split("_")[1];
-    let xhttp = new XMLHttpRequest();
-    xhttp.addEventListener("loadend", () => {
-        let userInfo = JSON.parse(xhttp.response);
-        let tmpl = document.querySelector("#tmpl_editUser").innerHTML;
-        let func = doT.template(tmpl);
-        document.querySelector("#displayData").innerHTML = func(userInfo);
-        document.querySelector("#cancel").addEventListener('click', userList);
-		document.querySelector("#submit").addEventListener('click', submitUserEdit);
+	let userID = e.srcElement.id.split("_")[1];
+	
+
+	$.ajax({
+		type: "GET",
+		url: `/api/v1/admin/users?u=${userID}`,
+		contentType: 'json',
+	})
+	.done(function(data) {
+		let tmpl = document.querySelector("#tmpl_editUser").innerHTML;
+		let func = doT.template(tmpl);
+
+		document.querySelector("#displayData").innerHTML = 
+			func(JSON.parse(data));
+		document.querySelector("#cancel").addEventListener('click',
+			userList);
+		document.querySelector("#submit").addEventListener('click', 
+			submitUserEdit);
 		document.querySelector("#delete").addEventListener('click',
-		deleteUser);
-    });
-    xhttp.open("GET", `/api/v1/admin/users?u=${userID}`);
-    xhttp.send();
+			deleteUser);
+	})
+	.fail(function(data) {
+		makeToast('error', 'Could not load user info')
+	});
 }
+
 
 function deleteWarning(e) {
 	let username = document.querySelector("#uName").value;
@@ -295,11 +308,13 @@ function familyList() {
         let userInfo = JSON.parse(xhttp.response);
         let tmpl = document.querySelector("#tmpl_listFamilies").innerHTML;
         let func = doT.template(tmpl);
-        document.querySelector("#displayData").innerHTML = func(userInfo);
-        let btns = document.querySelectorAll("[id*='edit_']");
-        for(let i = 0; i < btns.length; i++) {
-            btns[i].addEventListener("click", loadEditFamily);
-        }
+		document.querySelector("#displayData").innerHTML = func(userInfo);
+		$(document).ready(function() {
+        	let btns = document.querySelectorAll("[id*='edit_']");
+        	for(let i = 0; i < btns.length; i++) {
+            	btns[i].addEventListener("click", loadEditFamily);
+			}
+		});
     });
     xhttp.open("GET", `/api/v1/admin/families`);
     xhttp.send();
@@ -465,14 +480,7 @@ function submitNewFamily() {
     });
 }
 
-function submitUserEdit() {  
-        let fields = document.querySelectorAll("input");
-        for(let i = 0; i < fields.length; i++) {
-            if (fields[i].value == "") {
-                alert('Please fill out all sections');
-                return;
-            } 
-        }
+function submitUserEdit() {
         let uId = parseInt(document.querySelector("#IDNum").innerHTML);
         let newFName = document.querySelector("#fname");
         let newLName = document.querySelector("#lName");
@@ -508,9 +516,10 @@ function submitUserEdit() {
 
 function newUser() {
     let tmpl = document.querySelector("#tmpl_addUser").innerHTML;
-    document.querySelector("#displayData").innerHTML = tmpl;
+	document.querySelector("#displayData").innerHTML = tmpl;
     document.querySelector("#cancel").addEventListener('click', userList);
     document.querySelector("#submit").addEventListener('click', () => {
+
         
 
     let newRole = parseInt(document.querySelector("#role").value);
@@ -554,7 +563,7 @@ function newUser() {
         xhttp.send(JSON.stringify({userrole:newRole, username:newUName,
                     password:newPassData, firstname: newFName.value, lastname:newLName.value,
                     email:newEmail.value, phoneNumber:newPhone.value, bonusHours:bHours, bonusNote:bNote.value}));
-    });
+	});
 }
 
 function listClasses() {
@@ -563,16 +572,19 @@ function listClasses() {
         let classes = JSON.parse(xhttp.response);
         let tmpl = document.querySelector("#tmpl_listClasses").innerHTML;
         let func = doT.template(tmpl);
-        document.querySelector("#displayData").innerHTML = func(classes);
-        
-        let btns = document.querySelectorAll("[id*='edit_']");
-        for(let i = 0; i < btns.length; i++) {
-            btns[i].addEventListener("click", loadEditClass);
-        }
+		document.querySelector("#displayData").innerHTML = func(classes);
+		
+        $(document).ready(function() {
+        	let btns = document.querySelectorAll("[id*='edit_']");
+        	for(let i = 0; i < btns.length; i++) {
+            	btns[i].addEventListener("click", loadEditClass);
+			}
+		});
      });
     xhttp.open("GET", "/api/v1/admin/classes");
     xhttp.send();
 }
+
 
 function loadEditClass(e) {
     let classID = e.srcElement.id.split("_")[1];
@@ -589,9 +601,10 @@ function loadEditClass(e) {
             document.querySelector("#displayData").innerHTML = func(data[0]);
 
             getTeachers();
-
-            document.querySelector("#cancel").addEventListener('click', listClasses);
-            document.querySelector("#submit").addEventListener('click', submitClassEdit);
+			$(document).ready(function(){
+            	document.querySelector("#cancel").addEventListener('click', listClasses);
+				document.querySelector("#submit").addEventListener('click', submitClassEdit);
+			});
         },
         error: function(xhr) {
             makeToast('error',`Internal Server Error: Could not retrieve class info`);
@@ -652,9 +665,11 @@ function addClassRoom() {
         let facilitators = JSON.parse(xhttp.response);
         let tmpl = document.querySelector("#tmpl_createClass").innerHTML;
         let func = doT.template(tmpl);
-        document.querySelector("#displayData").innerHTML = func(facilitators);
-        document.querySelector("#cancel").addEventListener('click', listClasses);
-        document.querySelector("#submit").addEventListener('click', submitNewClass);
+		document.querySelector("#displayData").innerHTML = func(facilitators);
+		$(document).ready(function() {
+        	document.querySelector("#cancel").addEventListener('click', listClasses);
+			document.querySelector("#submit").addEventListener('click', submitNewClass);
+		});
     });
     xhttp.open("GET", `/api/v1/admin/teachers`);
     xhttp.send();
@@ -669,7 +684,7 @@ function submitNewClass() {
 		return;
 	}
 	
-    let newClass = {"roomNAme":newName, "teacherId":newTeacher, "roomNum":newRoomNum};
+    let newClass = {"roomNAme":newName.value, "teacherId":newTeacher, "roomNum":newRoomNum.value};
     console.log(newClass);
     let xhttp = new XMLHttpRequest();
     xhttp.addEventListener("loadend", () => {
