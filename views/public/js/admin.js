@@ -648,6 +648,8 @@ function loadEditClass(e) {
 			$(document).ready(function(){
             	document.querySelector("#cancel").addEventListener('click', listClasses);
 				document.querySelector("#submit").addEventListener('click', submitClassEdit);
+				document.querySelector("#delete").addEventListener('click',
+				deleteClass)
 			});
         },
         error: function(xhr) {
@@ -682,6 +684,33 @@ function submitClassEdit() {
             makeToast(`error`,`Could not update class (${xhr.status})`);
         }
     });
+}
+
+function deleteClassWarning(e) {
+	let classname = document.querySelector("#cName").value;
+
+	let check = prompt(`WARNING!\n\nARE YOU SURE YOU WANT TO DELETE CLASS: ${classname}?\n\nTHIS WILL DELETE ALL TIME BLOCKS FOR THIS CLASS AND ANY PREVIOUS BOOKING RECORDS INVOLVED WITH THE ROOM.\n\nTo delete please type the class name below.`, "");
+	
+	return (check === classname);
+}
+
+function deleteClass() {
+	let classID = parseInt($("#cId").val());
+
+	if (!deleteClassWarning()) {
+		return;
+	}
+
+	$.ajax({
+		type: 'DELETE',
+		url: `/api/v1/admin/classes/${classID}`,
+		contentType: 'text',
+	}).done(function(data){
+		makeToast("success","Class deleted");
+		listClasses();
+	}).fail(function(data){
+		makeToast("error", `Could not delete class: ${data.responseText}`)
+	})
 }
 
 function getTeachers() {
