@@ -58,7 +58,7 @@ func monthlyReport(w http.ResponseWriter, r *http.Request) {
 		month = append(month, monthReport{})
 		for start.Before(now.EndOfMonth()) {
 			begin, finish := setWeekConstraint(start)
-			hours := familyHoursBooked(fam.FamilyID, begin, finish)
+			hours := familyHoursBooked(fam.FamilyID, start, end)
 			month[i].Weeks = append(month[i].Weeks, weekReport{
 				Start: begin,
 				End:   finish,
