@@ -36,9 +36,9 @@ function roomCheck(input) {
 
 	//regex pulled from: 
 	//https://stackoverflow.com/questions/8292965/regular-expression-for-number-and-dash
-	let chars = /^[0-9]+$/
+	let chars = /^[0-9-]+$/
 	if (!chars.test(input.value)) {
-		makeToast('error', `${input.name} can only contain numbers`)
+		makeToast('error', `${input.name} can only contain numbers and "-"`)
 		input.classList.add('alert');
 		input.classList.add('alert-danger');
 		return true;
