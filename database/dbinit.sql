@@ -46,6 +46,7 @@ CREATE TABLE time_block (
     block_start     TIMESTAMP,
     block_end       TIMESTAMP,
     room_id         INT			REFERENCES room(room_id),
+    capacity        INT     DEFAULT 3,
     modifier        INT			DEFAULT 1,
     title           TEXT    DEFAULT 'Facilitation',
     note            TEXT,

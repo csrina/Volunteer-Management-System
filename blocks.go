@@ -38,7 +38,7 @@ type MsgWording struct {
 func getTimeBlockByID(id int) (*TimeBlock, error) {
 	tb := new(TimeBlock)
 	q := `SELECT * FROM time_block WHERE time_block.block_id = $1`
-	err := db.QueryRow(q, id).Scan(&tb.ID, &tb.Start, &tb.End, &tb.Room, &tb.Modifier, &tb.Title, &tb.Note)
+	err := db.QueryRow(q, id).Scan(&tb.ID, &tb.Start, &tb.End, &tb.Room, &tb.Capacity, &tb.Modifier, &tb.Title, &tb.Note)
 	return tb, err
 }
 
@@ -134,7 +134,7 @@ func updateTimeBlockQuery(tx *sqlx.Tx, tb *TimeBlock) error {
 	}
 	defer stmt.Close()
 
-	if _, err := stmt.Exec(tb.ID, tb.Start, tb.End, tb.Room, tb.Modifier, tb.Title, tb.Note); err != nil {
+	if _, err := stmt.Exec(tb.ID, tb.Start, tb.End, tb.Room, tb.Capacity, tb.Modifier, tb.Title, tb.Note); err != nil {
 		tx.Rollback()
 		logger.Println(err)
 		return err
