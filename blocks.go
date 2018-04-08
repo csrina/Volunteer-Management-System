@@ -426,8 +426,10 @@ func buildRequestHandler(w http.ResponseWriter, r *http.Request) {
 	bdRoomMap := make(map[string][]BuilderEvent)
 	for _, e := range builderData.events {
 		// only days are relevant coming from the builder (set the year/month to the start of the period
-		e.Start = time.Date(builderData.periodStart.Year(), builderData.periodStart.Month(), e.Start.Day(), e.Start.Hour(), e.Start.Minute(), e.Start.Second(), 0, time.Local)
-		e.End = time.Date(builderData.periodStart.Year(), builderData.periodStart.Month(), e.End.Day(), e.End.Hour(), e.End.Minute(), e.End.Second(), 0, time.Local)
+		// Subtract a month, to guarentee we don't miss anything in the window (because the calendar is using the current date, it could be like the 24th or something; moving back to last month compensates
+		// our building algorithm will increment by week until period is hit
+		e.Start = time.Date(builderData.periodStart.Year(), builderData.periodStart.Month() - 1, e.Start.Day(), e.Start.Hour(), e.Start.Minute(), e.Start.Second(), 0, time.Local)
+		e.End = time.Date(builderData.periodStart.Year(), builderData.periodStart.Month() - 1, e.End.Day(), e.End.Hour(), e.End.Minute(), e.End.Second(), 0, time.Local)
 		bdRoomMap[e.Room]= append(bdRoomMap[e.Room], e) // Split up by rooms (can be parallelized)
 	}
 

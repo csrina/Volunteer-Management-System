@@ -26,10 +26,16 @@ function showModal(btn) {
         + event.id + "'>";
 
     let closeEditButton = "    <span class='far fa-edit fa-lg'></span></button>"; // close the edit button
+
+    let editCapacityButton = "<button type='button' class='btn btn-outline-secondary border-0 mpb-1' "
+        + "data-fieldName='capacity' onclick='editEventDetails(this)' data-id='"
+        + event.id + "'>" + closeEditButton;
+
     // use the open/close button strings to create edit buttons containing the data to be altered
     $('#eventModalTitle').html(openEditTitleButton + "<h5>" + event.title + closeEditButton + "</h5>");
     $('#modalEventRoom').html(event.room + " Room").css("color", event.color);
     $('#modalEventTime').html(event.start.format("ddd, hhA") + " - " + event.end.format("hA"))
+    $('#modalEventCapacity').html("<h5> Capacity   " + event.capacity + editCapacityButton + "</h5>");
 
     let hourlyValue = moment.duration(event.end.diff(event.start)).asHours() * event.modifier;
     $('#modalValueLabel').append("<button type='button' class='btn btn-outline-secondary border-0 mpb-1' "
@@ -74,6 +80,7 @@ function storeChangesToEvent(event, delta, revertFunc, jsEvent, ui, view) {
         title: event.title,
         note:  event.note,
         modifier: event.modifier,
+        capacity: event.capacity
     };
 
     if (!temp.start.endsWith("Z")) { temp.start = temp.start + "Z"; }
@@ -217,6 +224,13 @@ function editEventDetails(btn) {
             return
         }
         event.modifier = temp;
+    } else if (field == "capacity") {
+        temp = parseFloat(prompt("Enter the new capacity: "));
+        if (isNaN(temp)) {
+            makeToast("error", "Capacity must be a number!");
+            return
+        }
+        event.capacity = temp;
     } else {
         makeToast("error", "An unpredicted error occurred");
         return
@@ -279,12 +293,12 @@ $(document).ready(function() {
         themeSystem: "bootstrap4",
         editable: true,                 // Need to use templating engine to change bool based on user's rolego ,
         eventRender: function(event, element, view) {
+            event.capacity = ((!!event.capacity) ? event.capacity : "3");
             element.find('.fc-time').css("font-size", "1rem")
-                    .append('     ' + event.bookingCount + "/" +
-                                 ((!!event.capacity) ? event.capacity.toString() : "3"));
+                    .append('     ' + event.bookingCount.toString() + "/" + event.capacity.toString());
             element.find('.fc-title').css("font-size", "1rem").append("<br>")
-                    .append("<button type='button' class='btn btn-outline-primary m-2 border-0 btn-sm' data-id='" + event.id + "' onclick='showModal(this)'><i class='far fa-edit fa-lg'></i></button>")
-                    .append("<button type='button' class='btn btn-outline-primary border-0 btn-sm' data-id='" + event.id + "' onclick='removeEvent(this)'><i class='fas fa-times-circle fa-lg'></i></button>");
+                    .append("<button type='button' class='btn btn-outline-primary m-1 border-0 btn-sm' data-id='" + event.id + "' onclick='showModal(this)'><i class='far fa-edit fa-lg'></i></button>")
+                    .append("<br><button type='button' class='btn btn-outline-primary border-0 btn-sm' data-id='" + event.id + "' onclick='removeEvent(this)'><i class='fas fa-times-circle fa-lg'></i></button>");
             return renderFiltered(event);
          },
         // DOM-Event handling for Calendar Eventblocks (why do js people suck at naming)

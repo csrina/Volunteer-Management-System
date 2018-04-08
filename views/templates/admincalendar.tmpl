@@ -52,8 +52,7 @@
                     <h5 id="modalEventRoom"></h5>
                     <h5 id="modalTimeLabel" class="text-muted">When:</h5>
                     <h5 id="modalEventTime"></h5>
-                    <h5 id="modalCapacityLabel" class="text-muted">Capacity:</h5>
-                    <h5 id="modalEventCapacity"></h5>
+                    <h5 id="modalEventCapacity" class="text-muted">Capacity: </h5>
                     <h5 id="modalValueLabel" class="text-muted">Value:</h5>
                     <h5 id="modalDescLabel" class="text-muted">Description:</h5><br>
                     <p id="eventNote"></p><br>
@@ -73,8 +72,11 @@
                 <div class="col-sm-9 float-right order-last">
                     <h2 class="text-center">Upcoming Schedule</h2>
                     <div class="card m-2" id="wdgt-container">
-                        <div class="mt-2" id="filterList">
-                            <div class="btn-group text-center" data-toggle="buttons" id="filterButtons"></div>
+                        <div class="text-right">
+                             <button type="button" id="builderToggle" class="btn btn-block btn-info" style="font-size: 1.2rem;" onclick='location.href={{if eq .PageName "calendar"}}"/admin/builder"{{else}}"/admin/calendar"{{end}};'>{{if eq .PageName "builder"}}Back to Schedule{{else}}Enter Builder Mode{{end}}</button>
+                        </div>
+                         <div class="mt-2" id="filterList" style="text-align: left;" >
+                            <div class="btn-group" data-toggle="buttons" id="filterButtons"></div>
                         </div>
                         <div id="calendar"></div>
                     </div>

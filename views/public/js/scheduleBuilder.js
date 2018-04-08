@@ -35,21 +35,6 @@ function showModal(btn) {
     if (len === 0) {
         bookingsHTML = "No bookings yet <br> You could be the first!"
     }
-    // button to add a booking to the event
-    let bookingBtn = "<button type='button' class='btn-outline-success border-0 btn-sm' data-uid='-1' data-id='" + event.id + "' onclick='requestBookingWrapper(this)'><span class='fas fa-user-plus fa-2x'></span></button>  ";
-    $('#modalBookedLabel').append("  " + bookingBtn)
-
-    // make a button for each user (so they can be unbooked easily and clearly... unlike this code hehe)
-    for (let i = 0; i < len; i++) {
-        bookingsHTML += "<button type='button' class='btn btn-outline-danger border-0 mp-1 mt-2' data-uid='"
-            + event.bookings[i].userId
-            + "' data-id='" + event.id
-            + "' onclick='requestBookingWrapper(this)'>"
-            + event.bookings[i].userName + "        "
-            + "<span class='fas fa-minus-circle fa-lg'></span></button>";
-    }
-    $('#eventBookings').html(bookingsHTML); // set event bookings with the html built in the loop
-
     // set color & text of submit button
     $('#modalConfirm').html("Submit")
         .removeClass("btn-primary")
@@ -144,18 +129,31 @@ $(document).ready(function() {
                 dayCount: 6,
             }
         },
-        events: [],
+        events: [
+            {
+                title: "Facilitation",
+                start: moment().day(0).hour(9),
+                end: moment().day(0).hour(11),
+                capacity: 3,
+                modifier: 1,
+                note: "template block!",
+                room: 'black',
+                color: "black",
+            }
+        ],
         agendaEventMinHeight: 90,
         defaultView: "agendaFourDay",
         contentHeight: 'auto',
         allDayDefault: false,        // blocks are not all-day unless specified
         themeSystem: "bootstrap4",
         editable: true,                 // Need to use templating engine to change bool based on user's rolego ,
+        columnHeaderText: (now => {return ((now.day() === 0) ? "Template Day" : now.format("dddd")); }),
         eventRender: function(event, element, view) {
-            element.find('.fc-time').css("font-size", "1em")
-                .append("   " + event.bookingCount + "/3<br>");
+            event.capacity = ((!!event.capacity) ? event.capacity : "3");
+            element.find('.fc-time').css("font-size", "1rem")
+                .append('     0/' + event.capacity);
             let title = element.find('.fc-title');
-            title.css("font-size", "1.2em").append("<br>")
+            title.css("font-size", "1.2rem").append("<br>")
                 .append("<button type='button' class='btn btn-outline-primary border-0 btn-sm' data-id='" + event.id + "' onclick='showModal(this)'><i class='far fa-edit fa-lg'></i></button>    ");
             if (event.start.day() > 0) {
                 title.append("<br><button type='button' class='btn btn-outline-primary border-0 btn-sm' data-id='" + event.id + "' onclick='removeEvent(this)'><i class='fas fa-times-circle fa-lg'></i></button>    ");
@@ -170,13 +168,27 @@ $(document).ready(function() {
             return stillEvent.color !== movingEvent.color;
         },
         eventDrop: function(ev, delta, revertFunc, jsEvent, ui, view) {
-            let tempEventMoved = ev.start.subtract(delta).day() == 0;
+            let startDate = moment(ev.start);
+            startDate.subtract(delta);
             //  CHeck if sunday empty if day != sunday, may need to replace the template event
-            if (ev.start.day() != 0 && tempEventMoved) { // start of event NOW minus the amount it was moved, is on sunday AND the drop day is not sunday ---- therefore sunday needs copy of event
-                let evCopy = JSON.parse(JSON.stringify(ev));
-                evCopy.start = evCopy.start.subtract(delta); // Reset to original start date
-                evCopy.end = evCopy.end.subtract(delta);     // Reset end date
-                $('#calendar').fullCalendar('renderEvent', evCopy); // add copy of event (but on sunday again) to event array
+            if (startDate.day() === 0 && ev.start.day() !== 0) { // start of event NOW minus the amount it was moved, is on sunday AND the drop day is not sunday ---- therefore sunday needs copy of event
+                // Adjust end date/time of event  since we're actually changing things
+                let endDate = moment(ev.end);
+                endDate.subtract(delta);
+
+                $('#calendar').fullCalendar('renderEvent', {
+                    title: event.title,
+                    start: startDate,
+                    end: endDate,
+                    capacity: event.capacity,
+                    modifier: event.modifier,
+                    note: event.note,
+                    room: event.room,
+                    color: event.color,
+                }); // add copy of event (but on sunday again) to event array
+            } else if (ev.start.day() === 0 && startDate.day() != 0) {
+                revertFunc();
+                return false;
             }
         },
         hiddenDays: [6],
@@ -196,6 +208,10 @@ $(document).ready(function() {
     loadChangeTemplateEvent();
 });
 
+// Change event in template position to reflect the form data
+function updateTemplateEvent() {
+
+}
 
 /* Needs to have all possible fields (so does add event on normal page though too I suppose --> e.g. maxBookings)
  * -- For this mode needs additional interval selection --- see blocks.go : IntervalData:
@@ -216,7 +232,7 @@ function loadChangeTemplateEvent() {
         let tmpl = document.querySelector("#tmpl_EventForm").innerHTML;
         let func = doT.template(tmpl);
         document.querySelector("#eventForm").innerHTML = func(classes);
-        document.querySelector("#submit").addEventListener("click", submitEvent);
+        document.querySelector("#submit").addEventListener("click", updateTemplateEvent);
     });
     xhttp.open("GET", "/api/v1/admin/classes")
     xhttp.send();
