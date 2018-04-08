@@ -142,6 +142,8 @@ func apiRoutes(r *mux.Router) {
 	s.HandleFunc("/passwords", updatePassword).Methods("PUT")
 	s.HandleFunc("/charts", monthlyReport).Methods("GET")
 
+	s.HandleFunc("/message/{id:[0-9]+}", markMessagRead).Methods("PUT")
+
 	/* Events JSON routes for scheduler system */
 	s.HandleFunc("/events/{target}", getEvents).Methods("GET")
 	s.HandleFunc("/events/{target}", eventPostHandler).Methods("POST")
