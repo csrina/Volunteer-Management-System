@@ -7,6 +7,35 @@ const MONTHLY = 1;
 // TODO: convert to form which works on a submit
 function showModal(btn) {
     let event = $('#calendar').fullCalendar('clientEvents', btn.getAttribute("data-id"))[0]; // get event from returned array
+    $("#eventDetailsModal").find("#modalBody").attr("data-id", event.id);
+    // fill in form with existing data
+
+    console.log(event);
+
+    document.getElementById('modalTitleInput').value = event.title;
+    document.getElementById('modalRoomInput').value = event.color;
+    document.getElementById('modalTimeStartInput').value = event.start.format("hh:mm");
+    document.getElementById('modalTimeEndInput').value = event.end.format("hh:mm");
+    document.getElementById("modalCapacityInput").value = event.capacity;
+    document.getElementById("modalValueInput").value = event.modifier;
+    document.getElementById("modalNoteInput").value = event.note;
+    if (event.interval.repeatType === MONTHLY) {
+        document.getElementById("weeklyTypeRadio").setAttribute("checked", false);
+        document.getElementById("monthlyTypeRadio").setAttribute("checked", true);
+        document.querySelector("input[name='subIntervalCheckboxes']")
+            .options
+            .forEach((o) => {
+                if (o.value in event.interval.secondaryDeltas) {
+                    o.setAttribute("checked", true);
+                } else {
+                    o.setAttribute("checked", false);
+                }
+            });
+    } else {
+        document.getElementById("monthlyTypeRadio").setAttribute("checked", false);
+        document.getElementById("weeklyTypeRadio").setAttribute("checked", true);
+    }
+    updateFormForRepeatType();
 
     $('#eventDetailsModal').modal('show'); // spawn our modal
 }
@@ -20,19 +49,37 @@ function updateEventRefreshModal(event, btn) {
 }
 
 function resetModalForm(btn) {
-    let event = $('#calendar').fullCalendar('clientEvents',
-        document.getElementById("modalBody").getAttribute("data-id"))[0];
     $('#eventDetailsModal').modal("hide");
-
-
 }
 
 function saveChangesToEvent(btn) {
     let event = $('#calendar').fullCalendar('clientEvents',
                     document.getElementById("modalBody").getAttribute("data-id"))[0];
+    // fill in form with existing data
+    console.log("before: ", event);
 
-    // save changes to event here
-    resetModalForm();
+    event.title     = document.getElementById('modalTitleInput').value;
+    event.room      = document.getElementById('modalRoomInput').value;
+    let sTime       = document.getElementById('modalTimeStartInput').value.toString().split(":");
+    event.start.set(
+        {
+            "hours": parseInt(sTime[0]),
+            "minutes": parseInt(sTime[1]),
+        }
+    );
+    let endTime     = document.getElementById('modalTimeEndInput').value;
+    event.end.set(
+        {
+            "hours": parseInt(endTime[0]),
+            "minutes": parseInt(endTime[1]),
+        }
+    );
+    event.capacity  = document.getElementById("modalCapacityInput").value;
+    event.modifier  = document.getElementById("modalValueInput").value;
+    event.note      = document.getElementById("modalNoteInput").value;
+    updateEventIntervalData(event); // Update the interval info
+
+    console.log("after: ", event);
 }
 
 function editEventDetails(btn) {
@@ -305,10 +352,16 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function updateEventIntervalData(event) {
-    updateRepeatType();
-    calEvent.interval.primaryDelta = parseInt(jsEvent.target.value); // update value onchange
-    event.interval.secondaryDeltas = $("#secondaryDeltaSelect").val(); // returns array of selected values
+    event.interval.repeatType       = parseInt(document.querySelector('input[name="repeatTypeRadios"]:checked').value);
+    event.interval.primaryDelta     = $("#primaryDeltaSelect").val();
+    event.interval.secondaryDeltas  = $("#secondaryDeltaSelect").val(); // returns array of selected values
+    if (typeof event.interval.secondaryDeltas === "undefined"
+            || event.interval.secondaryDeltas === null
+                || event.interval.secondaryDeltas === "") {
+        event.interval.secondaryDeltas = [];
+    }
     event.interval.secondaryDeltas.forEach(i => parseInt(i));
+    return event;
 }
 
 // When repeat type is clicked, change the form display if needed
