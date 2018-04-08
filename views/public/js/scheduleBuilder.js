@@ -22,15 +22,16 @@ function showModal(btn) {
     if (event.interval.repeatType === MONTHLY) {
         document.getElementById("weeklyTypeRadio").setAttribute("checked", false);
         document.getElementById("monthlyTypeRadio").setAttribute("checked", true);
-        document.querySelector("input[name='subIntervalCheckboxes']")
-            .options
-            .forEach((o) => {
-                if (o.value in event.interval.secondaryDeltas) {
-                    o.setAttribute("checked", true);
-                } else {
-                    o.setAttribute("checked", false);
-                }
-            });
+        let subIntervals = document.querySelector("input[name='subIntervalCheckboxes']").options;
+        subIntervals = (!!subIntervals) ? subIntervals : [];
+        subIntervals.forEach((o) => {
+            if (o.value in event.interval.secondaryDeltas) {
+                o.setAttribute("checked", true);
+            } else {
+                o.setAttribute("checked", false);
+            }
+        });
+
     } else {
         document.getElementById("monthlyTypeRadio").setAttribute("checked", false);
         document.getElementById("weeklyTypeRadio").setAttribute("checked", true);
@@ -353,14 +354,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function updateEventIntervalData(event) {
     event.interval.repeatType       = parseInt(document.querySelector('input[name="repeatTypeRadios"]:checked').value);
-    event.interval.primaryDelta     = $("#primaryDeltaSelect").val();
-    event.interval.secondaryDeltas  = $("#secondaryDeltaSelect").val(); // returns array of selected values
-    if (typeof event.interval.secondaryDeltas === "undefined"
-            || event.interval.secondaryDeltas === null
-                || event.interval.secondaryDeltas === "") {
-        event.interval.secondaryDeltas = [];
-    }
-    event.interval.secondaryDeltas.forEach(i => parseInt(i));
+    event.interval.primaryDelta     = parseInt($("#primaryDeltaSelect").val());
+
+    let secondaryIntervals = [];
+    let cboxes = document.querySelectorAll('input[name="subIntervalCheckboxes"]:checked');
+    cboxes = (!!cboxes) ? cboxes : [];
+    cboxes.forEach( cb => {
+        secondaryIntervals.push(parseInt(cb.value));
+    });
+    event.interval.secondaryDeltas = secondaryIntervals;
     return event;
 }
 

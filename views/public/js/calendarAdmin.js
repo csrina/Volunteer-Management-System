@@ -34,16 +34,16 @@ function showModal(btn) {
         + event.id + "'>" + "modifier: " + event.modifier + closeEditButton).append("<h5 id='modalEventValue' class='text-primary'>" + hourlyValue + "</h5>");
     $('#eventNote').html(openEditNoteButton + "<p class='text-muted'>" + event.note + closeEditButton + "</p>");
 
-    let len = (!event.bookings) ? 0 : event.bookings.length;
-    let bookingsHTML = "";
-    if (len === 0) {
-        bookingsHTML = "No bookings yet <br> You could be the first!"
-    }
     // button to add a booking to the event
     let bookingBtn = "<button type='button' class='btn-outline-success border-0 btn-sm' data-uid='-1' data-id='" + event.id + "' onclick='requestBookingWrapper(this)'><span class='fas fa-user-plus fa-2x'></span></button>  ";
     $('#modalBookedLabel').append("  " + bookingBtn)
 
     // make a button for each user (so they can be unbooked easily and clearly... unlike this code hehe)
+    let bookingsHTML = "";
+    let len = (!event.bookings) ? 0 : event.bookings.length;
+    if (len === 0) {
+        bookingsHTML = "No bookings yet";
+    }
     for (let i = 0; i < len; i++) {
         bookingsHTML += "<button type='button' class='btn btn-outline-danger border-0 mp-1 mt-2' data-uid='"
             + event.bookings[i].userId
@@ -52,6 +52,7 @@ function showModal(btn) {
             + event.bookings[i].userName + "        "
             + "<span class='fas fa-minus-circle fa-lg'></span></button>";
     }
+
     $('#eventBookings').html(bookingsHTML); // set event bookings with the html built in the loop
     $('#eventDetailsModal').modal('show'); // spawn our modal
 }
