@@ -319,7 +319,7 @@ function userList() {
 }
 
 function loadEditUser(e) {
-	let userID = e.srcElement.id.split("_")[1];
+	let userID = e.target.id.split("_")[1];
 	
 
 	$.ajax({
@@ -399,7 +399,7 @@ function familyList() {
 }
 
 function loadEditFamily(e) {
-    let familyID = e.srcElement.id.split("_")[1];
+    let familyID = e.target.id.split("_")[1];
     
     
     $.getJSON(`/api/v1/admin/families/${familyID}`, function(data, status){
@@ -452,7 +452,7 @@ function deleteFamily(e) {
 		contentType: 'text',
 		success: function(data) {
 			makeToast("success","Family succesfully deleted.");
-			userList();
+			familyList();
 		},
 		error: function(data) {
 			makeToast("error", data.responseText)
@@ -699,14 +699,13 @@ function listClasses() {
 
 
 function loadEditClass(e) {
-    let classID = e.srcElement.id.split("_")[1];
+	let classID = e.target.id.split("_")[1];
     $.ajax({
         type: 'GET',
         url: `/api/v1/admin/classes/${classID}`,
         contentType: 'json',
         dataType: 'json',
         success: function(data) {
-			console.log(data);
             let tmpl = document.querySelector("#tmpl_editClass").innerHTML;
             let func = doT.template(tmpl);
             //requires data[0] because API is returning a list
@@ -874,7 +873,7 @@ function submitPassword() {
 }
 
 function loadEditPassword(e) {
-    let userID = e.srcElement.id.split("_")[1];
+    let userID = e.target.id.split("_")[1];
     let xhttp = new XMLHttpRequest();
     xhttp.addEventListener("loadend", () => {
         let userInfo = JSON.parse(xhttp.response);
