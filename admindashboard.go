@@ -83,9 +83,10 @@ type AdminMessages struct {
 }
 
 func createAdminNotification(w http.ResponseWriter, r *http.Request) {
-	msg := newMessage{}
+	var msg newMessage
 	decoder := json.NewDecoder(r.Body)
 	decoder.Decode(&msg)
+	logger.Println(msg)
 	tx, err := db.Begin()
 	if err != nil {
 		logger.Println(err)
@@ -123,7 +124,7 @@ func createAdminNotification(w http.ResponseWriter, r *http.Request) {
 }
 
 func getAdminNotification(w http.ResponseWriter, r *http.Request) {
-	q := `select n.msg_id, n.msg, r.read, t.total 
+	q := `select distinct n.msg_id, n.msg, r.read, t.total 
 			from notifications n, 
 				(select msg_id, count(user_id) as total 
 					from notify 
@@ -131,7 +132,7 @@ func getAdminNotification(w http.ResponseWriter, r *http.Request) {
 				(select msg_id, count(user_id) filter (where viewed = '1') as read 
 					from notify 
 					group by msg_id) r 
-			where n.msg_id = r.msg_id AND n.msg_id = r.msg_id;`
+			where n.msg_id = r.msg_id AND n.msg_id = t.msg_id AND admincreated='1';`
 	msgs := []AdminMessages{}
 	err := db.Select(&msgs, q)
 	if err != nil {
@@ -812,9 +813,9 @@ func loadAdminCalendar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s := tmpls.Lookup("admincalendar.tmpl")
-	pg.Calendar 	 = true
-	pg.DotJS 		 = true
-	pg.Toaster 		 = true
+	pg.Calendar = true
+	pg.DotJS = true
+	pg.Toaster = true
 	s.ExecuteTemplate(w, "admincalendar", pg)
 }
 
@@ -863,8 +864,8 @@ func loadAdminScheduleBuilder(w http.ResponseWriter, r *http.Request) {
 	}
 	s := tmpls.Lookup("admincalendar.tmpl")
 	// calendar dependency flag
-	pg.Calendar 	 = true
-	pg.DotJS 		 = true
-	pg.Toaster 		 = true
+	pg.Calendar = true
+	pg.DotJS = true
+	pg.Toaster = true
 	s.ExecuteTemplate(w, "admincalendar", pg)
 }

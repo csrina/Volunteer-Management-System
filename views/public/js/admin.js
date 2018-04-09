@@ -309,6 +309,7 @@ function familyData() {
 function loadOldNotifications(){
     let xhttp = new XMLHttpRequest();
     xhttp.addEventListener("loadend", () => {
+		console.log(xhttp.response);
         let msgInfo = JSON.parse(xhttp.response);
         let tmpl = document.querySelector("#Notification_tmpl").innerHTML;
         let func = doT.template(tmpl);
@@ -600,7 +601,10 @@ function submitNewNotification() {
 
 	let newmsg= document.querySelector("#new_message_box").value;
 
-    let data = {"parents":pList, "newmessage":newmsg};
+	let data = {"parents":pList, "newmessage":newmsg};
+	console.log("*********")
+	console.log(data)
+	console.log("*********")
 
     $.ajax({
         type: 'POST',
@@ -609,7 +613,9 @@ function submitNewNotification() {
         data: JSON.stringify(data),
         dataType: 'text',
         success: function(data) { 
-            makeToast('success', 'Notification created');
+			makeToast('success', 'Notification created');
+			pList = new Array();
+			newmsg= new String();
 			loadNewNotificationForm();
 			loadOldNotifications();
         },
