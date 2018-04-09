@@ -2,11 +2,18 @@
 
 {{template "header" .}}
 
-<div class="col-md-5" id="family" onpageshow="familyData()">
-  <button type="button" class="btn btn-block btn-success text-center m-1 mt-3" style="font-size:1rem;" onclick="familyData()">Make charts</button>
-  <button class="btn btn-block btn-info text-center m-1" style="font-size:1rem;" onclick="exportMonthly()" download="" href="#">Export</button>
+<div id="family" onpageshow="familyData()">
+  <button onclick="exportPdf()">Export to pdf</button>
+  <button onclick="exportMonthly()" download="" href="#">Export to csv</button>
+  <label>Select time: </label><input id="time" type="date"/>
+  <br>  
+  <button onclick="previous()">Previous</button>
+  <button onclick="next()">Next</button>
 </div>
-
+     <script>
+     $("#time")[0].value = moment().format("YYYY-MM-DD");
+     familyData();
+</script>
 <canvas id="skills"></canvas>
 
 <script id="tmpl_reportFamily" type="x-dot-template">

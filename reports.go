@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jinzhu/now"
@@ -39,6 +41,11 @@ type familyReport struct {
 }
 
 func monthlyReport(w http.ResponseWriter, r *http.Request) {
+	raw := r.URL.Query().Get("date")
+	req := strings.Split(raw, "-")
+
+	addMonth, _ := strconv.Atoi(req[1])
+
 	q := `SELECT family_id, family_name, children
 			FROM family ORDER BY UPPER(family_name)`
 
@@ -49,42 +56,37 @@ func monthlyReport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	layout := "2006"
 	month := []monthReport{}
 
+	start, err := time.Parse(layout, req[0])
+	if err != nil {
+		fmt.Printf("problem parsing date in query")
+	}
+
+	copy := start.AddDate(0, addMonth-1, 0)
 	for i, fam := range families {
 		goal := getHourGoal(fam.Children)
-		start := now.BeginningOfMonth()
-		end := time.Now()
+		start = copy
+		end := now.New(start)
 		month = append(month, monthReport{})
-		for start.Before(now.EndOfMonth()) {
+		for start.Before(end.EndOfMonth()) {
 			begin, finish := setWeekConstraint(start)
-			hours := familyHoursBooked(fam.FamilyID, start, end)
+			hours := familyHoursBooked(fam.FamilyID, start,
+				start.AddDate(0, 0, 7))
 			month[i].Weeks = append(month[i].Weeks, weekReport{
 				Start: begin,
 				End:   finish,
 				Total: hours - goal,
 			})
 			start = start.AddDate(0, 0, 8)
+			start = now.New(start).BeginningOfWeek()
 		}
 		month[i].FamilyID = fam.FamilyID
 		month[i].FamilyName = fam.FamilyName
 	}
 	encoder := json.NewEncoder(w)
 	encoder.Encode(month)
-}
-
-func exportMonthly(w http.ResponseWriter, r *http.Request) {
-	var test []monthReport
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&test)
-	if err != nil {
-		fmt.Printf("%v", err)
-	}
-	fmt.Printf("%v", test)
-}
-
-func exportYearly(w http.ResponseWriter, r *http.Request) {
-
 }
 
 func defaultReport(w http.ResponseWriter, r *http.Request) {
