@@ -166,7 +166,8 @@ function requestBooking(event, uid, btn) {
                         break;
                     }
                 }
-            }
+			}
+			$('#calendar').fullCalendar('refetchEvents');
 			updateEventRefreshModal(event, btn);
         },
         error: function(xhr, ajaxOptions, thrownError) {
