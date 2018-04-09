@@ -23,9 +23,64 @@
     </table>
 </script>
 
+
+<script id="newNotification_tmpl" type="x-dot-template">
+    <div class="form-group">
+        <p style="text-align: left;">Select Users:</p>
+        <select multiple="multiple" id="parent-select" name="parent-select[]"> </select> 
+        <br> 
+        <p style="text-align: left;">Message:</p> 
+        <textarea class="form-control" rows="5" id="new_message_box"></textarea> 
+        <br><br> 
+        <button id="submit" type="button" class="btn btn-primary">Send</button>  
+    </div>
+</script>
+
+
+<script id="Notification_tmpl" type="x-dot-template">
+    <div id="notification_box" style="float:left;overflow-y: auto;width: 100%;">
+        {{`{{~it :value:index}}`}}
+                <div class="alert alert-dark alert-dismissible fade show" role="alert">
+                    <div class="col-10">
+                        <p>
+                            {{`{{=value.message}}`}}
+                        </p>
+                        <p>
+                            <strong>Message read by {{`{{=value.read}}`}} of {{`{{=value.total}}`}} users
+                        </p>
+                    </div>
+                    <div class="pull-right">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick="deleteMsg({{`{{=value.msgID}}`}} )">
+                            <span aria-hidden="true" style="font-size: small;">Delete</span>
+                        </button>
+                    </div>
+                </div>
+                
+        {{`{{~}}`}}
+    </div>
+</script>
+
 <main>
-    <div class="container">
-        <div id="displayData"></div>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-4">
+                <div id="displayData"></div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card text-center mb-3">
+                    <h2 class="card-header">Send A New Notification</h2>
+                    <div class="card-body" id="display_new_notification">
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card text-center mb-3">
+                    <h2 class="card-header">Manage Sent Notification</h2>
+                    <div class="card-body" id="display_notifications">
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </main>
 
