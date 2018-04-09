@@ -165,7 +165,7 @@ function requestBooking(event, uid, btn) {
                     }
                 }
             }
-            updateEventRefreshModal(event, btn);
+			updateEventRefreshModal(event, btn);
         },
         error: function(xhr, ajaxOptions, thrownError) {
             makeToast("error", "Booking request failed: " + xhr.responseText);

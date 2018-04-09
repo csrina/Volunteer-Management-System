@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -88,7 +89,10 @@ func auth(w http.ResponseWriter, username string, password []byte, role int) {
 	}
 	logger.Printf("User %v found\n", username)
 	// Comparing the password with the hash
+	fmt.Println(users[0].Password)
+	fmt.Println(password)
 	if err := bcrypt.CompareHashAndPassword(users[0].Password, password); err != nil {
+		logger.Println(err)
 		logger.Printf("'%v'\n", string(password))
 		logger.Printf("'%v'\n", string(users[0].Password))
 		w.WriteHeader(http.StatusUnauthorized)
@@ -156,7 +160,6 @@ func updatePassword(w http.ResponseWriter, r *http.Request) {
 }
 
 func passUpdate(w http.ResponseWriter, username string, password []byte) {
-	logger.Printf("password un-encrypted", password)
 	encrypt_password, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
 	if err != nil {
 		logger.Println(err)
@@ -164,11 +167,9 @@ func passUpdate(w http.ResponseWriter, username string, password []byte) {
 		w.Write([]byte("500 - Could not encrypt new password\n"))
 		return
 	}
-	logger.Printf("password encrypted", string(encrypt_password))
 	q := `update users
 			SET password = $1
 			WHERE username = $2`
-	logger.Printf(q)
 	if _, err := db.Exec(q, string(encrypt_password), username); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("500 - Could not update password\n"))
@@ -178,5 +179,28 @@ func passUpdate(w http.ResponseWriter, username string, password []byte) {
 	logger.Printf("Password updated")
 	w.WriteHeader(http.StatusOK)
 	logger.Printf("Password upadated for user %v\n", username)
+
+}
+
+func adminPassUpdate(w http.ResponseWriter, userID int, password []byte) {
+	encrypt_password, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 - Could not encrypt new password\n"))
+		return
+	}
+
+	q := `update users
+			SET password = $1
+			WHERE user_id = $2`
+	if _, err := db.Exec(q, string(encrypt_password), userID); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 - Could not update password\n"))
+		logger.Println(err)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	logger.Printf("Password upadated for user %v\n", userID)
 
 }

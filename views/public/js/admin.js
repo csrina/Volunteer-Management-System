@@ -14,9 +14,9 @@ function inputCheck(input) {
 		return true
 	}
 
-	let chars = /^[a-zA-Z]+$/;
+	let chars = /^[a-zA-Z0-9_ ]*$/
 	if (!chars.test(input.value)) {
-		makeToast('error', `${input.name} can only contain letters`)
+		makeToast('error', `${input.name} can only contain letters, numbers, and spaces`)
 		input.classList.add('alert');
 		input.classList.add('alert-danger');
 		return true;
@@ -36,9 +36,9 @@ function roomCheck(input) {
 
 	//regex pulled from: 
 	//https://stackoverflow.com/questions/8292965/regular-expression-for-number-and-dash
-	let chars = /^(\d+-?)+\d+$/
+	let chars = /^[0-9-]+$/
 	if (!chars.test(input.value)) {
-		makeToast('error', `${input.name} is not a valid phone number`)
+		makeToast('error', `${input.name} can only contain numbers and "-"`)
 		input.classList.add('alert');
 		input.classList.add('alert-danger');
 		return true;
@@ -337,20 +337,6 @@ function deleteUser(e) {
 	});
 }
 
-function loadEditPassword(e) {
-    let userID = e.srcElement.id.split("_")[1];
-    let xhttp = new XMLHttpRequest();
-    xhttp.addEventListener("loadend", () => {
-        let userInfo = JSON.parse(xhttp.response);
-        let tmpl = document.querySelector("#tmpl_password").innerHTML;
-        let func = doT.template(tmpl);
-        document.querySelector("#displayData").innerHTML = func(userInfo);
-        document.querySelector("#cancel").addEventListener('click', userList);
-        document.querySelector("#submit").addEventListener('click', submitPassword);
-    });
-    xhttp.open("GET", `/api/v1/admin/users?u=${userID}`);
-    xhttp.send();
-}
 
 
 function familyList() {
@@ -595,8 +581,8 @@ function newUser() {
 	}
 
     let newPassData = [];
-    for (let i = 0; i < newPass.length; i++) {
-        newPassData.push(newPass.charCodeAt(i));
+    for (let i = 0; i < newPass.value.length; i++) {
+        newPassData.push(newPass.value.charCodeAt(i));
     }
 
     let xhttp = new XMLHttpRequest();
@@ -620,7 +606,7 @@ function newUser() {
 function listClasses() {
     let xhttp = new XMLHttpRequest();
     xhttp.addEventListener("loadend", () => {
-        let classes = JSON.parse(xhttp.response);
+		let classes = JSON.parse(xhttp.response);
         let tmpl = document.querySelector("#tmpl_listClasses").innerHTML;
         let func = doT.template(tmpl);
 		document.querySelector("#displayData").innerHTML = func(classes);
@@ -645,7 +631,7 @@ function loadEditClass(e) {
         contentType: 'json',
         dataType: 'json',
         success: function(data) {
-            console.log(data);
+			console.log(data);
             let tmpl = document.querySelector("#tmpl_editClass").innerHTML;
             let func = doT.template(tmpl);
             //requires data[0] because API is returning a list
@@ -777,4 +763,52 @@ function submitNewClass() {
     });
     xhttp.open("POST", "/api/v1/admin/classes");
     xhttp.send(JSON.stringify(newClass));
+}
+
+
+
+function submitPassword() {
+	let id = parseInt(document.querySelector("#uId").innerHTML);
+	let pass1 = document.querySelector("#new_pwd");
+	let pass2 = document.querySelector("#confirm_pwd");
+
+	if (passCheck(pass1, pass2)) {
+		return;
+	}
+
+	let newPassData = [];
+    for (let i = 0; i < pass1.value.length; i++) {
+        newPassData.push(pass1.value.charCodeAt(i));
+    }
+
+    $.ajax({
+		type:'PUT',
+		url: `/api/v1/admin/users/${id}`,
+		data: JSON.stringify({"userId":id, "password": newPassData}),
+		dataType: 'text',
+		contentType: 'json',
+	})
+	.done(function(data){
+		makeToast('success', 'Password updated');
+		userList();
+	})
+	.fail(function(data){
+		console.log(data);
+		makeToast('error', `${data.responseText}`);
+	})
+}
+
+function loadEditPassword(e) {
+    let userID = e.srcElement.id.split("_")[1];
+    let xhttp = new XMLHttpRequest();
+    xhttp.addEventListener("loadend", () => {
+        let userInfo = JSON.parse(xhttp.response);
+        let tmpl = document.querySelector("#tmpl_password").innerHTML;
+        let func = doT.template(tmpl);
+        document.querySelector("#displayData").innerHTML = func(userInfo);
+        document.querySelector("#cancel").addEventListener('click', userList);
+        document.querySelector("#submit").addEventListener('click', submitPassword);
+    });
+    xhttp.open("GET", `/api/v1/admin/users?u=${userID}`);
+    xhttp.send();
 }
