@@ -402,7 +402,10 @@ function submitEvent() {
 	event.capacity = parseInt(document.querySelector("#capacity").value);
     event.note = document.querySelector("#note").value;
 	event.repeating = rep
-	event.repeatingDate = moment(`${endRep.value}`).format();
+	if (rep != 0) {
+		event.repeatingDate = moment(`${endRep.value}`).format();
+	}
+	
 	eventJson = JSON.stringify(event);
     // Make ajax POST request with booking request or request bookign delete if already booked
     $.ajax({
