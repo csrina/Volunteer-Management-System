@@ -188,7 +188,7 @@ func updateFamily(w http.ResponseWriter, r *http.Request) {
 func basicRoomList(w http.ResponseWriter, r *http.Request) {
 	rooms := []roomShort{}
 	q := `SELECT room_id, room_name
-			FROM room;`
+			FROM room ORDER BY UPPER(room_name)`
 
 	err := db.Select(&rooms, q)
 	if err != nil {
@@ -222,7 +222,8 @@ func getTeachers(w http.ResponseWriter, r *http.Request) {
 	users := []UserShort{}
 	q := `SELECT user_id, username
 			FROM users
-			WHERE user_role = 2`
+			WHERE user_role = 2
+			ORDER BY UPPER(username)`
 	err := db.Select(&users, q)
 	if err != nil {
 		logger.Println(err)
@@ -241,7 +242,8 @@ func getUserList(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		q := `SELECT user_id, user_role, last_name, first_name, username, email, phone_number
 				FROM users
-				WHERE user_role != 3`
+				WHERE user_role != 3
+				ORDER BY UPPER(last_name)`
 		userList := []userFull{}
 		err := db.Select(&userList, q)
 
@@ -277,7 +279,6 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 	newUser := userFull{}
 	decoder := json.NewDecoder(r.Body)
 	decoder.Decode(&newUser)
-	fmt.Printf("%#v", newUser)
 
 	newPass, err := bcrypt.GenerateFromPassword(newUser.Password, bcrypt.DefaultCost)
 	if err != nil {
@@ -318,6 +319,22 @@ func updateUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func changePass(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	idVal, err := strconv.Atoi(vars["user_id"])
+	if err != nil {
+		http.Error(w, "Bad UserID", http.StatusBadRequest)
+		logger.Println(err)
+		return
+	}
+	newUser := userFull{}
+	decoder := json.NewDecoder(r.Body)
+	decoder.Decode(&newUser)
+
+	adminPassUpdate(w, idVal, newUser.Password)
+}
+
 func removeFromFamily(w http.ResponseWriter, r *http.Request) {
 	user := userFull{}
 	decoder := json.NewDecoder(r.Body)
@@ -341,7 +358,7 @@ func getFamilyList(w http.ResponseWriter, r *http.Request) {
 	familyID, err := strconv.Atoi(options.Get("f"))
 	if err != nil {
 		q := `SELECT family_id, family_name, children
-				FROM family`
+				FROM family ORDER BY UPPER(family_name)`
 
 		familyList := []familyFull{}
 		err := db.Select(&familyList, q)
@@ -390,7 +407,8 @@ func getClassInfo(w http.ResponseWriter, r *http.Request) {
 		q := `SELECT room.room_id, room.room_name, 
 				users.username as teacher, room.room_num  
 				FROM room 
-				FULL OUTER JOIN users ON room.teacher_id = users.user_id WHERE room_id IS NOT NULL`
+				FULL OUTER JOIN users ON room.teacher_id = users.user_id WHERE room_id IS NOT NULL
+				ORDER BY UPPER(room.room_name)`
 		classes := []roomDetailed{}
 
 		err := db.Select(&classes, q)
