@@ -19,12 +19,6 @@
                         <a class="nav-link" {{if eq .Role "Admin"}}href="/admin/calendar" {{else}}href="/calendar"{{end}} >Calendar</a>
                     </li>
 
-                    {{if eq .Role "Facilitator"}}
-                    <li class="nav-item {{if eq .PageName "donate"}}active{{end}}">
-                        <a class="nav-link" href="/donate">Donate</a>
-                    </li>
-                    {{end}}
-
 					{{if eq .Role "Admin"}}
 					<li id="usersBtn" class="nav-item {{if eq .PageName "adminusers"}}active{{end}}">
 						<a class="nav-link" href="/admin/users">Users</a>

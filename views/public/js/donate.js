@@ -1,4 +1,3 @@
-/* Wait for DOM to load, then get the gauges */
 document.addEventListener("DOMContentLoaded", () => {
     // Make request for the donation page data
     $.ajax({

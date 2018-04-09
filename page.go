@@ -193,37 +193,6 @@ func loadPassword(w http.ResponseWriter, r *http.Request) {
 	s.ExecuteTemplate(w, "password", pg) // include page struct
 }
 
-// Donate hours
-func loadDonate(w http.ResponseWriter, r *http.Request) {
-	role, err := getRoleNum(r)
-	if err != nil {
-		if _, ok := err.(*ClientSafeError); ok {
-			http.Error(w, err.Error(), http.StatusBadGateway)
-		} else {
-			http.Error(w, "Something funny happened, sorry. Please try again ", http.StatusInternalServerError)
-		}
-		return
-	}
-	if role == TEACHER {
-		http.Redirect(w, r, "/teacher", http.StatusFound)
-	} else if role == ADMIN {
-		http.Redirect(w, r, "/admin/dashboard", http.StatusFound)
-	}
-
-	pg, err := loadPage("donate", r) // load page
-	if err != nil {
-		if _, ok := err.(*ClientSafeError); ok {
-			http.Error(w, err.Error(), http.StatusBadGateway)
-		} else {
-			http.Error(w, "Something funny happened, sorry. Please try again ", http.StatusInternalServerError)
-		}
-		return
-	}
-	pg.Toaster = true
-	s := tmpls.Lookup("donate.tmpl")
-	s.ExecuteTemplate(w, "donate", pg) // include page struct
-}
-
 // Calendar (Facilitator)
 func loadCalendar(w http.ResponseWriter, r *http.Request) {
 	pg, err := loadPage("calendar", r)

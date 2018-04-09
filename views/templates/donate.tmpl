@@ -1,40 +1,30 @@
 {{define "donate"}}
-
-{{template "header" .}}
-
-<main>
-    <div class="container-fluid">
-        <div class="row text-center">
-            <div class="col-xs-5 offset-4">
-                <div class="card text-center mp-2">
-                    <h2 class="card-header mp-2">Hours Available</h2>
-                    <h3 id="hoursAvail-text" class="text-info m-2"></h3>
-                </div>
-                <div class="card text-left mp-2">
-                    <h2 class="card-header text-center mp-2">Donate</h2>
-                    <div id="doneeSelectFG" class="form-group mp-1">
-                        <label for="DoneeSelect">Choose Donee</label>
-                        <select class="form-control" name="DoneeSelect" id="DoneeSelect" required>
-                            <option value="" selected>Choose A Donee Family</option>
-                        </select>
-                        <div id="amountFG" class="form-group mp-1">
-                            <label class="control-label" for="AmountField">Enter amount</label>
-                            <div class="input-group mp-1">
-                                <input type="number" placeholder="0" step="0.1" min="0" class="form-control" id="AmountField" required>
-                                <div class="input-group-append">
-                                    <span class="input-group-text">Hours</span>
-                                </div>
-                            </div>
+    <div class="col-lg-2 mt-2 float-left">
+        <div class="card text-center mp-2">
+            <h2 class="card-header mp-2">Donate Time</h2>
+        </div>
+        <div class="card text-left mp-2">
+            <h3 class="text-center mt-1">Donatable Hrs</h3>
+            <h3 id="hoursAvail-text" class="text-info m-2 text-center"></h3>
+            <div id="doneeSelectFG" class="form-group mp-1">
+                <label for="DoneeSelect">Choose Donee</label>
+                <select class="form-control" name="DoneeSelect" id="DoneeSelect" required>
+                    <option value="" selected>Choose A Donee Family</option>
+                </select>
+                <div id="amountFG" class="form-group mp-1">
+                    <label class="control-label" for="AmountField">Enter amount</label>
+                    <div class="input-group mp-1">
+                        <input type="number" placeholder="0" step="0.1" min="0" class="form-control" id="AmountField" required>
+                        <div class="input-group-append">
+                            <span class="input-group-text">Hours</span>
                         </div>
-                        <br>
-                        <button id="submit" type="button" class="btn btn-primary" onclick="sendDonation()">Send Donation</button>
                     </div>
                 </div>
+                <br>
+                <button id="submit" type="button" class="btn btn-primary" onclick="sendDonation()">Send Donation</button>
             </div>
         </div>
     </div>
-</main>
-    
-{{template "footer"}}
-    
 {{end}}
+
+
