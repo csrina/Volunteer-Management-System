@@ -324,7 +324,7 @@ function loadEditUser(e) {
 
 	$.ajax({
 		type: "GET",
-		url: `/api/v1/admin/users?u=${userID}`,
+		url: `/api/v1/admin/users/${userID}`,
 		contentType: 'json',
 	})
 	.done(function(data) {
@@ -402,7 +402,7 @@ function loadEditFamily(e) {
     let familyID = e.srcElement.id.split("_")[1];
     
     
-    $.getJSON(`/api/v1/admin/families?f=${familyID}`, function(data, status){
+    $.getJSON(`/api/v1/admin/families/${familyID}`, function(data, status){
         let tmpl = document.querySelector("#tmpl_editFamily").innerHTML;
         let func = doT.template(tmpl);
 
@@ -586,12 +586,14 @@ function submitNewFamily() {
 }
 
 function submitUserEdit() {
-        let uId = parseInt(document.querySelector("#IDNum").innerHTML);
+        let uId = parseInt(document.querySelector("#IDNum").value);
         let newFName = document.querySelector("#fname");
         let newLName = document.querySelector("#lName");
         let newEmail = document.querySelector("#email");
         let newPhone = document.querySelector("#phoneNum"); 
 		let newUName = `${newLName.value.toLowerCase()}_${newFName.value.toLowerCase()}`;
+		let bNote  = document.querySelector("#bonusNote")
+		let bHours = parseInt(document.querySelector("#bonusHours").value);
 
 		if (bNote.value == null) {
 			bNote.value = "None";
@@ -613,10 +615,15 @@ function submitUserEdit() {
                 userList();
             }
         });
-        xhttp.open("PUT", "/api/v1/admin/users");
+		xhttp.open("PUT", "/api/v1/admin/users");
+		console.log(JSON.stringify({userid:uId, username:newUName,
+			firstname: newFName.value, lastname:newLName.value,
+			email:newEmail.value, phoneNumber:newPhone.value,
+			bonusHours: bHours, bonusNote: bNote.value}));
         xhttp.send(JSON.stringify({userid:uId, username:newUName,
                     firstname: newFName.value, lastname:newLName.value,
-                    email:newEmail.value, phoneNumber:newPhone.value}));
+					email:newEmail.value, phoneNumber:newPhone.value,
+					bonusHours: bHours, bonusNote: bNote.value}));
 }
 
 function newUser() {
@@ -695,7 +702,7 @@ function loadEditClass(e) {
     let classID = e.srcElement.id.split("_")[1];
     $.ajax({
         type: 'GET',
-        url: `/api/v1/admin/classes?c=${classID}`,
+        url: `/api/v1/admin/classes/${classID}`,
         contentType: 'json',
         dataType: 'json',
         success: function(data) {

@@ -69,7 +69,6 @@ func (u *UserShort) getFullName() (name string, err error) {
 	return // returns name, error via magical named return values
 }
 
-
 type newMessage struct {
 	Parents    []int  `json:"parents"`
 	MessageID  int    `db:"msg_id"`
@@ -77,10 +76,10 @@ type newMessage struct {
 }
 
 type AdminMessages struct {
-	MessageID  int    `json:"msgID" db:"msg_id"`
-	Message string `json:"message" db:"msg"`
-	Read int `json:"read" db:"read"`
-	Total int `json:"total" db:"total"`
+	MessageID int    `json:"msgID" db:"msg_id"`
+	Message   string `json:"message" db:"msg"`
+	Read      int    `json:"read" db:"read"`
+	Total     int    `json:"total" db:"total"`
 }
 
 func createAdminNotification(w http.ResponseWriter, r *http.Request) {
@@ -123,7 +122,6 @@ func createAdminNotification(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-
 func getAdminNotification(w http.ResponseWriter, r *http.Request) {
 	q := `select n.msg_id, n.msg, r.read, t.total 
 			from notifications n, 
@@ -146,8 +144,7 @@ func getAdminNotification(w http.ResponseWriter, r *http.Request) {
 	encoder.Encode(msgs)
 }
 
-
-func deleteAdminNotification(w http.ResponseWriter, r *http.Request)  {
+func deleteAdminNotification(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	msgID := vars["id"]
 	tx, err := db.Begin()
@@ -182,7 +179,6 @@ func deleteAdminNotification(w http.ResponseWriter, r *http.Request)  {
 	tx.Commit()
 	w.WriteHeader(http.StatusCreated)
 }
-
 
 type familyFull struct {
 	FamilyID   int    `json:"familyId" db:"family_id"`
@@ -321,7 +317,8 @@ func lonelyFacilitators(w http.ResponseWriter, r *http.Request) {
 	q := `SELECT user_id, username
 			FROM users
 			WHERE family_id IS NULL
-			AND user_role = 1`
+			AND user_role = 1
+			ORDER BY UPPER(username)`
 
 	err := db.Select(&users, q)
 	if err != nil {
@@ -333,12 +330,13 @@ func lonelyFacilitators(w http.ResponseWriter, r *http.Request) {
 	encoder.Encode(users)
 }
 
-//gets all users 
+//gets all users
 func allFacilitators(w http.ResponseWriter, r *http.Request) {
 	users := []UserShort{}
 	q := `SELECT user_id, username
 			FROM users
-			where user_role = 1`
+			where user_role = 1
+			ORDER BY UPPER(username)`
 
 	err := db.Select(&users, q)
 	if err != nil {
@@ -369,43 +367,47 @@ func getTeachers(w http.ResponseWriter, r *http.Request) {
 
 //does not return admin in this list
 func getUserList(w http.ResponseWriter, r *http.Request) {
-	options := r.URL.Query()
-	userID, err := strconv.Atoi(options.Get("u"))
-	//indicates we didnt have the flag or bad value
-	if err != nil {
-		q := `SELECT user_id, user_role, last_name, first_name, username, email, phone_number
+	q := `SELECT user_id, user_role, last_name, first_name, username, email, phone_number
 				FROM users
 				WHERE user_role != 3
 				ORDER BY UPPER(last_name)`
-		userList := []userFull{}
-		err := db.Select(&userList, q)
+	userList := []userFull{}
+	err := db.Select(&userList, q)
 
-		if err != nil {
-			logger.Println(err)
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
-		encoder := json.NewEncoder(w)
-		encoder.Encode(userList)
-		w.WriteHeader(http.StatusOK)
-	} else {
-		q := `SELECT user_id, user_role, last_name, first_name, username, email, phone_number, bonus_hours, bonus_note
+	encoder := json.NewEncoder(w)
+	encoder.Encode(userList)
+}
+
+func getSingleUser(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	idVal, err := strconv.Atoi(vars["user_id"])
+	if err != nil {
+		http.Error(w, "Bad UserID", http.StatusBadRequest)
+		logger.Println(err)
+		return
+	}
+
+	q := `SELECT user_id, user_role, last_name, first_name, username, email, phone_number, bonus_hours, bonus_note
 				FROM users
 				WHERE user_id = ($1)`
-		user := userFull{}
-		err := db.QueryRowx(q, userID).StructScan(&user)
+	user := userFull{}
+	err = db.QueryRowx(q, idVal).StructScan(&user)
 
-		if err != nil {
-			logger.Println(err)
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
-		encoder := json.NewEncoder(w)
-		encoder.Encode(user)
-		w.WriteHeader(http.StatusOK)
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
+
+	encoder := json.NewEncoder(w)
+	encoder.Encode(user)
 }
 
 func createUser(w http.ResponseWriter, r *http.Request) {
@@ -487,96 +489,101 @@ func removeFromFamily(w http.ResponseWriter, r *http.Request) {
 }
 
 func getFamilyList(w http.ResponseWriter, r *http.Request) {
-	options := r.URL.Query()
-	familyID, err := strconv.Atoi(options.Get("f"))
-	if err != nil {
-		q := `SELECT family_id, family_name, children
+	q := `SELECT family_id, family_name, children
 				FROM family ORDER BY UPPER(family_name)`
 
-		familyList := []familyFull{}
-		err := db.Select(&familyList, q)
-
-		if err != nil {
-			logger.Println(err)
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
-		encoder := json.NewEncoder(w)
-		encoder.Encode(familyList)
-	} else {
-		q2 := `SELECT family_id, family_name, children
-				FROM family
-				WHERE family_id = $1`
-		q3 := `SELECT user_id, username
-				FROM users
-				WHERE family_id = $1`
-		family := familyDetailed{}
-		err := db.QueryRowx(q2, familyID).StructScan(&family)
-
-		if err != nil {
-			logger.Println(err)
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
-		err = db.Select(&family.Parents, q3, familyID)
-		if err != nil {
-			logger.Println(err)
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		encoder := json.NewEncoder(w)
-		encoder.Encode(family)
-	}
-}
-
-func getClassInfo(w http.ResponseWriter, r *http.Request) {
-	options := r.URL.Query()
-	classID, err := strconv.Atoi(options.Get("c"))
+	familyList := []familyFull{}
+	err := db.Select(&familyList, q)
 
 	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
-		q := `SELECT room.room_id, room.room_name, 
+	encoder := json.NewEncoder(w)
+	encoder.Encode(familyList)
+}
+
+func getSingleFamily(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	idVal, err := strconv.Atoi(vars["family_id"])
+	if err != nil {
+		http.Error(w, "Bad FamilyID", http.StatusBadRequest)
+		logger.Println(err)
+		return
+	}
+	q2 := `SELECT family_id, family_name, children
+				FROM family
+				WHERE family_id = $1`
+	q3 := `SELECT user_id, username
+				FROM users
+				WHERE family_id = $1`
+	family := familyDetailed{}
+	err = db.QueryRowx(q2, idVal).StructScan(&family)
+
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = db.Select(&family.Parents, q3, idVal)
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	encoder := json.NewEncoder(w)
+	encoder.Encode(family)
+}
+
+func getClassList(w http.ResponseWriter, r *http.Request) {
+	q := `SELECT room.room_id, room.room_name, 
 				users.username as teacher, room.room_num  
 				FROM room 
 				FULL OUTER JOIN users ON room.teacher_id = users.user_id WHERE room_id IS NOT NULL
 				ORDER BY UPPER(room.room_name)`
-		classes := []roomDetailed{}
+	classes := []roomDetailed{}
 
-		err := db.Select(&classes, q)
-		if err != nil {
-			logger.Println(err)
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
+	err := db.Select(&classes, q)
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
-		encoder := json.NewEncoder(w)
-		encoder.Encode(classes)
-	} else {
-		/*
-			q2 := `SELECT room.room_id, room.room_name, users.username AS teacher, users.user_id AS teacher_id, room.room_num
-					FROM room, users
-					WHERE room.room_id = $1
-					AND room.teacher_id = users.user_id`
-		*/
-		q2 := `SELECT room.room_id, room.room_name, 
+	encoder := json.NewEncoder(w)
+	encoder.Encode(classes)
+}
+
+func getSingleClass(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+
+	idVal, err := strconv.Atoi(vars["class_id"])
+	if err != nil {
+		http.Error(w, "Bad ClassID", http.StatusBadRequest)
+		logger.Println(err)
+		return
+	}
+	q2 := `SELECT room.room_id, room.room_name, 
 				users.username as teacher, users.user_id AS teacher_id,room.room_num
 				FROM room
 				FULL OUTER JOIN users ON room.teacher_id = users.user_id WHERE room_id = $1`
 
-		class := []roomDetailed{}
+	class := []roomDetailed{}
 
-		err := db.Select(&class, q2, classID)
-		if err != nil {
-			logger.Println(err)
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
-		encoder := json.NewEncoder(w)
-		encoder.Encode(class)
+	err = db.Select(&class, q2, idVal)
+	if err != nil {
+		logger.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
+
+	encoder := json.NewEncoder(w)
+	encoder.Encode(class)
 }
 
 func createClass(w http.ResponseWriter, r *http.Request) {

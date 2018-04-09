@@ -3,6 +3,8 @@
 {{template "header" .}}
 
 <script id="tmpl_listUsers" type="x-dot-template">
+	<br>
+	<br>
     <table class="table table-hover fittable">
         <thead>
             <tr class="table-default">
@@ -53,6 +55,8 @@
 </script>
 
 <script id="tmpl_listFamilies" type="x-dot-template">
+	<br>
+	<br>
     <table>
         <thead>
             <tr class="table-default">
@@ -75,6 +79,8 @@
 
 <script id="tmpl_newFamily" type="x-dot-template">    
     <div class="form-group">
+		<br>
+		<br>
         <p>Family Name</p>
         <input id="famName" type="text" name="Family Name" class="form-control form-control-sm">
         <br>
@@ -91,7 +97,9 @@
 </script>
 
 <script id="tmpl_editFamily" type="x-dot-template">
-   <div class="form-group">
+   	<div class="form-group">
+   		<br>
+		<br>
         <p>Family ID</p>
         <input id="famId" type="text" value="{{`{{=it.familyId}}`}}" class="form-control form-control-sm" readonly>
         <br>
@@ -114,6 +122,8 @@
 
 <script id="tmpl_editUser" type="x-dot-template">
     <div class="form-group">
+		<br>
+		<br>
         <p>User ID</p>
         <input id="IDNum" value="{{`{{=it.userId}}`}}" class="form-control form-control-sm" readonly>
         <br>
@@ -146,6 +156,8 @@
 
 <script id="tmpl_addUser" type="x-dot-template">
     <div class="form-group">
+		<br>
+		<br>
         <p>Role</p>
         <select class="form-control" id="role">
             <option value="1">Facilitator</option>
