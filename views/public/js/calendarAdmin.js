@@ -394,8 +394,8 @@ function submitEvent() {
     let event = {}
     event.title = $("#bTitle").val();
 	event.title = ((event.title === "" || !event.title) ? "Facilitation" : event.title);
-    event.start = moment(`${document.querySelector("#startdate").value}T${document.querySelector("#starttime").value}`);
-	event.end = moment(`${document.querySelector("#enddate").value}T${document.querySelector("#endtime").value}`);
+    event.start = moment(`${document.querySelector("#startdate").value}T${document.querySelector("#starttime").value}`).format();
+	event.end = moment(`${document.querySelector("#enddate").value}T${document.querySelector("#endtime").value}`).format();
     event.roomId = parseInt(document.querySelector("#room").value);
     event.room = $("#room option:selected").text();
     event.modifier = parseFloat(document.querySelector("#modifier").value);

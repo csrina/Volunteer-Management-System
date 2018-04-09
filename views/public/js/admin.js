@@ -143,18 +143,46 @@ function setActiveCategory() {
 }
 
 function download(filename, text) {
-  var element = document.createElement('a');
-  element.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(text));
-  element.setAttribute('download', filename);
-
-  element.style.display = 'none';
-  document.body.appendChild(element);
-
-  element.click();
-
-  document.body.removeChild(element);
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename);
+    
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    
+    element.click();
+    
+    document.body.removeChild(element);
 }
 
+function monthSwitch(num) {
+    switch(num) {
+    case 1:
+	return "January";
+    case 2:
+	return "February";
+    case 3:
+	return "March";
+    case 4:
+	return "April";
+    case 5:
+	return "May";
+    case 6:
+	return "June";	
+    case 7:
+	return "July";
+    case 8:
+	return "August";	
+    case 9:
+	return "September";	
+    case 10:
+	return "October";	
+    case 11:
+	return "November";
+    case 12:
+	return "December";
+    }
+}
 
 function exportMonthly() {
     let xhttp = new XMLHttpRequest();
@@ -174,19 +202,51 @@ function exportMonthly() {
     	    }
     	    str.push(row);
     	}
-	var csvContent;
+	m = $("#time")[0].valueAsDate.getMonth() + 1;
+	var input = monthSwitch(m);
+	var csvContent = `Hours: ${input}`;
     	str.forEach(function(rowArray){
     	    let str = rowArray.join(",");
     	    csvContent += str + "\r\n";
 	});
 		    
-	download("export.csv", csvContent);
+	download(`Hours: ${input}.csv`, csvContent);
     });
     
-    xhttp.open("GET", "/api/v1/charts");
+    xhttp.open("GET", `/api/v1/charts?date=${$("#time")[0].value}`);
     xhttp.send();
 }
 
+
+
+function exportPdf() {
+    m = $("#time")[0].valueAsDate.getMonth() + 1;
+    var input = monthSwitch(m);
+    url = $("#skills")[0].toDataURL("image/png");
+
+    var element = document.createElement('a');
+    element.setAttribute('href',url);
+    element.setAttribute('download', `${input} report.png`);
+    
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    
+    element.click();
+    
+    document.body.removeChild(element);
+}
+
+function next() {
+    var test = moment($("#time")[0].value).add(1, 'months');
+    $("#time")[0].value = moment(test).format("YYYY-MM-DD");
+    familyData();
+}
+
+function previous() {
+    var test = moment($("#time")[0].value).add(-1, 'months');
+    $("#time")[0].value = moment(test).format("YYYY-MM-DD");
+    familyData();
+}
 
 function familyData() {
     let xhttp = new XMLHttpRequest();
@@ -203,11 +263,13 @@ function familyData() {
     	};
 	
     	window.myBar = new Chart(ctx, {
-    	    type: 'horizontalBar',
+	    //    	    type: 'horizontalBar',
+	    type: "line",
     	    data: barData,
     	    options: {
     		scales: {
-    		    xAxes: [{
+//		        		    xAxes: [{
+		    yAxes: [{
     			ticks : { 
     			    min: -5,
     			    max: 5,
@@ -230,15 +292,17 @@ function familyData() {
     	    }
     	    barData.datasets.push({
     		label: name,
+		fill: false,
+		borderColor: colourList[total%8],
     		backgroundColor: colourList[total%8],
-    		borderWidth: 1,
+    		borderWidth: 5,
     		data: hours
     	    });
     	    total++;
     	}
     	window.myBar.update();
     });
-    xhttp.open("GET", "/api/v1/charts");
+    xhttp.open("GET", `/api/v1/charts?date=${$("#time")[0].value}`);
     xhttp.send();
 }
 
