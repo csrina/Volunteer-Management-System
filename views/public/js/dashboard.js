@@ -204,7 +204,6 @@ function refreshGauge(gauge, parentID, newValue) {
     gauge.set(newValue);
     // setup the text
     element = document.getElementById(parentID + "-text");
-    element.style.color = gauge.getColorForValue(newValue);
     element.innerHTML = "<h3>" + newValue + "h</h3>";
 }
 
