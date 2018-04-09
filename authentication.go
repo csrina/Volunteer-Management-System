@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -89,8 +88,6 @@ func auth(w http.ResponseWriter, username string, password []byte, role int) {
 	}
 	logger.Printf("User %v found\n", username)
 	// Comparing the password with the hash
-	fmt.Println(users[0].Password)
-	fmt.Println(password)
 	if err := bcrypt.CompareHashAndPassword(users[0].Password, password); err != nil {
 		logger.Println(err)
 		logger.Printf("'%v'\n", string(password))
