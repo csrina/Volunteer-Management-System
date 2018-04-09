@@ -16,9 +16,9 @@ function inputCheck(input) {
 		return true
 	}
 
-	let chars = /^[a-zA-Z]+$/;
+	let chars = /^[a-zA-Z0-9_ ]*$/
 	if (!chars.test(input.value)) {
-		makeToast('error', `${input.name} can only contain letters`)
+		makeToast('error', `${input.name} can only contain letters, numbers, and spaces`)
 		input.classList.add('alert');
 		input.classList.add('alert-danger');
 		return true;
@@ -38,9 +38,9 @@ function roomCheck(input) {
 
 	//regex pulled from: 
 	//https://stackoverflow.com/questions/8292965/regular-expression-for-number-and-dash
-	let chars = /^(\d+-?)+\d+$/
+	let chars = /^[0-9-]+$/
 	if (!chars.test(input.value)) {
-		makeToast('error', `${input.name} is not a valid phone number`)
+		makeToast('error', `${input.name} can only contain numbers and "-"`)
 		input.classList.add('alert');
 		input.classList.add('alert-danger');
 		return true;
@@ -142,50 +142,101 @@ function setActiveCategory() {
     document.querySelector(`#${cat}Btn`).setAttribute('class','active');
 }
 
+function download(filename, text) {
+  var element = document.createElement('a');
+  element.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(text));
+  element.setAttribute('download', filename);
+
+  element.style.display = 'none';
+  document.body.appendChild(element);
+
+  element.click();
+
+  document.body.removeChild(element);
+}
+
+
+function exportMonthly() {
+    let xhttp = new XMLHttpRequest();
+    xhttp.addEventListener("loadend", () => {
+    	data = JSON.parse(xhttp.response);
+    	let str = [[]];
+    	let weeks = ["family"]
+    	for (let i=0; i<data[0].weeks.length; i++) {
+    	    weeks.push(`week ${i+1}`);
+    	}
+    	str.push(weeks);
+    	for (let i=0; i<data.length; i++) {
+    	    let row = []
+    	    row.push(data[i].familyName);
+    	    for (let j=0; j<data[i].weeks.length; j++) {
+    		row.push(data[i].weeks[j].total);
+    	    }
+    	    str.push(row);
+    	}
+	var csvContent;
+    	str.forEach(function(rowArray){
+    	    let str = rowArray.join(",");
+    	    csvContent += str + "\r\n";
+	});
+		    
+	download("export.csv", csvContent);
+    });
+    
+    xhttp.open("GET", "/api/v1/charts");
+    xhttp.send();
+}
+
+
 function familyData() {
     let xhttp = new XMLHttpRequest();
     xhttp.addEventListener("loadend", () => {
-	console.log(xhttp.response);
-	let httpData = JSON.parse(xhttp.response);
+    	let httpData = JSON.parse(xhttp.response);
+    	list = []
+    	for (let i=0; i< httpData[0].weeks.length; i++) {
+    	    list.push(httpData[0].weeks[i].start + " - " + httpData[0].weeks[i].end)
+    	}
+    	var ctx = document.getElementById('skills').getContext('2d');
+    	var barData = {
+    	    labels: list,
+    	    datasets: []
+    	};
 	
-	var ctx = document.getElementById('skills').getContext('2d');
-	var barData = {
-	    labels: ['FirstWeek', 'SecondWeek', 'ThirdWeek',
-		     'FourthWeek', 'FifthWeek', 'SixthWeek'],
-	    //labels: ['Week'],
-	    datasets: []
-	};
-	
-	window.myBar = new Chart(ctx, {
-	    type: 'bar',
-	    data: barData,
-	    options: {
-		responsive: true,
-		legend: {
-		    position: 'right',
-		},
-		title: {
-		    display: true,
-		    text: 'Chart.js Horizontal Bar Chart'
-		}
-	    }
-	});
+    	window.myBar = new Chart(ctx, {
+    	    type: 'horizontalBar',
+    	    data: barData,
+    	    options: {
+    		scales: {
+    		    xAxes: [{
+    			ticks : { 
+    			    min: -5,
+    			    max: 5,
+    			    stepSize: 0.5
+    			}
+    		    }]
+    		}
+    	    }
+    	});
 
 
-	var colourList = ["#00FFFF", "#A52A2A", "#7FFF00", "#FF7F50",
-			  "#006400", "#8B008B", "#FFD700", "#808080"]
-	var total = 0;
-	for (let i=0; i<httpData.length;i++) {
-	    let name = httpData[i].familyName;
-	    let hours = httpData[i].weeks;
-	    barData.datasets.push({
-		label: name,
-		backgroundColor: colourList[total%8],
-		borderWidth: 1,
-		data: hours});
-	    total ++;
-	}
-	window.myBar.update();
+    	var colourList = ["#00FFFF", "#A52A2A", "#7FFF00", "#FF7F50",
+    			  "#006400", "#8B008B", "#FFD700", "#808080"]
+    	var total = 0;
+    	for (let i=0; i<httpData.length;i++) {
+    	    let hours = [];
+    	    let name = httpData[i].familyName;
+    	    for (let j=0; j<httpData[i].weeks.length;j++) {
+    		hours.push(httpData[i].weeks[j].total);
+    	    }
+    	    barData.datasets.push({
+    		label: name,
+    		backgroundColor: colourList[total%8],
+    		borderWidth: 1,
+    		data: hours
+    	    });
+    	    total++;
+    	}
+    	window.myBar.update();
     });
     xhttp.open("GET", "/api/v1/charts");
     xhttp.send();
@@ -327,20 +378,6 @@ function deleteUser(e) {
 	});
 }
 
-function loadEditPassword(e) {
-    let userID = e.srcElement.id.split("_")[1];
-    let xhttp = new XMLHttpRequest();
-    xhttp.addEventListener("loadend", () => {
-        let userInfo = JSON.parse(xhttp.response);
-        let tmpl = document.querySelector("#tmpl_password").innerHTML;
-        let func = doT.template(tmpl);
-        document.querySelector("#displayData").innerHTML = func(userInfo);
-        document.querySelector("#cancel").addEventListener('click', userList);
-        document.querySelector("#submit").addEventListener('click', submitPassword);
-    });
-    xhttp.open("GET", `/api/v1/admin/users?u=${userID}`);
-    xhttp.send();
-}
 
 
 function familyList() {
@@ -612,8 +649,8 @@ function newUser() {
 	}
 
     let newPassData = [];
-    for (let i = 0; i < newPass.length; i++) {
-        newPassData.push(newPass.charCodeAt(i));
+    for (let i = 0; i < newPass.value.length; i++) {
+        newPassData.push(newPass.value.charCodeAt(i));
     }
 
     let xhttp = new XMLHttpRequest();
@@ -637,7 +674,7 @@ function newUser() {
 function listClasses() {
     let xhttp = new XMLHttpRequest();
     xhttp.addEventListener("loadend", () => {
-        let classes = JSON.parse(xhttp.response);
+		let classes = JSON.parse(xhttp.response);
         let tmpl = document.querySelector("#tmpl_listClasses").innerHTML;
         let func = doT.template(tmpl);
 		document.querySelector("#displayData").innerHTML = func(classes);
@@ -662,7 +699,7 @@ function loadEditClass(e) {
         contentType: 'json',
         dataType: 'json',
         success: function(data) {
-            console.log(data);
+			console.log(data);
             let tmpl = document.querySelector("#tmpl_editClass").innerHTML;
             let func = doT.template(tmpl);
             //requires data[0] because API is returning a list
@@ -672,6 +709,8 @@ function loadEditClass(e) {
 			$(document).ready(function(){
             	document.querySelector("#cancel").addEventListener('click', listClasses);
 				document.querySelector("#submit").addEventListener('click', submitClassEdit);
+				document.querySelector("#delete").addEventListener('click',
+				deleteClass)
 			});
         },
         error: function(xhr) {
@@ -706,6 +745,33 @@ function submitClassEdit() {
             makeToast(`error`,`Could not update class (${xhr.status})`);
         }
     });
+}
+
+function deleteClassWarning(e) {
+	let classname = document.querySelector("#cName").value;
+
+	let check = prompt(`WARNING!\n\nARE YOU SURE YOU WANT TO DELETE CLASS: ${classname}?\n\nTHIS WILL DELETE ALL TIME BLOCKS FOR THIS CLASS AND ANY PREVIOUS BOOKING RECORDS INVOLVED WITH THE ROOM.\n\nTo delete please type the class name below.`, "");
+	
+	return (check === classname);
+}
+
+function deleteClass() {
+	let classID = parseInt($("#cId").val());
+
+	if (!deleteClassWarning()) {
+		return;
+	}
+
+	$.ajax({
+		type: 'DELETE',
+		url: `/api/v1/admin/classes/${classID}`,
+		contentType: 'text',
+	}).done(function(data){
+		makeToast("success","Class deleted");
+		listClasses();
+	}).fail(function(data){
+		makeToast("error", `Could not delete class: ${data.responseText}`)
+	})
 }
 
 function getTeachers() {
@@ -765,4 +831,52 @@ function submitNewClass() {
     });
     xhttp.open("POST", "/api/v1/admin/classes");
     xhttp.send(JSON.stringify(newClass));
+}
+
+
+
+function submitPassword() {
+	let id = parseInt(document.querySelector("#uId").innerHTML);
+	let pass1 = document.querySelector("#new_pwd");
+	let pass2 = document.querySelector("#confirm_pwd");
+
+	if (passCheck(pass1, pass2)) {
+		return;
+	}
+
+	let newPassData = [];
+    for (let i = 0; i < pass1.value.length; i++) {
+        newPassData.push(pass1.value.charCodeAt(i));
+    }
+
+    $.ajax({
+		type:'PUT',
+		url: `/api/v1/admin/users/${id}`,
+		data: JSON.stringify({"userId":id, "password": newPassData}),
+		dataType: 'text',
+		contentType: 'json',
+	})
+	.done(function(data){
+		makeToast('success', 'Password updated');
+		userList();
+	})
+	.fail(function(data){
+		console.log(data);
+		makeToast('error', `${data.responseText}`);
+	})
+}
+
+function loadEditPassword(e) {
+    let userID = e.srcElement.id.split("_")[1];
+    let xhttp = new XMLHttpRequest();
+    xhttp.addEventListener("loadend", () => {
+        let userInfo = JSON.parse(xhttp.response);
+        let tmpl = document.querySelector("#tmpl_password").innerHTML;
+        let func = doT.template(tmpl);
+        document.querySelector("#displayData").innerHTML = func(userInfo);
+        document.querySelector("#cancel").addEventListener('click', userList);
+        document.querySelector("#submit").addEventListener('click', submitPassword);
+    });
+    xhttp.open("GET", `/api/v1/admin/users?u=${userID}`);
+    xhttp.send();
 }

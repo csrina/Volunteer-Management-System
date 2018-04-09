@@ -145,9 +145,11 @@ function requestBooking(event, uid, btn) {
         success: function(data) {  // We expect the server to return json data with a msg field
             // noinspection Annotator
             makeToast("success", data.msg);
-            event = $('#calendar').fullCalendar('clientEvents', event.id)[0]; // get calendar event
+			event = $('#calendar').fullCalendar('clientEvents', event.id)[0]; // get calendar event
+			console.log(event);
+			console.log(event.booked);
             event.booked = !event.booked;
-            if (event.booked === true) {
+            if (event.booked == true) {
                 if (!event.bookings) {
                     event.bookings = [];
                 }
@@ -165,7 +167,7 @@ function requestBooking(event, uid, btn) {
                     }
                 }
             }
-            updateEventRefreshModal(event, btn);
+			updateEventRefreshModal(event, btn);
         },
         error: function(xhr, ajaxOptions, thrownError) {
             makeToast("error", "Booking request failed: " + xhr.responseText);
@@ -254,7 +256,7 @@ function removeEvent(btn) {
 }
 
 $(document).ready(function() {
-    loadAddEvent();
+
 
     // ensure created button is deleted on modal close
     $('#eventDetailsModal').on('hide.bs.modal', function (e) {
@@ -343,12 +345,21 @@ function submitEvent() {
     let endT = document.querySelector("#endtime");
     let room = document.querySelector("#room");
 	let mod = document.querySelector("#modifier");
+	let rep = parseInt(document.querySelector("#repeatOption").value);
+	let endRep = document.querySelector("#repeatDate");
 	
 	if (fieldCheck(startD) || fieldCheck(startT) 
 	|| fieldCheck(endD) || fieldCheck(endT)
 	|| fieldCheck(room) || fieldCheck(mod)) {
 		return;
 	}
+
+	
+	if (rep != 0 && endRep == "") {
+		makeToast('error','Please fill out a date to repeat until.');
+		return;
+	}
+
 
     let xhttp = new XMLHttpRequest();
     xhttp.addEventListener("loadend", () => {
@@ -366,7 +377,9 @@ function submitEvent() {
     event.roomId = parseInt(document.querySelector("#room").value);
     event.room = $("#room option:selected").text();
     event.modifier = parseInt(document.querySelector("#modifier").value);
-    event.note = document.querySelector("#note").value;
+	event.note = document.querySelector("#note").value;
+	event.repeating = rep
+	event.repeatingDate = moment(`${endRep.value}`).format();
 	eventJson = JSON.stringify(event);
     // Make ajax POST request with booking request or request bookign delete if already booked
     $.ajax({
@@ -376,6 +389,11 @@ function submitEvent() {
         data: eventJson,
         dataType: 'json',
         success: function (data) {
+			if (event.repeating != 0) {
+				makeToast('success','All events added');
+				$('#calendar').fullCalendar('refetchEvents');
+				return;
+			}
             event.id = data.id;
             event.color = data.color;
             event.bookingCount = 0;

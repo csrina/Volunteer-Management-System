@@ -31,12 +31,18 @@ type familyShort struct {
 }
 
 /* For monthly reporting */
-type familyMonth struct {
-	FamilyID   int       `json:"familyId" db:"family_id"`
-	FamilyName string    `json:"familyName" db:"family_name"`
-	Weeks      []float64 `json:"weeks"`
-	Month      float64   `json:"month"`
-	Children   int       `json:"children" db:"children"`
+type monthReport struct {
+	FamilyID   int          `json:"familyId" db:"family_id"`
+	FamilyName string       `json:"familyName" db:"family_name"`
+	Weeks      []weekReport `json:"weeks"`
+	Month      float64      `json:"month"`
+	Children   int          `json:"children" db:"children"`
+}
+
+type weekReport struct {
+	Start string  `json:"start"`
+	End   string  `json:"end"`
+	Total float64 `json:"total"`
 }
 
 // Data for a family's dashboard or for other repurposing
