@@ -733,7 +733,7 @@ function newUser() {
     let xhttp = new XMLHttpRequest();
     xhttp.addEventListener("loadend", () => {
         if (xhttp.status > 300) {
-            makeToast('error',`Could not create user: ${xhttp.responseText}`);
+            makeToast('error',`Could not create user: ${xhttp.response}`);
             return;
         }
         if (xhttp.status == 201) {

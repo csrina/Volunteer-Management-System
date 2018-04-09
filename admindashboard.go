@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -411,6 +412,16 @@ func getSingleUser(w http.ResponseWriter, r *http.Request) {
 	encoder.Encode(user)
 }
 
+//this was taken from a CMPT315 Lab
+//credit to Dr. Boers
+func isUniqueViolation(err error) bool {
+	if err, ok := err.(*pq.Error); ok {
+		return err.Code == "23505"
+	}
+
+	return false
+}
+
 func createUser(w http.ResponseWriter, r *http.Request) {
 	newUser := userFull{}
 	decoder := json.NewDecoder(r.Body)
@@ -430,8 +441,14 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 		newUser.FirstName, newUser.LastName, newUser.Email, newUser.Phone,
 		newUser.BonusHours, newUser.BonusNote)
 	if err != nil {
+		if isUniqueViolation(err) {
+			logger.Println(err)
+			http.Error(w, "User already exists", http.StatusBadRequest)
+			return
+		}
 		logger.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
+		errString := fmt.Sprintf("%s", err)
+		http.Error(w, errString, http.StatusBadRequest)
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
