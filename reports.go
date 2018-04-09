@@ -89,20 +89,6 @@ func monthlyReport(w http.ResponseWriter, r *http.Request) {
 	encoder.Encode(month)
 }
 
-func exportMonthly(w http.ResponseWriter, r *http.Request) {
-	var test []monthReport
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&test)
-	if err != nil {
-		fmt.Printf("%v", err)
-	}
-	fmt.Printf("%v", test)
-}
-
-func exportYearly(w http.ResponseWriter, r *http.Request) {
-
-}
-
 func defaultReport(w http.ResponseWriter, r *http.Request) {
 	q := `SELECT family_id, family_name
 			FROM family`

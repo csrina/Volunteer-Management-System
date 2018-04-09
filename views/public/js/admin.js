@@ -202,17 +202,53 @@ function exportMonthly() {
     	}
 	m = $("#time")[0].valueAsDate.getMonth() + 1;
 	var input = monthSwitch(m);
-	var csvContent = `Report: ${input}`;
+	var csvContent = `Hours: ${input}`;
     	str.forEach(function(rowArray){
     	    let str = rowArray.join(",");
     	    csvContent += str + "\r\n";
 	});
 		    
-	download("export.csv", csvContent);
+	download(`Hours: ${input}`, csvContent);
     });
     
     xhttp.open("GET", `/api/v1/charts?date=${$("#time")[0].value}`);
     xhttp.send();
+}
+
+
+window.onload = function() {
+    $("#time")[0].value = moment().format("YYYY-MM-DD");
+    familyData();
+};
+
+function exportPdf() {
+    
+    m = $("#time")[0].valueAsDate.getMonth() + 1;
+    var input = monthSwitch(m);
+    url = $("#skills")[0].toDataURL("image/png");
+
+    var element = document.createElement('a');
+    element.setAttribute('href',url);
+    element.setAttribute('download', `${input} report.png`);
+    
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    
+    element.click();
+    
+    document.body.removeChild(element);
+}
+
+function next() {
+    var test = moment($("#time")[0].value).add(1, 'months');
+    $("#time")[0].value = moment(test).format("YYYY-MM-DD");
+    familyData();
+}
+
+function previous() {
+    var test = moment($("#time")[0].value).add(-1, 'months');
+    $("#time")[0].value = moment(test).format("YYYY-MM-DD");
+    familyData();
 }
 
 function familyData() {
@@ -230,11 +266,13 @@ function familyData() {
     	};
 	
     	window.myBar = new Chart(ctx, {
-    	    type: 'horizontalBar',
+	    //    	    type: 'horizontalBar',
+	    type: "line",
     	    data: barData,
     	    options: {
     		scales: {
-    		    xAxes: [{
+//		        		    xAxes: [{
+		    yAxes: [{
     			ticks : { 
     			    min: -5,
     			    max: 5,
@@ -257,8 +295,10 @@ function familyData() {
     	    }
     	    barData.datasets.push({
     		label: name,
+		fill: false,
+		borderColor: colourList[total%8],
     		backgroundColor: colourList[total%8],
-    		borderWidth: 1,
+    		borderWidth: 5,
     		data: hours
     	    });
     	    total++;
