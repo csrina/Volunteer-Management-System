@@ -45,7 +45,7 @@ CREATE TABLE time_block (
     block_id        SERIAL      PRIMARY KEY,
     block_start     TIMESTAMP,
     block_end       TIMESTAMP,
-    room_id         INT			REFERENCES room(room_id),
+    room_id         INT			REFERENCES room(room_id) ON DELETE CASCADE,
     capacity        INT     DEFAULT 3,
     modifier        INT			DEFAULT 1,
     title           TEXT    DEFAULT 'Facilitation',
@@ -55,7 +55,7 @@ CREATE TABLE time_block (
 
 CREATE TABLE booking (
     booking_id      SERIAL      PRIMARY KEY,
-    block_id        INT         REFERENCES time_block (block_id),
+    block_id        INT         REFERENCES time_block (block_id) ON DELETE CASCADE,
     family_id       INT         REFERENCES family (family_id),
     user_id         INT         REFERENCES users (user_id),
     booking_start   TIMESTAMP,

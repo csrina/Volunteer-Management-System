@@ -111,7 +111,6 @@ func adminRoutes(r *mux.Router) {
 	a.HandleFunc("/users", loadAdminUsers)
 	a.HandleFunc("/reports", loadAdminReports)
 	a.HandleFunc("/calendar", loadAdminCalendar)
-	a.HandleFunc("/builder", loadAdminScheduleBuilder)
 	a.HandleFunc("/classes", loadAdminClasses)
 }
 
@@ -123,11 +122,13 @@ func apiRoutes(r *mux.Router) {
 	s.HandleFunc("/admin/users", createUser).Methods("POST")
 	s.HandleFunc("/admin/users", updateUser).Methods("PUT")
 	s.HandleFunc("/admin/users/{user_id}", deleteUser).Methods("DELETE")
+	s.HandleFunc("/admin/users/{user_id}", changePass).Methods("PUT")
 	s.HandleFunc("/admin/users/family", removeFromFamily).Methods("PUT")
 	s.HandleFunc("/admin/teachers", getTeachers).Methods("GET")
 	s.HandleFunc("/admin/classes", getClassInfo).Methods("GET")
 	s.HandleFunc("/admin/classes", createClass).Methods("POST")
 	s.HandleFunc("/admin/classes", updateClass).Methods("PUT")
+	s.HandleFunc("/admin/classes/{class_id}", deleteRoom).Methods("DELETE")
 	s.HandleFunc("/admin/facilitators", lonelyFacilitators).Methods("GET")
 	s.HandleFunc("/admin/families", getFamilyList).Methods("GET")
 	s.HandleFunc("/admin/families", createFamily).Methods("POST")
@@ -148,7 +149,6 @@ func apiRoutes(r *mux.Router) {
 	/* Events JSON routes for scheduler system */
 	s.HandleFunc("/events/{target}", getEvents).Methods("GET")
 	s.HandleFunc("/events/{target}", eventPostHandler).Methods("POST")
-	s.HandleFunc("/schedule/{target}", schedulePostHandler).Methods("POST")
 	l := s.PathPrefix("/login").Subrouter()
 	l.HandleFunc("/facilitator/", loginHandler).Methods("POST")
 	l.HandleFunc("/teacher/", loginHandler).Methods("POST")

@@ -156,8 +156,10 @@ type Event struct {
 	Booked       bool        `json:"booked"`
 	Bookings     []UserShort `json:"bookings"` // we store their actual names in the username field
 	// description
-	Modifier int    `db:"modifier" json:"modifier"`
-	Note     string `json:"note"`
+	Modifier       int       `db:"modifier" json:"modifier"`
+	Note           string    `json:"note"`
+	Repeating      int       `json:"repeating"`
+	ReapeatingDate time.Time `json:"repeatingDate"`
 }
 
 /*
@@ -205,7 +207,22 @@ func (e *Event) update() (*Response, error) {
  * Return a response struct or error
  */
 func (e *Event) add() (*Response, error) {
-	logger.Println("=>DB: ", e)
+	if e.Repeating == 1 {
+		response, err := e.addWeekly()
+		if err != nil {
+			logger.Println(err)
+			return nil, err
+		}
+		return response, nil
+	} else if e.Repeating == 2 {
+		response, err := e.addDaily()
+		if err != nil {
+			logger.Println(err)
+			return nil, err
+		}
+		return response, nil
+	}
+
 	tb := e.getTimeBlock()
 	var err error
 	e.ID, err = tb.insert() // insert block & set e.ID to correspond to the tbID returned
@@ -219,6 +236,71 @@ func (e *Event) add() (*Response, error) {
 	response.Msg = "Successfully added time block"
 	response.Colour = e.Colour
 	response.setID(tb.ID)
+	return response, nil
+}
+
+func (e *Event) addWeekly() (*Response, error) {
+	tx, err := db.Begin()
+	if err != nil {
+		logger.Println(err)
+		return nil, err
+	}
+	tempStart := e.Start
+	tempEnd := e.End
+
+	for tempStart.Before(e.ReapeatingDate) {
+		tb := e.getTimeBlock()
+		q := `INSERT INTO time_block (block_start, block_end, room_id, modifier, title, note)
+			VALUES ($1, $2, $3, $4, $5, $6)
+			RETURNING block_id`
+		err := tx.QueryRow(q, tempStart, tempEnd, tb.Room, tb.Modifier, tb.Title, tb.Note).Scan(&tb.ID)
+
+		if err != nil {
+			logger.Println(err)
+			tx.Rollback()
+			return nil, err
+		}
+
+		tempStart = tempStart.AddDate(0, 0, 7)
+		tempEnd = tempEnd.AddDate(0, 0, 7)
+
+	}
+	response := new(Response)
+	response.Msg = "Successfully added all events"
+	tx.Commit()
+	return response, nil
+}
+
+func (e *Event) addDaily() (*Response, error) {
+	tx, err := db.Begin()
+	if err != nil {
+		logger.Println(err)
+		return nil, err
+	}
+	tempStart := e.Start
+	tempEnd := e.End
+
+	for tempStart.Before(e.ReapeatingDate) {
+		if tempStart.Weekday() != 6 || tempStart.Weekday() != 7 {
+			tb := e.getTimeBlock()
+			q := `INSERT INTO time_block (block_start, block_end, room_id, modifier, title, note)
+			VALUES ($1, $2, $3, $4, $5, $6)
+			RETURNING block_id`
+			err := tx.QueryRow(q, tempStart, tempEnd, tb.Room, tb.Modifier, tb.Title, tb.Note).Scan(&tb.ID)
+
+			if err != nil {
+				logger.Println(err)
+				tx.Rollback()
+				return nil, err
+			}
+		}
+		tempStart = tempStart.AddDate(0, 0, 1)
+		tempEnd = tempEnd.AddDate(0, 0, 1)
+
+	}
+	response := new(Response)
+	response.Msg = "Successfully added all events"
+	tx.Commit()
 	return response, nil
 }
 
@@ -456,4 +538,3 @@ func (e *Event) updateColourCode() {
 		e.Colour = strings.Split(e.Room, " ")[0] // take only first string to avoid breaking the world
 	}
 }
-

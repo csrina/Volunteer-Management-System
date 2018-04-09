@@ -15,7 +15,7 @@ function fieldCheck(input) {
 
 // Determines if an event satisfies the filters applied
 function isVisibleEvent(event) {
-    return $("#" + event.room + "btn").attr("data-value") == "on";
+	return $(`[id='${event.room}btn']`).attr("data-value") == "on";
 }
 
 function clearFilterButtons() {
@@ -24,13 +24,12 @@ function clearFilterButtons() {
 
 // Add a filter with the given text value
 function addFilterButton(buttonText) {
-    if ($("#" + buttonText + "btn").length != 0) {
+    if ($(`[id='${buttonText}btn']`).length != 0) {
         return; // Already have dis
     }
-    let btn = "<button type='button' class='btn btn-sm btn-primary active' aria-pressed='true' " +
-        "data-value='on' id='" + buttonText + "btn' onclick='changeFilter(this)' style='font-size: 0.85rem;'>";
-    btn +=  buttonText + "</button>";
-    $('#filterButtons').append(btn);
+    let btn = `<button type="button" class="btn btn-sm btn-primary active" aria-pressed="true" data-value="on" id="${buttonText}btn" onclick="changeFilter(this)"> ${buttonText} </button>`;
+	//btn +=  buttonText + "</button>";
+	$('#filterButtons').append(btn);
 }
 
 // Update filters & refresh displayed events
@@ -42,7 +41,6 @@ function changeFilter(btn) {
         btn.setAttribute("data-value", "on"); // change data attr to on
         $(btn).removeClass("btn-light").addClass("btn-primary"); // set primary to indicate more clearly
     }
-
     let events = $("#calendar").fullCalendar("clientEvents");
     $("#calendar").fullCalendar("updateEvents", events);
 }

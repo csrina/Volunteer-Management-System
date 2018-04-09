@@ -31,24 +31,25 @@
 </script>
 
 <script id="tmpl_password" type="x-dot-template">
-    <div class="row">
-        <header>
-            <h1>Edit password for user: </h1><h2>{{`{{=it.userName}}`}}</h2>
-        </header>
-    </div>
-    <div class="row">
-        Password </td>
-            <td class="table-default"> <input id="pass1" type="password" name="Password" class="form-control form-control-sm"></td>
-        </tr>
-        <tr class="table-default">
-            <td class="table-default">  Confirm Password </td>
-            <td class="table-default"> <input id="pass2" type="password" name="Password" class="form-control form-control-sm"></td>
-        </tr>
-        <tr class="table-default">
-        <td class="table-default"> <button id="Submit" type="button" class="btn btn-primary">Submit</button></td>
-        <td class="table-default"> <button id="cancel" type="button" class="btn btn-primary">Cancel</button></td>
-        </tr>
-    </div>
+	<br>
+	<br>
+	<header>
+        <h3>Edit password for user: </h3>
+		<h4 id="uName">{{`{{=it.userName}}`}}</h4>
+		<h5 id="uId">{{`{{=it.userId}}`}}</h5>
+    </header>
+	<br>
+	<div class="form-group">
+        <p>Password</p>
+        <input id="new_pwd" type="password" name="Password" class="form-control form-control-sm">
+        <br>
+        <p>Confirm Password</p>
+        <input id="confirm_pwd" type="password" name="Password" class="form-control form-control-sm">
+        <br>
+        <button id="submit" type="button" class="btn btn-primary">Submit</button>
+        <button id="cancel" type="button" class="btn btn-primary">Cancel</button>
+	<br>
+    <br>
 </script>
 
 <script id="tmpl_listFamilies" type="x-dot-template">
@@ -177,7 +178,6 @@
         <br>
         <button id="submit" type="button" class="btn btn-primary">Submit</button>
         <button id="cancel" type="button" class="btn btn-primary">Cancel</button>
-    </div>
 </script>
 
 <main>

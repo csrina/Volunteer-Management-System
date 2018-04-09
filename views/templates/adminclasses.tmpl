@@ -14,8 +14,9 @@
         {{`{{~it :value:index}}`}}
         <tr>
             <td>{{`{{=value.roomId}}`}}</td>
+
             <td>{{`{{=value.roomName}}`}}</td>
-            <td>{{`{{=value.teacher}}`}}</td>
+			<td>{{`{{?value.teacher.Valid}}{{=value.teacher.String}}{{??}}None{{?}}`}}
             <td>{{`{{=value.roomNum}}`}}</td>
             <td><button id="edit_{{`{{=value.roomId}}`}}" type="button" class="btn btn-primary">Edit Classroom</button></td>
         </tr>
@@ -41,9 +42,12 @@
         <br>
         <p>Teacher</p>
         <select class="form-control" id="cTeacher">
-            <option value="{{`{{=it.teacherId}}`}}">
-                {{`{{=it.teacher}}`}}
+			<option value="{{`{{?it.teacherId.Valid}}
+							{{=it.teacherId.Int64}}{{??}}
+							-1{{?}}}}`}}">
+                {{`{{?it.teacher.Valid}}{{=it.teacher.String}}{{??}}None{{?}}`}}
             </option>
+			<option value="-1">No Teacher</option> 
         </select>
         <br>
         <p>Room #</p>
@@ -51,6 +55,7 @@
         <br>
         <button id="submit" type="button" class="btn btn-primary">Submit</button>
         <button id="cancel" type="button" class="btn btn-primary">Cancel</button>
+		<button id="delete" type="button" class="btn btn-danger float-right">Delete</button>
     </div>
 </script>
 
@@ -61,10 +66,11 @@
         <br>
         <p>Teacher</p>
         <select class="form-control" id="cTeacher">
-            <option value="">Select a teacher...</option>
+            <option value="-1">Select a teacher...</option>
             {{`{{~it :value:index}}`}}
             <option value="{{`{{=value.userId}}`}}">{{`{{=value.userName}}`}}</option>
             {{`{{~}}`}}  
+			<option value="-1">No Teacher</option>
         </select>
         <br>
         <p>Room #</p>
