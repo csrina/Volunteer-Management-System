@@ -260,7 +260,7 @@ function loadNewNotificationForm() {
 	document.querySelector("#display_new_notification").innerHTML = tmpl;
 	$('#parent-select').multiSelect({
 		selectableHeader: "<div class='parent-select'>Available Facilitators</div>",
-		selectionHeader: "<div class='parent-select'>Family Members</div>"
+		selectionHeader: "<div class='parent-select'>Users to Notify</div>"
 	});
 	$('#parent-select').multiSelect({});
 	
