@@ -153,6 +153,35 @@ function download(filename, text) {
     document.body.removeChild(element);
 }
 
+function monthSwitch(num) {
+    switch(num) {
+    case 1:
+	return "January";
+    case 2:
+	return "February";
+    case 3:
+	return "March";
+    case 4:
+	return "April";
+    case 5:
+	return "May";
+    case 6:
+	return "June";	
+    case 7:
+	return "July";
+    case 8:
+	return "August";	
+    case 9:
+	return "September";	
+    case 10:
+	return "October";	
+    case 11:
+	return "November";
+    case 12:
+	return "December";
+    }
+}
+
 function exportMonthly() {
     let xhttp = new XMLHttpRequest();
     xhttp.addEventListener("loadend", () => {
@@ -171,7 +200,9 @@ function exportMonthly() {
     	    }
     	    str.push(row);
     	}
-	var csvContent;
+	m = $("#time")[0].valueAsDate.getMonth() + 1;
+	var input = monthSwitch(m);
+	var csvContent = `Report: ${input}`;
     	str.forEach(function(rowArray){
     	    let str = rowArray.join(",");
     	    csvContent += str + "\r\n";
