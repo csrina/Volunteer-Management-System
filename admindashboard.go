@@ -458,7 +458,6 @@ func deleteUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	idVal, err := strconv.Atoi(vars["user_id"])
-	fmt.Println(idVal)
 	if err != nil {
 		http.Error(w, "Bad UserID", http.StatusBadRequest)
 		logger.Println(err)
@@ -510,7 +509,6 @@ func deleteFamily(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	idVal, err := strconv.Atoi(vars["family_id"])
-	fmt.Println(idVal)
 	if err != nil {
 		http.Error(w, "Bad UserID", http.StatusBadRequest)
 		logger.Println(err)
@@ -553,6 +551,29 @@ func deleteFamily(w http.ResponseWriter, r *http.Request) {
 	tx.Commit()
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func deleteRoom(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	idVal, err := strconv.Atoi(vars["class_id"])
+	if err != nil {
+		http.Error(w, "Bad UserID", http.StatusBadRequest)
+		logger.Println(err)
+		return
+	}
+
+	q := `DELETE FROM room WHERE room_id = ($1)`
+
+	_, err = db.Exec(q, idVal)
+	if err != nil {
+		http.Error(w, "Check server logs", http.StatusBadRequest)
+		logger.Println(err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
 }
 
 func loadAdminDash(w http.ResponseWriter, r *http.Request) {
