@@ -452,7 +452,7 @@ function deleteFamily(e) {
 		contentType: 'text',
 		success: function(data) {
 			makeToast("success","Family succesfully deleted.");
-			userList();
+			familyList();
 		},
 		error: function(data) {
 			makeToast("error", data.responseText)
