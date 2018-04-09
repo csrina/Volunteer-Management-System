@@ -47,7 +47,7 @@ func monthlyReport(w http.ResponseWriter, r *http.Request) {
 	addMonth, _ := strconv.Atoi(req[1])
 
 	q := `SELECT family_id, family_name, children
-			FROM family`
+			FROM family ORDER BY UPPER(family_name)`
 
 	families := []familyShort{}
 	err := db.Select(&families, q)
@@ -91,7 +91,7 @@ func monthlyReport(w http.ResponseWriter, r *http.Request) {
 
 func defaultReport(w http.ResponseWriter, r *http.Request) {
 	q := `SELECT family_id, family_name
-			FROM family`
+			FROM family ORDER BY UPPER(family_name)`
 
 	families := []familyShort{}
 
