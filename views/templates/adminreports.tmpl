@@ -3,6 +3,7 @@
 {{template "header" .}}
 
 <div id="family" onpageshow="familyData()">
+
   <button onclick="exportPdf()">Export to pdf</button>
   <button onclick="exportMonthly()" download="" href="#">Export to csv</button>
   <label>Select time: </label><input id="time" type="date"/>
@@ -10,7 +11,10 @@
   <button onclick="previous()">Previous</button>
   <button onclick="next()">Next</button>
 </div>
-
+     <script>
+     $("#time")[0].value = moment().format("YYYY-MM-DD");
+     familyData();
+</script>
 <canvas id="skills"></canvas>
 
 <script id="tmpl_reportFamily" type="x-dot-template">

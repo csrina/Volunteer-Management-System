@@ -218,13 +218,13 @@ function exportMonthly() {
 }
 
 
+
+function exportPdf() {
+
 window.onload = function() {
     $("#time")[0].value = moment().format("YYYY-MM-DD");
     familyData();
-};
-
-function exportPdf() {
-    
+};    
     m = $("#time")[0].valueAsDate.getMonth() + 1;
     var input = monthSwitch(m);
     url = $("#skills")[0].toDataURL("image/png");
