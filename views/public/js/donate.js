@@ -1,4 +1,3 @@
-/* Wait for DOM to load, then get the gauges */
 document.addEventListener("DOMContentLoaded", () => {
     // Make request for the donation page data
     $.ajax({
@@ -45,7 +44,7 @@ function sendDonation() {
         success: function(data) {
             console.log(data);
             makeToast("success", "Donation sent! Donation ID: " + data.id);
-            refreshWidgets(data);
+            refreshDonationWidgets(data);
         },
         error: (xhr => makeToast("error", "Failed to send donation: " + xhr.responseText)),
         dataType: 'json'
@@ -59,7 +58,7 @@ function createWidgets(data) {
     document.getElementById("hoursAvail-text").innerHTML = (data.hoursAvail > 0) ? data.hoursAvail : 0;
 }
 
-function refreshWidgets(data) {
+function refreshDonationWidgets(data) {
     let e = document.getElementById("hoursAvail-text")
     e.innerHTML = parseFloat(e.innerHTML) - parseFloat(data.amount);
 }

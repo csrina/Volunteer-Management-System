@@ -26,10 +26,17 @@ function showModal(btn) {
         + event.id + "'>";
 
     let closeEditButton = "    <span class='far fa-edit fa-lg'></span></button>"; // close the edit button
+
+    let editCapacityButton = "<button type='button' class='btn btn-outline-secondary border-0 mpb-1' "
+        + "data-fieldName='capacity' onclick='editEventDetails(this)' data-id='"
+        + event.id + "'>" + closeEditButton;
+
     // use the open/close button strings to create edit buttons containing the data to be altered
     $('#eventModalTitle').html(openEditTitleButton + "<h5>" + event.title + closeEditButton + "</h5>");
     $('#modalEventRoom').html(event.room + " Room").css("color", event.color);
-    $('#modalEventTime').html(event.start.format("ddd, hhA") + " - " + event.end.format("hA"))
+
+    $('#modalEventTime').html(event.start.format("ddd, hh:mm") + " - " + event.end.format("hh:mm"))
+    $('#modalEventCapacity').html("<h5> Capacity   " + event.capacity + editCapacityButton + "</h5>");
 
     let hourlyValue = moment.duration(event.end.diff(event.start)).asHours() * event.modifier;
     $('#modalValueLabel').append("<button type='button' class='btn btn-outline-secondary border-0 mpb-1' "
@@ -37,16 +44,16 @@ function showModal(btn) {
         + event.id + "'>" + "modifier: " + event.modifier + closeEditButton).append("<h5 id='modalEventValue' class='text-primary'>" + hourlyValue + "</h5>");
     $('#eventNote').html(openEditNoteButton + "<p class='text-muted'>" + event.note + closeEditButton + "</p>");
 
-    let len = (!event.bookings) ? 0 : event.bookings.length;
-    let bookingsHTML = "";
-    if (len === 0) {
-        bookingsHTML = "No bookings yet <br> You could be the first!"
-    }
     // button to add a booking to the event
     let bookingBtn = "<button type='button' class='btn-outline-success border-0 btn-sm' data-uid='-1' data-id='" + event.id + "' onclick='requestBookingWrapper(this)'><span class='fas fa-user-plus fa-2x'></span></button>  ";
     $('#modalBookedLabel').append("  " + bookingBtn)
 
     // make a button for each user (so they can be unbooked easily and clearly... unlike this code hehe)
+    let bookingsHTML = "";
+    let len = (!event.bookings) ? 0 : event.bookings.length;
+    if (len === 0) {
+        bookingsHTML = "No bookings yet";
+    }
     for (let i = 0; i < len; i++) {
         bookingsHTML += "<button type='button' class='btn btn-outline-danger border-0 mp-1 mt-2' data-uid='"
             + event.bookings[i].userId
@@ -55,13 +62,8 @@ function showModal(btn) {
             + event.bookings[i].userName + "        "
             + "<span class='fas fa-minus-circle fa-lg'></span></button>";
     }
+
     $('#eventBookings').html(bookingsHTML); // set event bookings with the html built in the loop
-
-    // set color & text of submit button
-    $('#modalConfirm').html("Submit")
-        .removeClass("btn-primary")
-        .addClass("btn-success");
-
     $('#eventDetailsModal').modal('show'); // spawn our modal
 }
 
@@ -74,6 +76,7 @@ function storeChangesToEvent(event, delta, revertFunc, jsEvent, ui, view) {
         title: event.title,
         note:  event.note,
         modifier: event.modifier,
+        capacity: event.capacity
     };
 
     if (!temp.start.endsWith("Z")) { temp.start = temp.start + "Z"; }
@@ -203,7 +206,15 @@ function editEventDetails(btn) {
             makeToast("warning", "The new title is a number, is that a typo?");
         }
         event.title = temp;
-    } else if (field === "note") {
+    } else if (field === "room") {
+        temp = prompt("Enter the new room name (expecting a color): ")
+        if (temp !== null || temp !== "" || temp !== undefined) {
+            event.room = temp;
+            event.color = temp;
+        } else {
+            makeToast("error", "Must be a valid colour");
+        }
+    }  else if (field === "note") {
         temp = prompt("Enter the new description: ");
         if (temp === null) {
             return;
@@ -220,6 +231,13 @@ function editEventDetails(btn) {
             return
         }
         event.modifier = temp;
+    } else if (field == "capacity") {
+        temp = parseFloat(prompt("Enter the new capacity: "));
+        if (isNaN(temp)) {
+            makeToast("error", "Capacity must be a number!");
+            return
+        }
+        event.capacity = temp;
     } else {
         makeToast("error", "An unpredicted error occurred");
         return
@@ -274,7 +292,8 @@ $(document).ready(function() {
             center: 'prev, title, next',
             right: 'agendaWeek, month'
         },
-        agendaEventMinHeight: 100,
+        snapDuration: "00:05:00",
+        agendaEventMinHeight: 90,
         defaultView: "agendaWeek",
         contentHeight: 'auto',
         events: "/api/v1/events/scheduler",    // link to events (bookings + blocks feed)
@@ -282,11 +301,12 @@ $(document).ready(function() {
         themeSystem: "bootstrap4",
         editable: true,                 // Need to use templating engine to change bool based on user's rolego ,
         eventRender: function(event, element, view) {
-            element.find('.fc-time').css("font-size", "1em")
-                    .append("   " + event.bookingCount + "/3<br>");
-            element.find('.fc-title').css("font-size", "1.2em").append("<br>")
-                    .append("<button type='button' class='btn btn-outline-primary border-0 btn-sm' data-id='" + event.id + "' onclick='showModal(this)'><i class='far fa-edit fa-lg'></i></button>    ")
-                    .append("<br><button type='button' class='btn btn-outline-primary border-0 btn-sm' data-id='" + event.id + "' onclick='removeEvent(this)'><i class='fas fa-times-circle fa-lg'></i></button>    ");
+            event.capacity = ((!!event.capacity) ? event.capacity : "3");
+            element.find('.fc-time').css("font-size", "1rem")
+                    .append('   -   ' + event.bookingCount.toString() + "/" + event.capacity.toString());
+            element.find('.fc-title').css("font-size", "0.85rem").append("<br>")
+                    .append("<button type='button' class='btn btn-outline-primary border-0 btn-sm' data-id='" + event.id + "' onclick='showModal(this)'><i class='far fa-edit'></i></button>")
+                    .append("<button type='button' class='btn btn-outline-primary border-0 btn-sm' data-id='" + event.id + "' onclick='removeEvent(this)'><i class='fas fa-times-circle'></i></button>");
             return renderFiltered(event);
          },
         // DOM-Event handling for Calendar Eventblocks (why do js people suck at naming)
@@ -339,7 +359,7 @@ function loadAddEvent() {
 }
 
 function submitEvent() {
-	
+
 	let startD = document.querySelector("#startdate");
 	let startT = document.querySelector("#starttime");
 	let endD = document.querySelector("#enddate");
@@ -348,16 +368,16 @@ function submitEvent() {
 	let mod = document.querySelector("#modifier");
 	let rep = parseInt(document.querySelector("#repeatOption").value);
 	let endRep = document.querySelector("#repeatDate");
-	
-	if (fieldCheck(startD) || fieldCheck(startT) 
+
+	if (fieldCheck(startD) || fieldCheck(startT)
 	|| fieldCheck(endD) || fieldCheck(endT)
 	|| fieldCheck(room) || fieldCheck(mod)) {
 		return;
 	}
 
-	
+
 	if (rep != 0 && endRep == "") {
-		makeToast('error','Please fill out a date to repeat until.');
+		makeToast('error','Please fill out a repeat interval');
 		return;
 	}
 
@@ -370,15 +390,17 @@ function submitEvent() {
         }
         //loadAddEvent();
     });
+    let tzone = new Date().getTimezoneOffset();
     let event = {}
     event.title = $("#bTitle").val();
 	event.title = ((event.title === "" || !event.title) ? "Facilitation" : event.title);
-    event.start = moment(`${document.querySelector("#startdate").value}T${document.querySelector("#starttime").value}`).format();
-	event.end = moment(`${document.querySelector("#enddate").value}T${document.querySelector("#endtime").value}`).format();
+    event.start = moment(`${document.querySelector("#startdate").value}T${document.querySelector("#starttime").value}`);
+	event.end = moment(`${document.querySelector("#enddate").value}T${document.querySelector("#endtime").value}`);
     event.roomId = parseInt(document.querySelector("#room").value);
     event.room = $("#room option:selected").text();
-    event.modifier = parseInt(document.querySelector("#modifier").value);
-	event.note = document.querySelector("#note").value;
+    event.modifier = parseFloat(document.querySelector("#modifier").value);
+	event.capacity = parseInt(document.querySelector("#capacity").value);
+    event.note = document.querySelector("#note").value;
 	event.repeating = rep
 	event.repeatingDate = moment(`${endRep.value}`).format();
 	eventJson = JSON.stringify(event);
@@ -391,7 +413,7 @@ function submitEvent() {
         dataType: 'json',
         success: function (data) {
 			if (event.repeating != 0) {
-				makeToast('success','All events added');
+				makeToast('success','All events added!');
 				$('#calendar').fullCalendar('refetchEvents');
 				return;
 			}

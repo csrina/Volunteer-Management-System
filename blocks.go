@@ -2,12 +2,15 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"time"
 
 	"database/sql"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
+	"encoding/json"
 )
 
 /* TimeBlock ...
@@ -19,6 +22,7 @@ type TimeBlock struct {
 	End      time.Time `db:"block_end" json:"end"`
 	Room     int       `db:"room_id" json:"room"`
 	Modifier int       `db:"modifier" json:"modifier"`
+	Capacity int       `db:"capacity" json:"capacity"`
 	Title    string    `db:"title" json:"title"`
 	Note     string    `db:"note" json:"note"`
 }
@@ -33,7 +37,7 @@ type MsgWording struct {
 func getTimeBlockByID(id int) (*TimeBlock, error) {
 	tb := new(TimeBlock)
 	q := `SELECT * FROM time_block WHERE time_block.block_id = $1`
-	err := db.QueryRow(q, id).Scan(&tb.ID, &tb.Start, &tb.End, &tb.Room, &tb.Modifier, &tb.Title, &tb.Note)
+	err := db.QueryRow(q, id).Scan(&tb.ID, &tb.Start, &tb.End, &tb.Room, &tb.Capacity, &tb.Modifier, &tb.Title, &tb.Note)
 	return tb, err
 }
 
@@ -70,10 +74,10 @@ func (tb *TimeBlock) bookings() ([]bookingBlock, error) {
  */
 func (tb *TimeBlock) insert() (int, error) {
 
-	q := `INSERT INTO time_block (block_start, block_end, room_id, modifier, title, note)
-			VALUES ($1, $2, $3, $4, $5, $6)
+	q := `INSERT INTO time_block (block_start, block_end, room_id, modifier, capacity, title, note)
+			VALUES ($1, $2, $3, $4, $5, $6, $7)
 			RETURNING block_id`
-	err := db.QueryRow(q, tb.Start, tb.End, tb.Room, tb.Modifier, tb.Title, tb.Note).Scan(&tb.ID)
+	err := db.QueryRow(q, tb.Start, tb.End, tb.Room, tb.Modifier, tb.Capacity, tb.Title, tb.Note).Scan(&tb.ID)
 	if err != nil {
 		return -1, err
 	}
@@ -121,7 +125,7 @@ func getUsersInTimeBlockValues(tx *sqlx.Tx, tid int) ([]int, error) {
 }
 
 func updateTimeBlockQuery(tx *sqlx.Tx, tb *TimeBlock) error {
-	q := "UPDATE time_block SET(block_id, block_start, block_end, room_id, modifier, title, note) = ($1, $2, $3, $4, $5, $6, $7) WHERE (time_block.block_id = $1)"
+	q := "UPDATE time_block SET(block_id, block_start, block_end, room_id, capacity, modifier, title, note) = ($1, $2, $3, $4, $5, $6, $7, $8) WHERE (time_block.block_id = $1)"
 	stmt, err := tx.Preparex(q)
 	if err != nil {
 		logger.Println(err)
@@ -129,7 +133,7 @@ func updateTimeBlockQuery(tx *sqlx.Tx, tb *TimeBlock) error {
 	}
 	defer stmt.Close()
 
-	if _, err := stmt.Exec(tb.ID, tb.Start, tb.End, tb.Room, tb.Modifier, tb.Title, tb.Note); err != nil {
+	if _, err := stmt.Exec(tb.ID, tb.Start, tb.End, tb.Room, tb.Capacity, tb.Modifier, tb.Title, tb.Note); err != nil {
 		tx.Rollback()
 		logger.Println(err)
 		return err
@@ -333,3 +337,163 @@ func (tb *TimeBlock) setDay(startDate time.Time) {
 	tb.Start = time.Date(startDate.Year(), startDate.Month(), startDate.Day(), tb.Start.Hour(), tb.Start.Minute(), 0, 0, tb.Start.Location())
 	tb.End = time.Date(startDate.Year(), startDate.Month(), startDate.Day(), tb.End.Hour(), tb.End.Minute(), 0, 0, tb.Start.Location())
 }
+
+/* For templating calendar aka schedule builder mode */
+const (
+	WEEKLY = iota
+	MONTHLY
+)
+
+type IntervalData struct {
+	Repeats int			`json:"repeatType"` // See constant declarations above
+	Delta   int 		`json:"primaryDelta"`// e.g. 2 ==> every 2nd week/month, 1 == every week/month, 3 == every 3rd week/month
+	// SubDelta may b eused for monthly repeaters
+	secondaryDeltas []int `json:"secondaryDeltas"`// E.g. Every 2nd monday (on a 2nd month Delta) --> 2nd monday of every 2nd month;; is a slice to allow for things like (1, 3) --> 1st and 3rd Day of DeltaREpeatingMonth
+}
+
+/*
+ * Events from templater have interval fields included
+ */
+type BuilderEvent struct {
+	Event
+	Interval IntervalData
+}
+
+// Advance by major delta (e.g. next month)
+func (be BuilderEvent) Increment() (BuilderEvent) {
+	logger.Println("++: ", be)
+	switch be.Interval.Repeats {
+	case WEEKLY:
+		be.Start = be.Start.AddDate(0, 0, 7 * be.Interval.Delta)
+		be.End = be.End.AddDate(0, 0, 7 * be.Interval.Delta)
+	case MONTHLY:
+		be.Start = be.Start.AddDate(0, be.Interval.Delta, 0)
+		be.End = be.End.AddDate(0, be.Interval.Delta, 0)
+	}
+	return be
+}
+
+/*
+ * List of builderEvents for creating schedule
+ * Period start = inclusive start date for period to build
+ * Period end is exclusive moment for period to build in
+ */
+type ScheduleBuilderData struct {
+	Events      []BuilderEvent `json:"events"`
+	PeriodStart time.Time      `json:"periodStart"`
+	PeriodEnd   time.Time      `json:"periodEnd"`
+}
+
+// For handling template build/destroy/whateverelse POSTS
+func schedulePostHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		return
+	}
+	role, err := getRoleNum(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if role != ADMIN {
+		http.Error(w, "You must be an admin to do this action (your auth cookie may have expired)", http.StatusForbidden)
+		return
+	}
+
+	dest := mux.Vars(r)["target"] // Determine POST destination from URL
+	switch dest {
+	case "build":
+		buildRequestHandler(w, r)
+		return
+	case "destroy":
+		// If theres time, maybe a takedown mode I dunno
+		http.Error(w, "Not implemented yet", http.StatusBadGateway)
+		return
+	default:
+		http.Error(w, "Invalid destination specified", http.StatusBadGateway)
+	}
+}
+
+func buildRequestHandler(w http.ResponseWriter, r *http.Request) {
+	dec := json.NewDecoder(r.Body)
+	builderData := new(ScheduleBuilderData)
+	err := dec.Decode(builderData)
+	if err != nil {
+		logger.Println(builderData)
+		logger.Println(err)
+		http.Error(w, "Could not complete request", http.StatusInternalServerError)
+		return
+	}
+	logger.Println(builderData)
+
+	// separate by room
+	// only days are relevant coming from the builder (set the year/month to the start of the period
+	// Subtract a month, to guarentee we don't miss anything in the window (because the calendar is using the current date, it could be like the 24th or something; moving back to last month compensates
+	// our building algorithm will increment by week until period is hit
+	bdRoomMap := make(map[string][]BuilderEvent)
+	for _, e := range builderData.Events {
+		e.Start = time.Date(builderData.PeriodStart.Year(), builderData.PeriodStart.Month() - 1, e.Start.Day(), e.Start.Hour(), e.Start.Minute(), 0, 0, time.Local)
+		e.End = time.Date(builderData.PeriodStart.Year(), builderData.PeriodStart.Month() - 1, e.End.Day(), e.End.Hour(), e.End.Minute(),0, 0, time.Local) // builder sets utcOffset to 0
+		bdRoomMap[e.Room] = append(bdRoomMap[e.Room], e) // Split up by rooms (can be parallelized)
+	}
+
+	/*
+	 * Building schedule is complex; quadratic best case, most likely cubic or worse on average.
+	 * We use go routines for each room, as their blocks are independent, so can be parallelized easily.
+	 * Additionally, we know adding events to DB will have significant I/O time, so we can swap in other room's routines
+	 * rather than wait for each write before proceeding. Going over board with the routines would be bad in otherways,
+	 * gut feeling says rooms should be sufficient as a divisor.
+	 */
+	for _, evs := range bdRoomMap { // ignore roomnames [key is blanked (i.e. _)]
+		BuildSchedule(evs, builderData.PeriodStart, builderData.PeriodEnd)
+	}
+
+	rr := &Response{Msg: "whew!",}
+	rr.send(w)
+	return
+}
+
+/* Creates blocks to satisfy the interval conditions  for each bd in evs, within the period indicated by sop/eop (startofendofperiod */
+func BuildSchedule(evs []BuilderEvent, sop, eop time.Time) {
+	for _, be := range evs { // foreach be => BuilderEvent given via template calendar
+		// Before start of period (period starts  mid week for example), add weeks until in ranger
+		for be.Start.Before(sop) {
+			// dun dun dun duh duuuuuuuuun de da da dun de da dooo da da bump ba bum bah da (*james bond theme plays*)
+			be.Start = be.Start.AddDate(0,0,7)
+			be.End = be.End.AddDate(0,0,7)
+		}
+
+		for be.Start.Before(eop) { // event in range --> add it to calendar and increment
+			logger.Println("ANY: ", be)
+
+			if be.RoomID == 0 {
+				q := `SELECT room_id FROM room WHERE room_name = $1`
+				err := db.QueryRow(q, be.Room).Scan(&be.RoomID)
+				if err != nil {
+					logger.Println(err)
+					continue
+				}
+			}
+
+			switch be.Interval.Repeats {
+			case MONTHLY:
+				logger.Println("MONTHLY: ", be)
+				for _, i := range be.Interval.secondaryDeltas { // For each sub delta value --> add events to calendar for the month
+					subEv := be
+					subEv.Start = subEv.Start.AddDate(0, 0, 7 * i)         // add subDelta to start/end
+					subEv.End = subEv.End.AddDate(0, 0, 7 * i)
+					if subEv.Start.Before(eop) {             // if still in range add, else continue (no guarentee list is sorted, must keep going!)
+						_, err := subEv.add()           // Add the event if still in range
+						if err != nil {
+							logger.Println(err)
+						}
+					}
+				}
+			case WEEKLY:
+				logger.Println("WEEKLY: ", be)
+				be.add() // Add to db
+			}
+			be = be.Increment() // increment by Delta
+		}
+	}
+}
+

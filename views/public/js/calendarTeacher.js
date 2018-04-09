@@ -93,9 +93,6 @@ function storeChangesToEvent(event, delta, revertFunc, jsEvent, ui, view) {
     });
 }
 
-
-
-
 function updateEventRefreshModal(event, btn) {
     $('#calendar').fullCalendar('updateEvent', event);
     $('#eventDetailsModal').one('hidden.bs.modal', function(e) {
@@ -196,10 +193,11 @@ $(document).ready(function() {
         themeSystem: "bootstrap4",
         editable: false,                 // Need to use templating engine to change bool based on user's rolego ,
         eventRender: function(event, element, view) {
-            element.find('.fc-time').css("font-size", "1em")
-                .append("   " + event.bookingCount + "/3<br>");
+            element.find('.fc-time').css("font-size", "1rem")
+                .append('    ' + event.bookingCount + "/" +
+                            ((!!event.capacity) ? event.capacity.toString() : "3"));
             let fcTitle = element.find('.fc-title')
-                                 .css("font-size", "1.2em")
+                                 .css("font-size", "0.85em")
                                  .append("<br>"); // gets the fcTitle jQuery elem
             /* give edit event button to the events in a teacher's classroom */
             let teachesRoom = event.booked; // WE USE THIS FOR TEACHERS TO INDICATE IF CLASSROOM IS ONE THEY TEACH IN ROOM
@@ -208,7 +206,7 @@ $(document).ready(function() {
                     event.id + "' onclick='showEditModal(this)'><i class='far fa-edit fa-lg'></i></button>");
             } else {
                 fcTitle.append("<button type='button' class='btn btn-outline-primary border-0 btn-sm' data-id='" +
-                    event.id + "' onclick='showStaticModal(this)'><i class=\"fas fa-external-link-alt fa-lg\"></i></button>");
+                    event.id + "' onclick='showStaticModal(this)'><i class='fas fa-external-link-alt'></i></button>");
             }
             return renderFiltered(event);
         },

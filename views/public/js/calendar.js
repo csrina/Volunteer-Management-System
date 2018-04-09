@@ -1,5 +1,18 @@
 // JAVASCRIPT FOR ALL CALENDARS REGARDLESS OF ROLE -- MORE TO COME ONCE MODAL IS STANDARDIZED TO DATA-ID (SEE ADMIN)
 
+function fieldCheck(input) {
+    if (input.value == "" ) {
+        makeToast('error', `${input.name} cannot be empty`)
+        input.classList.add('alert');
+        input.classList.add('alert-danger');
+        return true;
+    }
+
+    input.classList.remove('alert');
+    input.classList.remove('alert-danger');
+    return false;
+}
+
 // Determines if an event satisfies the filters applied
 function isVisibleEvent(event) {
 	return $(`[id='${event.room}btn']`).attr("data-value") == "on";
@@ -14,7 +27,7 @@ function addFilterButton(buttonText) {
     if ($(`[id='${buttonText}btn']`).length != 0) {
         return; // Already have dis
     }
-    let btn = `<button type="button" class="btn btn-sm btn-primary active" aria-pressed="true" data-value="on" id="${buttonText}btn" onclick="changeFilter(this)"> ${buttonText} </button>`;
+    let btn = `<button type="button" style="font-size: 0.75rem;" class="btn btn-sm btn-primary active mp-1" aria-pressed="true" data-value="on" id="${buttonText}btn" onclick="changeFilter(this)"> ${buttonText} </button>`;
 	//btn +=  buttonText + "</button>";
 	$('#filterButtons').append(btn);
 }
