@@ -306,8 +306,8 @@ $(document).ready(function() {
             element.find('.fc-time').css("font-size", "1rem")
                     .append('   -   ' + event.bookingCount.toString() + "/" + event.capacity.toString());
             element.find('.fc-title').css("font-size", "0.85rem").append("<br>")
-                    .append("<button type='button' class='btn btn-outline-primary border-0 btn-sm' data-id='" + event.id + "' onclick='showModal(this)'><i class='far fa-edit fa-lg'></i></button>")
-                    .append("<button type='button' class='btn btn-outline-primary border-0 btn-sm' data-id='" + event.id + "' onclick='removeEvent(this)'><i class='fas fa-times-circle fa-lg'></i></button>");
+                    .append("<button type='button' class='btn btn-outline-primary border-0 btn-sm' data-id='" + event.id + "' onclick='showModal(this)'><i class='far fa-edit'></i></button>")
+                    .append("<button type='button' class='btn btn-outline-primary border-0 btn-sm' data-id='" + event.id + "' onclick='removeEvent(this)'><i class='fas fa-times-circle'></i></button>");
             return renderFiltered(event);
          },
         // DOM-Event handling for Calendar Eventblocks (why do js people suck at naming)

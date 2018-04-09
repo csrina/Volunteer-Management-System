@@ -75,7 +75,7 @@ $(document).ready(function() {
             let fctitle = element.find('.fc-title');
             fctime.css("font-size", "1rem");
             fctitle.prepend("<br/>");
-            fctitle.css("font-size", "1.0rem");
+            fctitle.css("font-size", "0.85rem");
 
             if (event.booked) {
                 fctime.append('<br><i class="fas fa-thumbtack"></i><br>');

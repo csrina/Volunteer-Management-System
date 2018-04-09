@@ -28,13 +28,13 @@
         <!-- Provide calendar if page wants it -->
         {{if .Calendar }}
             <!-- fullCalendar dependencies -->
-            <link rel="stylesheet" type='text/css' href='/views/fc/fullcalendar.css'/>
+            <link rel="stylesheet" type='text/css' href='/views/fc/fullcalendar.min.css'/>
             <!--<script type="text/javascript" src='/views/fc/lib/jquery.min.js'></script> -->
             <script type="text/javascript" src='/views/fc/lib/moment.min.js'></script>
             <script type="text/javascript" src='/views/fc/fullcalendar.js'></script>
             <!-- Shared javascript for all roles -->
             <script type="text/javascript" src='/views/public/js/calendar.js'></script>
-           {{if and (ne .PageName "builder") (ne .PageName "dashboard")}}
+           {{if ne .PageName "dashboard"}}
                 <!-- Role specific calendar js-->
                 <script type="text/javascript" src='/views/public/js/calendar {{- .Role -}} .js'><%= text/javascript %></script>
            {{end}}
