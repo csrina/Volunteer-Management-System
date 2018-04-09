@@ -3,8 +3,9 @@
 // and have the templates populate based on role. Additional auth checks
 // server side to ensure correct user/role and such should still take place
 function requestBooking() {
-    let event = JSON.parse($('.modal-footer').find('#modalEventData').text());
-    if (event.booked && event.bookingCount >= 3 && !prompt("This block is pretty crowded, are you sure you want to proceed?")) {
+    let event = $('#calendar').fullCalendar('clientEvents', (JSON.parse($('.modal-footer').find('#modalEventData').text())).id)[0];
+    console.log(event);
+    if (!event.booked && event.bookingCount >= 3 && !confirm("This block is pretty crowded, are you sure you want to proceed?")) {
         return;
     }
     // Block info for booking
@@ -31,7 +32,7 @@ function bookingRequestSuccess(data, id) {  // We expect the server to return js
     makeToast("success", data.msg);
     let event = $('#calendar').fullCalendar('clientEvents', id)[0];
     console.log(event);
-    $('#modalConfirm').removeClass((event.booked) ? "btn-warning" : "btn-success");
+    $('#modalConfirm').removeClass((!event.booked) ? ((event.bookingCount < 3) ? "btn-success" : "btn-danger") : "btn-warning");
     event.booked = !event.booked;
     if (event.booked === true) {
         if (!event.bookings) {
@@ -77,10 +78,12 @@ $(document).ready(function() {
             fctitle.prepend("<br/>");
             fctitle.css("font-size", "0.85rem");
 
+            let bookCount = (event.bookingCount <= event.capacity) ? event.bookingCount : event.capacity;
+
             if (event.booked) {
                 fctime.append('<br><i class="fas fa-thumbtack"></i><br>');
             } else {
-                fctime.append('   -   ' + event.bookingCount + "/" +
+                fctime.append('   -   ' + bookCount + "/" +
                     ((!!event.capacity) ? event.capacity : "3"));
             }
 
