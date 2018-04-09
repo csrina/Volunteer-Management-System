@@ -2,21 +2,23 @@
 
 {{template "header" .}}
 
-<div id="family" onpageshow="familyData()">
-
-  <button onclick="exportPdf()">Export to pdf</button>
-  <button onclick="exportMonthly()" download="" href="#">Export to csv</button>
-  <label>Select time: </label><input id="time" type="date"/>
-  <br>
-  <button onclick="previous()">Previous</button>
-  <button onclick="next()">Next</button>
+<div class="col-xs-5 text-center" id="family" onpageshow="familyData()">
+  <button class="btn btn-block btn-secondary m-2" onclick="exportPdf()">Export to pdf</button>
+  <button class="btn btn-block btn-secondary m-2" onclick="exportMonthly()" download="" href="#">Export to csv</button>
+    <div class="col-xs-3 offset-6 form-group m-2">
+        <label class="form-control form-control-sm" for="datePicker">Select date: </label>
+        <button class="btn btn-primary" onclick="previous()">Prev</button>
+        <input name="datePicker" id="time" type="date"/>
+        <button class="btn btn-primary" onclick="next()">Next</button>
+    </div>
 </div>
      <script>
      $("#time")[0].value = moment().format("YYYY-MM-DD");
      familyData();
 </script>
-<canvas id="skills"></canvas>
-
+        <div class="col-xs-6 text-center">
+            <canvas id="skills"></canvas>
+        </div>
 <script id="tmpl_reportFamily" type="x-dot-template">
   <table>
     <tr>
