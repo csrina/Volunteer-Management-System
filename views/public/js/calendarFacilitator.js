@@ -32,7 +32,7 @@ function bookingRequestSuccess(data, id) {  // We expect the server to return js
     makeToast("success", data.msg);
     let event = $('#calendar').fullCalendar('clientEvents', id)[0];
     console.log(event);
-    $('#modalConfirm').removeClass((event.booked) ? "btn-warning" : "btn-success");
+    $('#modalConfirm').removeClass((!event.booked) ? ((event.bookingCount < 3) ? "btn-success" : "btn-danger") : "btn-warning");
     event.booked = !event.booked;
     if (event.booked === true) {
         if (!event.bookings) {
