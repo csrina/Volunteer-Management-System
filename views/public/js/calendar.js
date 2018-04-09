@@ -27,7 +27,7 @@ function addFilterButton(buttonText) {
     if ($(`[id='${buttonText}btn']`).length != 0) {
         return; // Already have dis
     }
-    let btn = `<button type="button" class="btn btn-sm btn-primary active" aria-pressed="true" data-value="on" id="${buttonText}btn" onclick="changeFilter(this)"> ${buttonText} </button>`;
+    let btn = `<button type="button" style="font-size: 1rem;" class="btn btn-sm btn-primary active" aria-pressed="true" data-value="on" id="${buttonText}btn" onclick="changeFilter(this)"> ${buttonText} </button>`;
 	//btn +=  buttonText + "</button>";
 	$('#filterButtons').append(btn);
 }

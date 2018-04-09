@@ -306,8 +306,8 @@ $(document).ready(function() {
             element.find('.fc-time').css("font-size", "1rem")
                     .append('   -   ' + event.bookingCount.toString() + "/" + event.capacity.toString());
             element.find('.fc-title').css("font-size", "1rem").append("<br>")
-                    .append("<button type='button' class='btn btn-outline-primary m-1 border-0 btn-sm' data-id='" + event.id + "' onclick='showModal(this)'><i class='far fa-edit fa-lg'></i></button>")
-                    .append("<br><button type='button' class='btn btn-outline-primary border-0 btn-sm' data-id='" + event.id + "' onclick='removeEvent(this)'><i class='fas fa-times-circle fa-lg'></i></button>");
+                    .append("<button type='button' class='btn btn-outline-primary border-0 btn-sm' data-id='" + event.id + "' onclick='showModal(this)'><i class='far fa-edit fa-lg'></i></button>")
+                    .append("<button type='button' class='btn btn-outline-primary border-0 btn-sm' data-id='" + event.id + "' onclick='removeEvent(this)'><i class='fas fa-times-circle fa-lg'></i></button>");
             return renderFiltered(event);
          },
         // DOM-Event handling for Calendar Eventblocks (why do js people suck at naming)
@@ -391,11 +391,12 @@ function submitEvent() {
         }
         //loadAddEvent();
     });
+    let tzone = new Date().getTimezoneOffset();
     let event = {}
     event.title = $("#bTitle").val();
 	event.title = ((event.title === "" || !event.title) ? "Facilitation" : event.title);
-    event.start = moment(`${document.querySelector("#startdate").value}T${document.querySelector("#starttime").value}`).format();
-	event.end = moment(`${document.querySelector("#enddate").value}T${document.querySelector("#endtime").value}`).format();
+    event.start = moment(`${document.querySelector("#startdate").value}T${document.querySelector("#starttime").value}`);
+	event.end = moment(`${document.querySelector("#enddate").value}T${document.querySelector("#endtime").value}`);
     event.roomId = parseInt(document.querySelector("#room").value);
     event.room = $("#room option:selected").text();
     event.modifier = parseFloat(document.querySelector("#modifier").value);
