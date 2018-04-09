@@ -141,18 +141,17 @@ function setActiveCategory() {
 }
 
 function download(filename, text) {
-  var element = document.createElement('a');
-  element.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(text));
-  element.setAttribute('download', filename);
-
-  element.style.display = 'none';
-  document.body.appendChild(element);
-
-  element.click();
-
-  document.body.removeChild(element);
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename);
+    
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    
+    element.click();
+    
+    document.body.removeChild(element);
 }
-
 
 function exportMonthly() {
     let xhttp = new XMLHttpRequest();
@@ -181,10 +180,9 @@ function exportMonthly() {
 	download("export.csv", csvContent);
     });
     
-    xhttp.open("GET", "/api/v1/charts");
+    xhttp.open("GET", `/api/v1/charts?date=${$("#time")[0].value}`);
     xhttp.send();
 }
-
 
 function familyData() {
     let xhttp = new XMLHttpRequest();
@@ -236,7 +234,7 @@ function familyData() {
     	}
     	window.myBar.update();
     });
-    xhttp.open("GET", "/api/v1/charts");
+    xhttp.open("GET", `/api/v1/charts?date=${$("#time")[0].value}`);
     xhttp.send();
 }
     
