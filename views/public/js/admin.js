@@ -1,6 +1,8 @@
 document.addEventListener("DOMContentLoaded", function() {
     if (window.location.href.split("/").pop() == "dashboard") {
-        loadDash();
+		loadDash();
+		loadNewNotificationForm();
+		loadOldNotifications();
     }
 })
 
@@ -239,6 +241,46 @@ function familyData() {
     xhttp.open("GET", "/api/v1/charts");
     xhttp.send();
 }
+
+function loadOldNotifications(){
+    let xhttp = new XMLHttpRequest();
+    xhttp.addEventListener("loadend", () => {
+        let msgInfo = JSON.parse(xhttp.response);
+        let tmpl = document.querySelector("#Notification_tmpl").innerHTML;
+        let func = doT.template(tmpl);
+		document.querySelector("#display_notifications").innerHTML = func(msgInfo);
+    });
+    xhttp.open("GET", `/api/v1/admin/notification`);
+
+    xhttp.send();
+}
+
+function loadNewNotificationForm() {
+	let tmpl = document.querySelector("#newNotification_tmpl").innerHTML;
+	document.querySelector("#display_new_notification").innerHTML = tmpl;
+	$('#parent-select').multiSelect({
+		selectableHeader: "<div class='parent-select'>Available Facilitators</div>",
+		selectionHeader: "<div class='parent-select'>Users to Notify</div>"
+	});
+	$('#parent-select').multiSelect({});
+	
+	$.getJSON("/api/v1/admin/allFacilitators", function(data, status){
+		$.each(data, function(index){
+			$('#parent-select').multiSelect('addOption', { value: data[index].userId, text: data[index].userName});
+		});
+	});
+	document.querySelector("#submit").addEventListener('click', submitNewNotification);
+}
+
+function deleteMsg(msgid) {
+    $.ajax({
+        url: '/api/v1/admin/notification/' + msgid,
+        type: 'DELETE',
+        error: function(xhr, ajaxOptions, thrownError) {
+            makeToast("error", "Request failed: " + xhr.responseText);
+        }
+    })
+}
     
 function loadDash() {
     let xhttp = new XMLHttpRequest();
@@ -246,8 +288,7 @@ function loadDash() {
         let familyInfo = JSON.parse(xhttp.response);
         let tmpl = document.querySelector("#tmpl_familyList").innerHTML;
         let func = doT.template(tmpl);
-        document.querySelector("#displayData").innerHTML = func(familyInfo);
-
+		document.querySelector("#displayData").innerHTML = func(familyInfo);
     });
     xhttp.open("GET", `/api/v1/admin/dashboard`);
 
@@ -283,7 +324,7 @@ function loadEditUser(e) {
 
 	$.ajax({
 		type: "GET",
-		url: `/api/v1/admin/users?u=${userID}`,
+		url: `/api/v1/admin/users/${userID}`,
 		contentType: 'json',
 	})
 	.done(function(data) {
@@ -361,7 +402,7 @@ function loadEditFamily(e) {
     let familyID = e.srcElement.id.split("_")[1];
     
     
-    $.getJSON(`/api/v1/admin/families?f=${familyID}`, function(data, status){
+    $.getJSON(`/api/v1/admin/families/${familyID}`, function(data, status){
         let tmpl = document.querySelector("#tmpl_editFamily").innerHTML;
         let func = doT.template(tmpl);
 
@@ -487,6 +528,33 @@ function lonelyFacilitators() {
     xhttp.send();
 }
 
+function submitNewNotification() {
+    let pList = new Array();
+    $('#parent-select option:selected').each(function() {
+        pList.push(parseInt($(this).val()));
+	});
+
+	let newmsg= document.querySelector("#new_message_box").value;
+
+    let data = {"parents":pList, "newmessage":newmsg};
+
+    $.ajax({
+        type: 'POST',
+        url: '/api/v1/admin/notification',
+        contentType: 'json',
+        data: JSON.stringify(data),
+        dataType: 'text',
+        success: function(data) { 
+            makeToast('success', 'Notification created');
+			loadNewNotificationForm();
+			loadOldNotifications();
+        },
+        error: function(xhr) {
+            makeToast('error', `Could not create Notification: (${xhr.status})`);
+        }
+    });
+}
+
 function submitNewFamily() {
 	let surname = document.querySelector("#famName");
 	let numChild = parseInt($("#children").val());
@@ -518,12 +586,14 @@ function submitNewFamily() {
 }
 
 function submitUserEdit() {
-        let uId = parseInt(document.querySelector("#IDNum").innerHTML);
+        let uId = parseInt(document.querySelector("#IDNum").value);
         let newFName = document.querySelector("#fname");
         let newLName = document.querySelector("#lName");
         let newEmail = document.querySelector("#email");
         let newPhone = document.querySelector("#phoneNum"); 
 		let newUName = `${newLName.value.toLowerCase()}_${newFName.value.toLowerCase()}`;
+		let bNote  = document.querySelector("#bonusNote")
+		let bHours = parseInt(document.querySelector("#bonusHours").value);
 
 		if (bNote.value == null) {
 			bNote.value = "None";
@@ -545,10 +615,15 @@ function submitUserEdit() {
                 userList();
             }
         });
-        xhttp.open("PUT", "/api/v1/admin/users");
+		xhttp.open("PUT", "/api/v1/admin/users");
+		console.log(JSON.stringify({userid:uId, username:newUName,
+			firstname: newFName.value, lastname:newLName.value,
+			email:newEmail.value, phoneNumber:newPhone.value,
+			bonusHours: bHours, bonusNote: bNote.value}));
         xhttp.send(JSON.stringify({userid:uId, username:newUName,
                     firstname: newFName.value, lastname:newLName.value,
-                    email:newEmail.value, phoneNumber:newPhone.value}));
+					email:newEmail.value, phoneNumber:newPhone.value,
+					bonusHours: bHours, bonusNote: bNote.value}));
 }
 
 function newUser() {
@@ -627,7 +702,7 @@ function loadEditClass(e) {
     let classID = e.srcElement.id.split("_")[1];
     $.ajax({
         type: 'GET',
-        url: `/api/v1/admin/classes?c=${classID}`,
+        url: `/api/v1/admin/classes/${classID}`,
         contentType: 'json',
         dataType: 'json',
         success: function(data) {
