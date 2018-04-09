@@ -24,7 +24,8 @@ CREATE TABLE users (
 
 CREATE TABLE notifications (
     msg_id          SERIAL      PRIMARY Key,
-    msg             text
+    msg             text,
+    adminCreated    boolean DEFAULT false
 );
 
 create Table notify (
