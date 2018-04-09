@@ -33,9 +33,7 @@ function showModal(btn) {
 
     // use the open/close button strings to create edit buttons containing the data to be altered
     $('#eventModalTitle').html(openEditTitleButton + "<h5>" + event.title + closeEditButton + "</h5>");
-    $('#modalEventRoom').html("<button type='button' class='btn btn-outline-secondary border-0 mpb-1' onclick='editEventDetails(this)' " +
-        "data-id='" + event.id + "' data-fieldName='room'" + "'>" + event.room + " Room <span class='far fa-edit fa-lg'></span></button></button>")
-        .css("color", event.color);
+    $('#modalEventRoom').html(event.room + " Room").css("color", event.color);
 
     $('#modalEventTime').html(event.start.format("ddd, hh:mm") + " - " + event.end.format("hh:mm"))
     $('#modalEventCapacity').html("<h5> Capacity   " + event.capacity + editCapacityButton + "</h5>");
