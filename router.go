@@ -130,11 +130,16 @@ func apiRoutes(r *mux.Router) {
 	s.HandleFunc("/admin/classes", updateClass).Methods("PUT")
 	s.HandleFunc("/admin/classes/{class_id}", deleteRoom).Methods("DELETE")
 	s.HandleFunc("/admin/facilitators", lonelyFacilitators).Methods("GET")
+	s.HandleFunc("/admin/allFacilitators", allFacilitators).Methods("GET")
 	s.HandleFunc("/admin/families", getFamilyList).Methods("GET")
 	s.HandleFunc("/admin/families", createFamily).Methods("POST")
 	s.HandleFunc("/admin/families", updateFamily).Methods("PUT")
 	s.HandleFunc("/admin/families/{family_id}", deleteFamily).Methods("DELETE")
 	s.HandleFunc("/admin/dashboard", defaultReport).Methods("GET")
+	s.HandleFunc("/admin/notification", createAdminNotification).Methods("POST")
+	s.HandleFunc("/admin/notification", getAdminNotification).Methods("GET")
+	s.HandleFunc("/admin/notification/{id:[0-9]+}", deleteAdminNotification).Methods("Delete")
+
 
 	s.HandleFunc("/dashboard", getDashData).Methods("GET")
 	s.HandleFunc("/donate", getDonateData).Methods("GET")
