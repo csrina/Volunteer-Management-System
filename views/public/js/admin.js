@@ -210,7 +210,7 @@ function exportMonthly() {
     	    csvContent += str + "\r\n";
 	});
 		    
-	download(`Hours: ${input}`, csvContent);
+	download(`Hours: ${input}.csv`, csvContent);
     });
     
     xhttp.open("GET", `/api/v1/charts?date=${$("#time")[0].value}`);
@@ -220,11 +220,6 @@ function exportMonthly() {
 
 
 function exportPdf() {
-
-window.onload = function() {
-    $("#time")[0].value = moment().format("YYYY-MM-DD");
-    familyData();
-};    
     m = $("#time")[0].valueAsDate.getMonth() + 1;
     var input = monthSwitch(m);
     url = $("#skills")[0].toDataURL("image/png");
