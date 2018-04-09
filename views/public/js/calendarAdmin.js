@@ -112,7 +112,7 @@ function requestBookingWrapper(btn) {
 
     let uid = btn.getAttribute("data-uid");
     if (uid == -1) { // We use a == because incoming type may be a string
-        uid = prompt("Please enter the userID or username to book in this event: ");
+        uid = prompt("Please enter the userID to book in this event: ");
         temp = parseInt(uid);
         if (typeof temp === "number") {
             uid = temp;
