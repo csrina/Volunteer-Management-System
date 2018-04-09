@@ -98,7 +98,6 @@ func createRouter() (*mux.Router, error) {
 	//load facilitator/teacher pages
 	r.HandleFunc("/dashboard", loadDashboard)
 	r.HandleFunc("/calendar", loadCalendar)
-	r.HandleFunc("/donate", loadDonate)
 	r.HandleFunc("/change_password", loadPassword)
 	r.HandleFunc("/teacher", loadTeacher)
 

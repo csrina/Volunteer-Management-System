@@ -137,7 +137,6 @@ func mapEventJSON(r *http.Request) (map[string]interface{}, error) {
 	if !ok {
 		return nil, errors.New("couldn't map request")
 	}
-	logger.Println("Ev Map: ", ev)
 	return ev, nil
 }
 
@@ -152,6 +151,7 @@ type Event struct {
 	Room   string    `db:"room_name" json:"room"` // fullCalendar will make blocks colour of room
 	Colour string    `json:"color"`               // color code for event rendering (corresponds to the room name)
 	// booking ids for lookup
+	Capacity     int         `json:"capacity"`
 	BookingCount int         `json:"bookingCount"`
 	Booked       bool        `json:"booked"`
 	Bookings     []UserShort `json:"bookings"` // we store their actual names in the username field
@@ -193,6 +193,7 @@ func (e *Event) update() (*Response, error) {
 	tb.Note = e.Note
 	tb.Title = e.Title
 	tb.Modifier = e.Modifier
+	tb.Capacity = e.Capacity
 
 	err = tb.update()
 	if err != nil {
@@ -226,6 +227,7 @@ func (e *Event) add() (*Response, error) {
 	var err error
 	e.ID, err = tb.insert() // insert block & set e.ID to correspond to the tbID returned
 	if err != nil {
+		logger.Println(err)
 		return nil, err
 	}
 	e.updateColourCode() // update color of event
@@ -321,6 +323,8 @@ func (e *Event) getTimeBlock() *TimeBlock {
 		e.Title = "Facilitation"
 	}
 	tb.Title = e.Title
+	tb.Capacity = e.Capacity
+
 
 	return tb
 }
@@ -430,6 +434,7 @@ func NewEvent(b *TimeBlock) *Event {
 		Note:     b.Note,
 		Title:    b.Title,
 		Modifier: b.Modifier,
+		Capacity: b.Capacity,
 	}
 	err := e.initBookings()
 	if err != nil {

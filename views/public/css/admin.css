@@ -9,7 +9,6 @@
 #wdgt-container {
     font-weight: bold;
     font-family: Calibri, sans-serif;
-    font-size: 4rem;
     text-align: center;
     padding: 10px;
     margin: 10px;
@@ -23,7 +22,6 @@
 }
 
 #calendar {
-    padding: 3px;
     border: 1px solid #5a5a5a;
     border-radius: 3px;
 }

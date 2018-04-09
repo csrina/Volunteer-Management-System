@@ -1,8 +1,7 @@
 {{define "calendar"}}
 
 {{template "header" .}}
-
-<br><br><br><br>
+<br><br>
     <main>
         <!-- Event Details Modal -->
         <div class="modal fade" id="eventDetailsModal" tabindex="-1" role="dialog" aria-labelledby="eventDetailsModalCenterTitle" aria-hidden="true">
@@ -36,12 +35,16 @@
         <div class="main-container">
             <div class="container">
                 <div class="row">
-                    <div class="col-xs-2 float-left" id="filterList">
-                        <div class="btn-group-vertical align-middle float-left" data-toggle="buttons" id="filterButtons">
+                    <div class="col-xs-10">
+                        <h2 class="text-center">Upcoming Schedule</h2>
+                        <div class="card mp-2" id="wdgt-container">
+                            <div class="mt-2" id="filterList">
+                                <div class="btn-group text-center" data-toggle="buttons" id="filterButtons"></div>
+                            </div>
+                            <div class="card text-center" id="wdgt-container">
+                                <div id="calendar"></div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-sm-11 float-right">
-                        <div id="calendar"></div>
                     </div>
                 </div>
             </div>

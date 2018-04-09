@@ -73,14 +73,15 @@ $(document).ready(function() {
         eventRender: function(event, element, view) {
             let fctime = element.find('.fc-time');
             let fctitle = element.find('.fc-title');
-            fctime.css("font-size", "1em");
+            fctime.css("font-size", "1rem");
             fctitle.prepend("<br/>");
-            fctitle.css("font-size", "1.0em");
+            fctitle.css("font-size", "0.85rem");
 
             if (event.booked) {
                 fctime.append('<br><i class="fas fa-thumbtack"></i><br>');
             } else {
-                fctime.append('<br>' + event.bookingCount + "/3");
+                fctime.append('   -   ' + event.bookingCount + "/" +
+                    ((!!event.capacity) ? event.capacity : "3"));
             }
 
             return renderFiltered(event);
@@ -94,7 +95,7 @@ $(document).ready(function() {
         eventClick: function(event, jsEvent, view) {
             $('#eventModalTitle').html("Book " + event.title);
             $('#modalEventRoom').html(event.room + " Room").css("color", event.color);
-            $('#modalEventTime').html(event.start.format("ddd, hA") + " - " + event.end.format("hA"))
+            $('#modalEventTime').html(event.start.format("ddd, hh:mm") + " - " + event.end.format("hh:mm"));
             $('#modalEventValue').html(moment.duration(event.end.diff(event.start)).asHours() * event.modifier);
             $('#eventNote').html(event.note);
             $('#modalEventData').html(JSON.stringify({
