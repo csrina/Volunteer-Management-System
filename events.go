@@ -137,7 +137,6 @@ func mapEventJSON(r *http.Request) (map[string]interface{}, error) {
 	if !ok {
 		return nil, errors.New("couldn't map request")
 	}
-	logger.Println("Ev Map: ", ev)
 	return ev, nil
 }
 
@@ -206,10 +205,12 @@ func (e *Event) update() (*Response, error) {
  * Return a response struct or error
  */
 func (e *Event) add() (*Response, error) {
+	logger.Println("=>DB: ", e)
 	tb := e.getTimeBlock()
 	var err error
 	e.ID, err = tb.insert() // insert block & set e.ID to correspond to the tbID returned
 	if err != nil {
+		logger.Println(err)
 		return nil, err
 	}
 	e.updateColourCode() // update color of event
@@ -241,6 +242,7 @@ func (e *Event) getTimeBlock() *TimeBlock {
 	}
 	tb.Title = e.Title
 	tb.Capacity = e.Capacity
+
 
 	return tb
 }

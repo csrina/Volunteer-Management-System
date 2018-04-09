@@ -14,8 +14,6 @@ function showModal(btn) {
 
     document.getElementById('modalTitleInput').value = event.title;
     document.getElementById('modalRoomInput').value = event.color;
-    document.getElementById('modalTimeStartInput').value = event.start.format("hh:mm");
-    document.getElementById('modalTimeEndInput').value = event.end.format("hh:mm");
     document.getElementById("modalCapacityInput").value = event.capacity;
     document.getElementById("modalValueInput").value = event.modifier;
     document.getElementById("modalNoteInput").value = event.note;
@@ -61,26 +59,15 @@ function saveChangesToEvent(btn) {
 
     event.title     = document.getElementById('modalTitleInput').value;
     event.room      = document.getElementById('modalRoomInput').value;
-    let sTime       = document.getElementById('modalTimeStartInput').value.toString().split(":");
-    event.start.set(
-        {
-            "hours": parseInt(sTime[0]),
-            "minutes": parseInt(sTime[1]),
-        }
-    );
-    let endTime     = document.getElementById('modalTimeEndInput').value;
-    event.end.set(
-        {
-            "hours": parseInt(endTime[0]),
-            "minutes": parseInt(endTime[1]),
-        }
-    );
+    event.color     = event.room;
     event.capacity  = document.getElementById("modalCapacityInput").value;
     event.modifier  = document.getElementById("modalValueInput").value;
     event.note      = document.getElementById("modalNoteInput").value;
     updateEventIntervalData(event); // Update the interval info
 
     console.log("after: ", event);
+
+    $("#calendar").fullCalendar('updateEvent', event);
 }
 
 function editEventDetails(btn) {
@@ -299,16 +286,16 @@ function submitTemplateForApplication() {
             'clientEvents',
             (ev => { return ev.start.day() != 0; })
     );
-
+    let tzone = new Date().getTimezoneOffset();
     let normalizedEvents = [];
     events.forEach( ev => {
         ev2 = {
-            id: ev.id,
+            id: parseInt(ev.id),
             title: ev.title,
-            start: ev.start,
-            end: ev.end,
-            capacity: ev.capacity,
-            modifier: ev.modifier,
+            start: moment(ev.start).utcOffset(tzone, true).format(),
+            end: moment(ev.end).utcOffset(tzone, true).format(),
+            capacity: parseInt(ev.capacity),
+            modifier: parseFloat(ev.modifier),
             note: ev.note,
             room: ev.room,
             color: ev.color,
@@ -317,17 +304,20 @@ function submitTemplateForApplication() {
         normalizedEvents.push(ev2);
     });
 
-    let stPeriod = moment($("#periodStart").val());
-    stPeriod.startOf("day");
-    let endPeriod = moment($("#periodEnd").val());
-    endPeriod.endOf("day");
+    let stPeriod = document.getElementById("startPeriodInput").value;
+    let endPeriod = document.getElementById("endPeriodInput").value;
+    stPeriod = (!!stPeriod) ? stPeriod : moment();
+    endPeriod = (!!endPeriod) ? endPeriod : moment();
     // Get all events on calendar that aren't on sunday (template day) --> stringify for transmission to server
-    let sendData = JSON.stringify({
-        periodStart:    stPeriod,
-        periodEnd:      endPeriod,
+    let sendData = {
+        periodStart:    moment(stPeriod).startOf('day').format(),
+        periodEnd:      moment(endPeriod).endOf('day').format(),
         events:         normalizedEvents,
-    });
+    }
+
+    sendData = JSON.stringify(sendData);
     console.log(sendData);
+
     $.ajax({
         url: '/api/v1/schedule/build',
         type: 'POST',
@@ -348,7 +338,6 @@ document.addEventListener("DOMContentLoaded", () => {
     $("#modalEventFormParent").submit((jsEvent) => {
         console.log($(this).serializeArray());
     });
-
     document.querySelector('input[name="repeatTypeRadios"]').onclick=updateFormForRepeatType;
 });
 

@@ -88,16 +88,9 @@
                                         <label id="eventModalTitle" for="modalTitleInput">Title</label>
                                         <input type="text" name="modalTitleInput" class="form-control" id="modalTitleInput" value=""></input>
 
-                                        <label id="modalRoomLabel" for="modalRoomInput">Where</label>
-                                        <input id="modalRoomInput" name="modalRoomInput" class="form-control" type="color" value=""></input>
-
-                                        <div class="form-group">
-                                            <label id="modalTimeLabel">When</label>
-                                            <label id="modalStartLabel" for="modalTimeStartInput">Start Time</label>
-                                            <input type="time"  id="modalTimeStartInput" name="modalTimeStartInput" class="form-control" value=""></input>
-                                            <label id="modalEndLabel" for="modalTimeEndInput">End Time</label>
-                                            <input type="time"  id="modalTimeEndInput" name="modalTimeEndInput" class="form-control" value=""></input>
-                                        </div>
+                                        <label id="modalRoomLabel" for="modalRoomSelect">Where</label>
+                                        <select id="modalRoomSelect" name="modalRoomSelect" class="form-control" value="">
+                                        </select>
 
                                         <label id="modalCapacityLabel">Capacity</label>
                                         <input type="number" step="1" min="0" class="form-control" id="modalCapacityInput" name="modalCapacityInput" value="0"></input>
@@ -185,9 +178,9 @@
                          {{if eq .PageName "builder"}}
                              <fieldset>
                                  <label style="font-size: 1rem;" for="startPeriodInput">Period Start</label>
-                                 <input id="startPeriod" class="form-control form-control-sm" type="date" name="startPeriodInput"></input>
+                                 <input id="startPeriodInput" class="form-control form-control-sm" type="date" name="startPeriodInput"></input>
                                  <label for="endPeriodInput" style="font-size: 1rem;">Period End</label>
-                                 <input id="endPeriod" class="form-control form-control-sm" type="date" name="endPeriodInput"></input>
+                                 <input id="endPeriodInput" class="form-control form-control-sm" type="date" name="endPeriodInput"></input>
                              </fieldset>
                          {{end}}
                             <div class="btn-group" data-toggle="buttons" id="filterButtons"></div>

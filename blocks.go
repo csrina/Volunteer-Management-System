@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"encoding/json"
-	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -12,6 +10,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
+	"encoding/json"
 )
 
 /* TimeBlock ...
@@ -361,7 +360,8 @@ type BuilderEvent struct {
 }
 
 // Advance by major delta (e.g. next month)
-func (be *BuilderEvent) Increment() (*BuilderEvent) {
+func (be BuilderEvent) Increment() (BuilderEvent) {
+	logger.Println("++: ", be)
 	switch be.Interval.Repeats {
 	case WEEKLY:
 		be.Start = be.Start.AddDate(0, 0, 7 * be.Interval.Delta)
@@ -379,9 +379,9 @@ func (be *BuilderEvent) Increment() (*BuilderEvent) {
  * Period end is exclusive moment for period to build in
  */
 type ScheduleBuilderData struct {
-	events      []BuilderEvent `json:"events"`
-	periodStart time.Time      `json:"periodStart"`
-	periodEnd   time.Time      `json:"periodEnd"`
+	Events      []BuilderEvent `json:"events"`
+	PeriodStart time.Time      `json:"periodStart"`
+	PeriodEnd   time.Time      `json:"periodEnd"`
 }
 
 // For handling template build/destroy/whateverelse POSTS
@@ -414,28 +414,26 @@ func schedulePostHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func buildRequestHandler(w http.ResponseWriter, r *http.Request) {
-	/* Read the json */
-	body, err := ioutil.ReadAll(r.Body)
+	dec := json.NewDecoder(r.Body)
+	builderData := new(ScheduleBuilderData)
+	err := dec.Decode(builderData)
 	if err != nil {
-		logger.Println("buildReqHandler errored: ", err)
+		logger.Println(builderData)
+		logger.Println(err)
+		http.Error(w, "Could not complete request", http.StatusInternalServerError)
 		return
 	}
-	builderData := new(ScheduleBuilderData)
-	var bdInterface interface{}
-	json.Unmarshal(body, &bdInterface)
+	logger.Println(builderData)
 
-	logger.Println("Data recieved for building: ",  bdInterface)
-
-	return
-
+	// separate by room
+	// only days are relevant coming from the builder (set the year/month to the start of the period
+	// Subtract a month, to guarentee we don't miss anything in the window (because the calendar is using the current date, it could be like the 24th or something; moving back to last month compensates
+	// our building algorithm will increment by week until period is hit
 	bdRoomMap := make(map[string][]BuilderEvent)
-	for _, e := range builderData.events {
-		// only days are relevant coming from the builder (set the year/month to the start of the period
-		// Subtract a month, to guarentee we don't miss anything in the window (because the calendar is using the current date, it could be like the 24th or something; moving back to last month compensates
-		// our building algorithm will increment by week until period is hit
-		e.Start = time.Date(builderData.periodStart.Year(), builderData.periodStart.Month() - 1, e.Start.Day(), e.Start.Hour(), e.Start.Minute(), e.Start.Second(), 0, time.Local)
-		e.End = time.Date(builderData.periodStart.Year(), builderData.periodStart.Month() - 1, e.End.Day(), e.End.Hour(), e.End.Minute(), e.End.Second(), 0, time.Local)
-		bdRoomMap[e.Room]= append(bdRoomMap[e.Room], e) // Split up by rooms (can be parallelized)
+	for _, e := range builderData.Events {
+		e.Start = time.Date(builderData.PeriodStart.Year(), builderData.PeriodStart.Month() - 1, e.Start.Day(), e.Start.Hour(), e.Start.Minute(), 0, 0, time.Local)
+		e.End = time.Date(builderData.PeriodStart.Year(), builderData.PeriodStart.Month() - 1, e.End.Day(), e.End.Hour(), e.End.Minute(),0, 0, time.Local) // builder sets utcOffset to 0
+		bdRoomMap[e.Room] = append(bdRoomMap[e.Room], e) // Split up by rooms (can be parallelized)
 	}
 
 	/*
@@ -446,8 +444,12 @@ func buildRequestHandler(w http.ResponseWriter, r *http.Request) {
 	 * gut feeling says rooms should be sufficient as a divisor.
 	 */
 	for _, evs := range bdRoomMap { // ignore roomnames [key is blanked (i.e. _)]
-		go BuildSchedule(evs, builderData.periodStart, builderData.periodEnd)
+		BuildSchedule(evs, builderData.PeriodStart, builderData.PeriodEnd)
 	}
+
+	rr := &Response{Msg: "whew!",}
+	rr.send(w)
+	return
 }
 
 /* Creates blocks to satisfy the interval conditions  for each bd in evs, within the period indicated by sop/eop (startofendofperiod */
@@ -456,25 +458,41 @@ func BuildSchedule(evs []BuilderEvent, sop, eop time.Time) {
 		// Before start of period (period starts  mid week for example), add weeks until in ranger
 		for be.Start.Before(sop) {
 			// dun dun dun duh duuuuuuuuun de da da dun de da dooo da da bump ba bum bah da (*james bond theme plays*)
-			be.Start.AddDate(0,0,7)
-			be.End.AddDate(0,0,7)
+			be.Start = be.Start.AddDate(0,0,7)
+			be.End = be.End.AddDate(0,0,7)
 		}
 
 		for be.Start.Before(eop) { // event in range --> add it to calendar and increment
+			logger.Println("ANY: ", be)
+
+			if be.RoomID == 0 {
+				q := `SELECT room_id FROM room WHERE room_name = $1`
+				err := db.QueryRow(q, be.Room).Scan(&be.RoomID)
+				if err != nil {
+					logger.Println(err)
+					continue
+				}
+			}
+
 			switch be.Interval.Repeats {
 			case MONTHLY:
+				logger.Println("MONTHLY: ", be)
 				for _, i := range be.Interval.secondaryDeltas { // For each sub delta value --> add events to calendar for the month
 					subEv := be
-					subEv.Start.AddDate(0, 0, 7 * i)         // add subDelta to start/end
-					subEv.End.AddDate(0, 0, 7 * i)
+					subEv.Start = subEv.Start.AddDate(0, 0, 7 * i)         // add subDelta to start/end
+					subEv.End = subEv.End.AddDate(0, 0, 7 * i)
 					if subEv.Start.Before(eop) {             // if still in range add, else continue (no guarentee list is sorted, must keep going!)
-						subEv.add()           // Add the event if still in range
+						_, err := subEv.add()           // Add the event if still in range
+						if err != nil {
+							logger.Println(err)
+						}
 					}
 				}
 			case WEEKLY:
+				logger.Println("WEEKLY: ", be)
 				be.add() // Add to db
 			}
-			be.Increment() // increment by Delta
+			be = be.Increment() // increment by Delta
 		}
 	}
 }
